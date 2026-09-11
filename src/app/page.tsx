@@ -25,6 +25,7 @@ type InvoiceRow = {
   taxAmount: string | null;
   totalAmount: string | null;
   lineItems: LineItem[] | null;
+  confidence: Record<string, { score: number; flagged: boolean; reason: string }> | null;
   needsReview: boolean;
 };
 
