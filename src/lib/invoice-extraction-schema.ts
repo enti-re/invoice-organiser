@@ -12,6 +12,30 @@ export const lineItemSchema = z.object({
   amount: z.number(),
 });
 
+// Single source of truth for which top-level fields the confidence layer
+// reviews — shared with confidence.ts so the `uncertain_fields` enum below
+// and the confidence map it produces can never drift apart.
+export const EXTRACTION_FIELD_KEYS = [
+  "vendor_name",
+  "invoice_number",
+  "invoice_date",
+  "due_date",
+  "currency",
+  "subtotal_amount",
+  "tax_amount",
+  "total_amount",
+  "line_items",
+] as const;
+
+export const uncertainFieldSchema = z.object({
+  field: z.enum(EXTRACTION_FIELD_KEYS),
+  reason: z
+    .string()
+    .describe(
+      "Brief, specific explanation of the ambiguity or illegibility, e.g. \"Could be Jan 3 or Mar 1 — date format on the document is ambiguous\"",
+    ),
+});
+
 export const invoiceExtractionSchema = z.object({
   vendor_name: z.string().nullable(),
   invoice_number: z.string().nullable(),
@@ -22,6 +46,12 @@ export const invoiceExtractionSchema = z.object({
   tax_amount: z.number().nullable(),
   total_amount: z.number().nullable(),
   line_items: z.array(lineItemSchema),
+  uncertain_fields: z
+    .array(uncertainFieldSchema)
+    .default([])
+    .describe(
+      "Fields you filled with a best guess despite genuine ambiguity (2-3 plausible readings), or null fields where the reason is informative (e.g. a due date genuinely absent from the document vs. illegible). Do not list a field here purely because you're fully confident in it — this is only for cases worth a human double-checking.",
+    ),
 });
 
 export type InvoiceExtraction = z.infer<typeof invoiceExtractionSchema>;

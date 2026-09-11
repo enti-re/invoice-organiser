@@ -23,6 +23,23 @@ export type SupportedMediaType =
   | "image/jpeg"
   | "image/webp";
 
+// Generous enough for a multi-page PDF read + tool-call response, short
+// enough that a hung request fails fast with a clear error instead of
+// leaving the caller (and the user) waiting indefinitely.
+const EXTRACTION_TIMEOUT_MS = 60_000;
+
+// Signal 1 of the confidence-scoring layer (see confidence.ts): prompted
+// conservatism. The other two signals (deterministic sanity checks, and
+// folding `uncertain_fields` into the confidence map) are pure post-hoc
+// logic and don't depend on this prompt, but they only work if the model
+// is honest here about what it isn't sure of.
+const EXTRACTION_INSTRUCTIONS = [
+  "Extract the invoice/receipt fields from this document using the record_invoice_extraction tool.",
+  "Only fill a field if you are genuinely confident in the value — if it's not present or not legible at all, return null rather than guessing.",
+  "If a field has 2-3 plausible readings (e.g. an ambiguous date format, a smudged digit), pick your best guess for the value, but add an entry to uncertain_fields naming the field and briefly explaining the ambiguity.",
+  "You may also use uncertain_fields to explain a null value when that's informative — e.g. a due date that's genuinely absent from the document, versus one that's present but illegible.",
+].join(" ");
+
 export async function extractInvoice(params: {
   base64Data: string;
   mediaType: SupportedMediaType;
@@ -38,24 +55,21 @@ export async function extractInvoice(params: {
           source: { type: "base64", media_type: params.mediaType, data: params.base64Data },
         };
 
-  const response = await anthropic.messages.create({
-    model: EXTRACTION_MODEL,
-    max_tokens: 4096,
-    tools: [extractionTool],
-    tool_choice: { type: "tool", name: EXTRACTION_TOOL_NAME },
-    messages: [
-      {
-        role: "user",
-        content: [
-          documentBlock,
-          {
-            type: "text",
-            text: "Extract the invoice/receipt fields from this document using the record_invoice_extraction tool. If a field is not present or not legible, use null rather than guessing.",
-          },
-        ],
-      },
-    ],
-  });
+  const response = await anthropic.messages.create(
+    {
+      model: EXTRACTION_MODEL,
+      max_tokens: 4096,
+      tools: [extractionTool],
+      tool_choice: { type: "tool", name: EXTRACTION_TOOL_NAME },
+      messages: [
+        {
+          role: "user",
+          content: [documentBlock, { type: "text", text: EXTRACTION_INSTRUCTIONS }],
+        },
+      ],
+    },
+    { timeout: EXTRACTION_TIMEOUT_MS },
+  );
 
   const toolUseBlock = response.content.find(
     (block): block is Anthropic.Messages.ToolUseBlock => block.type === "tool_use",
