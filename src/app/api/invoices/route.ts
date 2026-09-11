@@ -1,4 +1,4 @@
-import { APICallError, NoObjectGeneratedError } from "ai";
+import { APICallError, NoObjectGeneratedError, RetryError } from "ai";
 import { BlobError, BlobServiceRateLimited, put } from "@vercel/blob";
 import { and, desc, gte, ilike, lte, SQL } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -87,8 +87,13 @@ async function handlePost(request: Request) {
       base64Data: buffer.toString("base64"),
       mediaType,
     }));
-  } catch (error) {
-    console.error("Extraction failed", error);
+  } catch (rawError) {
+    console.error("Extraction failed", rawError);
+
+    // generateObject retries transient failures internally; once retries are
+    // exhausted it throws a RetryError wrapping the real cause in
+    // `lastError` rather than surfacing that cause directly.
+    const error = RetryError.isInstance(rawError) ? rawError.lastError : rawError;
 
     if (
       (error instanceof Error && error.name === "TimeoutError") ||
@@ -105,6 +110,15 @@ async function handlePost(request: Request) {
         return NextResponse.json(
           {
             error: "Extraction service is rate limited right now. Please try again shortly.",
+            fileUrl: blobUrl,
+          },
+          { status: 502 },
+        );
+      }
+      if (error.statusCode === 503) {
+        return NextResponse.json(
+          {
+            error: "Extraction service is temporarily overloaded. Please try again shortly.",
             fileUrl: blobUrl,
           },
           { status: 502 },

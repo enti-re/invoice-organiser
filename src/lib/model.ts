@@ -4,9 +4,9 @@ if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
   throw new Error("GOOGLE_GENERATIVE_AI_API_KEY is not set");
 }
 
-// "gemini-flash-latest" always points to Google's current recommended Flash
-// model, so this doesn't go stale the way a dated snapshot ID would —
-// override via env if a specific pinned version is ever needed.
-export const EXTRACTION_MODEL_ID = process.env.GEMINI_MODEL ?? "gemini-flash-latest";
+// Pinned to a specific version rather than the "-latest" alias: in testing,
+// `gemini-flash-latest` returned real 503 "high demand" errors while this
+// pinned version worked reliably. Override via env if needed.
+export const EXTRACTION_MODEL_ID = process.env.GEMINI_MODEL ?? "gemini-3.6-flash";
 
 export const extractionModel = google(EXTRACTION_MODEL_ID);
