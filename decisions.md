@@ -70,15 +70,41 @@ Real decisions made while building this, in roughly the order they came up. Each
 
 **Why:** if the input is already plain text, there's no real extraction problem — pulling "Total: $500" out of clean text is trivial and doesn't exercise the actual hard part of this project (reading an unstructured visual document). It's also not the primary real-world format vendor invoices arrive in (PDF/image attachments dominate B2B billing). Cheap to add later if needed (Claude accepts a plain-text content block the same way it accepts an image), deliberately left out for now.
 
-## Confidence scoring: stubbed in Session 1, real logic is Session 2's job
+## Confidence scoring — the actual implementation (Session 2)
 
-**Decision:** `computeConfidence()` currently always returns full confidence and flags nothing — a clearly marked placeholder — so the schema, storage, and list UI have a stable shape to build against before the real scoring logic exists.
+Session 1 shipped a clearly-marked stub (`computeConfidence()` always returned full confidence, flagged nothing) so the schema/storage/UI had a stable shape to build against. The real logic, built in Session 2, ended up different from the original plan — worth documenting both the plan and why it changed.
 
-**Planned approach for Session 2 (decided in discussion, not yet built):** two independent signal types, neither of which requires knowing ground truth (we never have access to the "real" invoice data independently of what the AI reads off the image):
-1. **Cross-verification** — a second independent extraction pass; agreement between two independent reads is evidence of correctness, disagreement is evidence of ambiguity worth flagging.
-2. **Deterministic sanity rules** — internal consistency checks that don't need to know the true value: does `subtotal + tax ≈ total`? does `total ≈ sum(line_items)`? is `invoice_date` a valid, parseable date? is `vendor_name` non-empty?
+**Original plan:** two signals — cross-verification (a second independent extraction pass, agreement = confidence) plus deterministic sanity rules.
 
-**Honest framing (important for product positioning):** "confidence" here means *internal consistency and stability across independent extraction attempts*, not *verified against ground truth* — we can't claim the latter without a human in the loop, and claiming it anyway would be exactly the kind of overclaiming this project's positioning is explicitly trying to avoid.
+**What actually got built: three signals, from a single extraction call (cross-verification dropped — see below):**
+
+1. **Prompted conservatism** (`extract.ts`) — the extraction prompt explicitly tells the model: only fill a field you're genuinely confident in; return `null` rather than guess; if there are 2-3 plausible readings, pick a best guess but log the ambiguity via a new `uncertain_fields` array instead of silently picking one reading.
+2. **Deterministic sanity checks** (`confidence.ts`, pure code, no API calls) — null checks, blank/placeholder-string checks (`"n/a"`, `"tbd"`, etc.), ISO date-format validity, and amount math consistency: `subtotal + tax ≈ total`, and line items sum against `subtotal` (not `total` — see correction below), both with a small rounding tolerance (`max($0.02, 0.5% of the comparison amount)`).
+3. **Model self-reported uncertainty** (`uncertain_fields`, folded into the confidence map) — catches a value that's wrong but internally consistent, which no deterministic check can see (e.g. a plausible-but-incorrect vendor name).
+
+**Why cross-verification was dropped after all:** during implementation, weighed against the time-box, it stopped being worth it —
+- A second full extraction call roughly doubles both Anthropic spend and p95 latency on every upload, for a demo evaluated by one team, not production traffic.
+- What it would uniquely catch beyond the other two signals is narrow: two independent reads of the same image tend to agree or disagree for the same reasons a single careful read already reveals — if a field is genuinely legible, both passes read it the same way (no new information); if it's genuinely ambiguous, that's exactly what signal 1 already asks the model to self-report on the first pass. The case cross-verification uniquely catches — the model confidently misreads the same way twice for a subtle-but-wrong reason — is real, but narrow.
+- It would also add a second nontrivial design problem (reconciling two extractions field-by-field, deciding which one "wins" on disagreement) on top of the one this project is already scoped around.
+
+**Schema change:** added `uncertain_fields: { field, reason }[]` to `invoiceExtractionSchema` (default `[]`). Chose model self-reporting over inferring "why flagged" purely after the fact, because deterministic checks can only explain *provable* inconsistency (bad math, bad date format) — they have nothing to say about "this value is plausible-looking but I'm not actually sure," a judgment that only exists inside the model at extraction time and is lost if not captured then. Also added `EXTRACTION_FIELD_KEYS` as the single source of truth for the 9 top-level field names, shared between the `uncertain_fields` enum and `confidence.ts`'s iteration, so they can't drift apart.
+
+**Scoring model — three honest buckets, not a calibrated probability:**
+- `score: 1, flagged: false` — no issue found.
+- `score: 0.5, flagged: true` — field has a value but is flagged (ambiguous guess, inconsistent math, or self-reported uncertainty). Maps to the "AI has a guess but is unsure" UI state.
+- `score: 0, flagged: true` — field is `null`. Maps to the "AI couldn't extract this" UI state.
+
+**A correction made to the literal math-check spec, for correctness:** the plan said check `sum(line_items) ≈ total`. Taken literally, that fails on almost every normal taxed invoice, since line items conventionally exclude tax (`sum(line_items) ≈ subtotal`, not `total`). Implemented as: compare against `subtotal_amount` when one was extracted, falling back to `total_amount` only when there's no separate subtotal (e.g. a simple receipt with no tax breakdown).
+
+**Honest framing (important for product positioning, unchanged from the original plan):** "confidence" here means *internal consistency and stability*, not *verified against ground truth* — there's no independent source of what an invoice actually says, only what the model read off it. Claiming otherwise would be exactly the kind of overclaiming this project's positioning is meant to avoid.
+
+**Real limitations, stated honestly rather than implied away:**
+- **No second opinion.** If the model confidently misreads a field the same way every time, and the wrong value happens to be internally consistent (plausible vendor name, doesn't break any amount math, not self-flagged as ambiguous), nothing in this system catches it. This is the direct cost of dropping cross-verification.
+- **A null `due_date` can't distinguish "genuinely absent from this invoice" from "illegible."** Plenty of real receipts simply have no due date — that's not an extraction failure, but it's flagged the same way either way, since there's no reliable way to tell the two apart from the output shape alone (the model can soften this via `uncertain_fields`, improving the message, but the flag stays).
+- **Amount tolerance is a heuristic** (`max($0.02, 0.5%)`), reasonable for INR/USD-scale invoices in this project's scope, not derived from anything more rigorous — would need revisiting for wildly different currency magnitudes.
+- **Placeholder-string detection is a small fixed word list**, not exhaustive.
+
+**Also added:** a 60s timeout on the Anthropic API call (so a hung request fails fast instead of leaving the user waiting indefinitely), and 12 tests covering clean/flagged/messy invoice scenarios including a deliberately near-all-null "messy invoice" case that must not throw.
 
 ## Cut: auth / multi-user
 
