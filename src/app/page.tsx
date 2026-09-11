@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { InvoiceDetail } from "@/app/components/InvoiceDetail";
+
 type LineItem = {
   description: string;
   quantity: number | null;
@@ -485,8 +487,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* TODO: render InvoiceDetail modal/panel here once available, e.g.
-          <InvoiceDetail invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} /> */}
+      <InvoiceDetail invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />
     </div>
   );
 }
