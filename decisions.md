@@ -181,3 +181,9 @@ Considered and ruled out immediately — Vercel's serverless deployment model al
 **Why revised:** the deployed link gets shared over email, and realistically most people tap an emailed link from their phone first, even if they later switch to a desktop for real review — so the mobile view is very likely the *first impression*, not an edge case. A "not supported on mobile" message or a rough horizontally-scrolling table as someone's first touch is a worse outcome than the effort to avoid it.
 
 **Decision:** build a real (if simple) responsive layout — the list renders as a sortable/filterable table on desktop and as compact stacked cards (vendor, amount, date, status badge) on narrow screens, both fully functional. No "desktop only" gate anywhere.
+
+## Database schema applied via `drizzle-kit push`, not migration files
+
+**Alternatives considered:** generating versioned migration files (`drizzle-kit generate` + a migration runner) and committing them to the repo.
+
+**Why push instead:** migration files exist to give a team a reviewable, ordered history of schema changes across multiple environments (dev, staging, prod) over time — real value when a schema evolves under a live team and live data. This project has one environment, one schema (defined once, in `src/db/schema.ts`), and no live data to migrate around. `drizzle-kit push` applies the schema directly and is genuinely simpler for this scope. Both scripts (`pnpm db:generate`, `pnpm db:push`) are wired up in `package.json` — worth knowing the "real" way exists, but push is the right tool for a project this size.
