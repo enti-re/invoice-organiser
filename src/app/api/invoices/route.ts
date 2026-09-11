@@ -1,3 +1,4 @@
+import { APICallError, NoObjectGeneratedError } from "ai";
 import { BlobError, BlobServiceRateLimited, put } from "@vercel/blob";
 import { and, desc, gte, ilike, lte, SQL } from "drizzle-orm";
 import { NextResponse } from "next/server";
@@ -6,8 +7,6 @@ import { db } from "@/db";
 import { invoices } from "@/db/schema";
 import { computeConfidence } from "@/lib/confidence";
 import { extractInvoice, type SupportedMediaType } from "@/lib/extract";
-
-import Anthropic from "@anthropic-ai/sdk";
 
 const SUPPORTED_MEDIA_TYPES: SupportedMediaType[] = [
   "application/pdf",
@@ -91,18 +90,8 @@ async function handlePost(request: Request) {
   } catch (error) {
     console.error("Extraction failed", error);
 
-    if (error instanceof Anthropic.RateLimitError) {
-      return NextResponse.json(
-        {
-          error: "Extraction service is rate limited right now. Please try again shortly.",
-          fileUrl: blobUrl,
-        },
-        { status: 502 },
-      );
-    }
-
     if (
-      error instanceof Anthropic.APIConnectionTimeoutError ||
+      (error instanceof Error && error.name === "TimeoutError") ||
       (error instanceof Error && /timeout|timed out/i.test(error.message))
     ) {
       return NextResponse.json(
@@ -111,9 +100,25 @@ async function handlePost(request: Request) {
       );
     }
 
-    if (error instanceof Anthropic.APIError) {
+    if (APICallError.isInstance(error)) {
+      if (error.statusCode === 429) {
+        return NextResponse.json(
+          {
+            error: "Extraction service is rate limited right now. Please try again shortly.",
+            fileUrl: blobUrl,
+          },
+          { status: 502 },
+        );
+      }
       return NextResponse.json(
         { error: "Extraction service is unavailable right now. Please try again.", fileUrl: blobUrl },
+        { status: 502 },
+      );
+    }
+
+    if (NoObjectGeneratedError.isInstance(error)) {
+      return NextResponse.json(
+        { error: "Extraction did not return usable data for this document.", fileUrl: blobUrl },
         { status: 502 },
       );
     }

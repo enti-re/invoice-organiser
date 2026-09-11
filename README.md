@@ -1,6 +1,6 @@
 # Invoice Extraction with Honest Confidence Scoring
 
-An invoice/receipt extraction tool for accounts-payable/finance-ops workflows: upload a PDF or image invoice, an LLM (Claude) extracts the structured fields, and — the actual point of this project — a confidence-scoring layer flags exactly which fields might be wrong instead of silently trusting whatever the model returns. A reviewer only needs to check the flagged fields, not re-verify everything from scratch.
+An invoice/receipt extraction tool for accounts-payable/finance-ops workflows: upload a PDF or image invoice, an LLM (Gemini) extracts the structured fields, and — the actual point of this project — a confidence-scoring layer flags exactly which fields might be wrong instead of silently trusting whatever the model returns. A reviewer only needs to check the flagged fields, not re-verify everything from scratch.
 
 See [`decisions.md`](./decisions.md) for the full reasoning behind every real decision made while building this — what was considered, what was cut, and why.
 
@@ -10,7 +10,7 @@ See [`decisions.md`](./decisions.md) for the full reasoning behind every real de
 ## What it does
 
 1. Upload a PDF or image invoice (drag-and-drop or file picker).
-2. Claude reads the document directly (native document/vision understanding — no separate OCR step) and extracts vendor, invoice number, dates, amounts, tax, and line items as structured data.
+2. Gemini reads the document directly (native document/vision understanding — no separate OCR step) and extracts vendor, invoice number, dates, amounts, tax, and line items as structured data.
 3. A confidence layer checks the extraction against itself: the model is prompted to return `null` rather than guess, deterministic rules catch things that are provably inconsistent (bad math, invalid dates, empty required fields), and the model self-reports genuine ambiguity. Any field that fails a check gets flagged.
 4. Everything is stored in Postgres and shown in a searchable, sortable, filterable list (by vendor / date / amount).
 5. Click an invoice to see it rendered as an actual document — with flagged fields visually called out — and optionally compare it side by side against the original uploaded file.
@@ -20,7 +20,7 @@ See [`decisions.md`](./decisions.md) for the full reasoning behind every real de
 ## Tech stack
 
 - **Next.js 16 / React / TypeScript** — frontend + backend API routes in one deployable app
-- **Claude (Anthropic API)**, forced tool-use for structured extraction
+- **Google Gemini**, via the **Vercel AI SDK** (`generateObject`) for structured extraction
 - **Postgres (Neon)** via **Drizzle ORM** — typed columns for structured fields, `jsonb` for the naturally variable-shaped ones (`line_items`, `confidence`)
 - **Vercel Blob** for storing the original uploaded files
 - **Tailwind CSS**, styled per the `/cursor-design` design tokens (warm off-white, one accent color, monospace for data)
@@ -33,7 +33,7 @@ See [`decisions.md`](./decisions.md) for the full reasoning behind every real de
 
 - Node.js and [pnpm](https://pnpm.io)
 - A [Neon](https://neon.tech) Postgres project (free tier is enough)
-- An [Anthropic API key](https://console.anthropic.com)
+- A [Google Gemini API key](https://aistudio.google.com/apikey) (free tier)
 - A [Vercel Blob](https://vercel.com/docs/storage/vercel-blob) store token (create a Blob store in a Vercel project's Storage tab, or run `vercel env pull` after linking the project)
 
 ### 2. Install and configure
@@ -47,7 +47,7 @@ Fill in `.env`:
 
 ```
 DATABASE_URL=          # from your Neon project's connection details
-ANTHROPIC_API_KEY=     # from console.anthropic.com
+GOOGLE_GENERATIVE_AI_API_KEY= # from aistudio.google.com/apikey
 BLOB_READ_WRITE_TOKEN= # from your Vercel Blob store
 ```
 
@@ -89,7 +89,8 @@ src/
   db/
     schema.ts                   # Drizzle schema (the `invoices` table)
   lib/
-    extract.ts                  # Claude extraction call (forced tool-use)
+    extract.ts                  # Gemini extraction call (Vercel AI SDK, generateObject)
+    model.ts                     # AI SDK model provider setup
     confidence.ts                # the actual confidence-scoring logic
     invoice-extraction-schema.ts # Zod schema shared by extraction + confidence
 decisions.md                    # real decisions, alternatives considered, reasoning, cuts
