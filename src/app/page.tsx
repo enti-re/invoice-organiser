@@ -114,6 +114,43 @@ function SortIndicator({ direction }: { direction: SortDirection }) {
   return <span className="text-amber-600">{direction === "asc" ? "▲" : "▼"}</span>;
 }
 
+function UploadIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 16V4" />
+      <path d="M7 9l5-5 5 5" />
+      <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
+    </svg>
+  );
+}
+
+function FileIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.5}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <path d="M14 2v6h6" />
+    </svg>
+  );
+}
+
 export default function Home() {
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
@@ -126,6 +163,7 @@ export default function Home() {
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
+  const [dragActive, setDragActive] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -151,8 +189,7 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount only
   }, []);
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0] ?? null;
+  function applyFile(file: File | null) {
     setUploadError(null);
     if (!file) {
       setSelectedFile(null);
@@ -162,10 +199,20 @@ export default function Home() {
     if (validationError) {
       setUploadError(validationError);
       setSelectedFile(null);
-      e.target.value = "";
+      if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
     setSelectedFile(file);
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    applyFile(e.target.files?.[0] ?? null);
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setDragActive(false);
+    applyFile(e.dataTransfer.files?.[0] ?? null);
   }
 
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
@@ -235,83 +282,118 @@ export default function Home() {
   }, [invoices, sortKey, sortDirection]);
 
   return (
-    <div className="mx-auto max-w-5xl p-6 md:p-8 space-y-10">
-      <header>
-        <h1 className="text-3xl font-bold text-black">Invoice Extraction</h1>
-        <p className="text-sm text-neutral-600 mt-1 max-w-2xl">
-          Upload a vendor invoice or receipt (PDF, PNG, JPEG, WEBP, up to 15MB). Fields are
-          extracted automatically — rows flagged{" "}
-          <span className="text-amber-600 font-medium">Needs review</span> are the ones worth a
-          second look; everything else you can trust as-is.
+    <div className="mx-auto max-w-5xl px-6 py-12 md:px-8 md:py-16 space-y-14">
+      <header className="space-y-3">
+        <p className="text-xs font-semibold tracking-widest text-amber-600 uppercase">
+          Accounts payable
+        </p>
+        <h1 className="text-4xl md:text-5xl font-bold text-black tracking-tight">
+          Invoice Extraction
+        </h1>
+        <p className="text-base text-neutral-600 max-w-2xl leading-relaxed">
+          Upload a vendor invoice or receipt and the fields are extracted automatically. Rows
+          flagged <span className="text-amber-600 font-medium">Needs review</span> are the ones
+          worth a second look — everything else you can trust as-is.
         </p>
       </header>
 
-      <section className="bg-white border border-neutral-200 rounded-xl p-6 space-y-3">
-        <h2 className="font-bold text-black">Upload an invoice</h2>
-        <form onSubmit={handleUpload} className="flex flex-wrap items-center gap-3">
-          <input
-            ref={fileInputRef}
-            type="file"
-            name="file"
-            accept={ACCEPTED_FILE_TYPES.join(",")}
-            onChange={handleFileChange}
-            required
-            className="text-sm text-neutral-600 file:mr-3 file:rounded-full file:border-0 file:bg-neutral-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-black hover:file:bg-neutral-200"
-          />
-          <button
-            type="submit"
-            disabled={uploading || !selectedFile}
-            className="bg-black text-white text-sm px-5 py-2.5 rounded-full font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+      <section className="space-y-3">
+        <h2 className="font-bold text-black text-lg">Upload an invoice</h2>
+        <form onSubmit={handleUpload}>
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setDragActive(true);
+            }}
+            onDragLeave={() => setDragActive(false)}
+            onDrop={handleDrop}
+            className={`flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-10 text-center cursor-pointer transition-colors ${
+              dragActive
+                ? "border-amber-500 bg-amber-50/60"
+                : "border-neutral-300 bg-white hover:border-neutral-400"
+            }`}
           >
-            {uploading ? "Extracting…" : "Upload & extract"}
-          </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              name="file"
+              accept={ACCEPTED_FILE_TYPES.join(",")}
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            {selectedFile ? (
+              <>
+                <FileIcon className="w-8 h-8 text-amber-600" />
+                <p className="font-medium text-black">{selectedFile.name}</p>
+                <p className="text-sm text-neutral-500">
+                  {(selectedFile.size / 1024).toFixed(0)} KB — click or drop to replace
+                </p>
+              </>
+            ) : (
+              <>
+                <UploadIcon className="w-8 h-8 text-neutral-400" />
+                <p className="font-medium text-black">Drop an invoice here, or click to browse</p>
+                <p className="text-sm text-neutral-500">PDF, PNG, JPEG, or WEBP — up to 15MB</p>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-3 mt-4">
+            <button
+              type="submit"
+              disabled={uploading || !selectedFile}
+              className="bg-black text-white text-sm px-5 py-2.5 rounded-full font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {uploading ? "Extracting…" : "Upload & extract"}
+            </button>
+            {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
+          </div>
         </form>
-        {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
       </section>
 
       <section className="space-y-4">
-        <h2 className="font-bold text-black">Invoices</h2>
+        <h2 className="font-bold text-black text-lg">Invoices</h2>
 
         <form
           onSubmit={handleFilterSubmit}
-          className="flex flex-wrap items-center gap-2 text-sm bg-white border border-neutral-200 rounded-xl p-4"
+          className="flex flex-wrap items-center gap-2.5 text-sm bg-white border border-neutral-200 rounded-xl p-5"
         >
           <input
             placeholder="Vendor contains…"
             value={filters.vendor}
             onChange={(e) => setFilters({ ...filters, vendor: e.target.value })}
-            className="border border-neutral-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
+            className="border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
           />
           <input
             type="date"
             value={filters.dateFrom}
             onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-            className="border border-neutral-300 rounded-lg px-3 py-1.5 font-mono text-neutral-700 focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
+            className="border border-neutral-300 rounded-lg px-3 py-2 font-mono text-neutral-700 focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
           />
           <span className="text-neutral-400">to</span>
           <input
             type="date"
             value={filters.dateTo}
             onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-            className="border border-neutral-300 rounded-lg px-3 py-1.5 font-mono text-neutral-700 focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
+            className="border border-neutral-300 rounded-lg px-3 py-2 font-mono text-neutral-700 focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
           />
           <input
             type="number"
-            placeholder="Min amount"
+            placeholder="Min ₹"
             value={filters.minAmount}
             onChange={(e) => setFilters({ ...filters, minAmount: e.target.value })}
-            className="border border-neutral-300 rounded-lg px-3 py-1.5 w-28 font-mono focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
+            className="border border-neutral-300 rounded-lg px-3 py-2 w-24 font-mono focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
           />
           <input
             type="number"
-            placeholder="Max amount"
+            placeholder="Max ₹"
             value={filters.maxAmount}
             onChange={(e) => setFilters({ ...filters, maxAmount: e.target.value })}
-            className="border border-neutral-300 rounded-lg px-3 py-1.5 w-28 font-mono focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
+            className="border border-neutral-300 rounded-lg px-3 py-2 w-24 font-mono focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
           />
           <button
             type="submit"
-            className="border border-neutral-300 rounded-full px-4 py-1.5 font-medium text-black hover:border-black"
+            className="border border-neutral-300 rounded-full px-4 py-2 font-medium text-black hover:border-black"
           >
             Filter
           </button>
@@ -321,7 +403,7 @@ export default function Home() {
               setFilters(EMPTY_FILTERS);
               fetchInvoices(EMPTY_FILTERS);
             }}
-            className="text-neutral-500 px-3 py-1.5 hover:text-black"
+            className="text-neutral-500 px-3 py-2 hover:text-black"
           >
             Clear
           </button>
