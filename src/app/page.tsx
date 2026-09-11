@@ -98,8 +98,8 @@ function TrashIcon({ className }: { className?: string }) {
 }
 
 function StatusBadge({ needsReview }: { needsReview: boolean }) {
-  // Row-level flag only — the backend doesn't expose per-field confidence yet,
-  // so this approximates the "review flagged fields" UX with a single badge per invoice.
+  // Row-level summary badge for the list view — per-field detail (which
+  // specific field is flagged, and why) lives in the InvoiceDetail view.
   if (needsReview) {
     return (
       <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 border border-amber-200">
@@ -208,8 +208,6 @@ export default function Home() {
     }
   }
 
-  // Delete endpoint assumed as DELETE /api/invoices/{id} -> 200/204 on success,
-  // being built in parallel; reconcile if the real contract differs.
   async function handleDelete(id: string) {
     if (!window.confirm("Delete this invoice?")) return;
 
