@@ -200,6 +200,7 @@ export function InvoiceReview({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showOriginal, setShowOriginal] = useState(true);
+  const [fileLoaded, setFileLoaded] = useState(false);
   const [expandedField, setExpandedField] = useState<string | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -237,6 +238,7 @@ export function InvoiceReview({ id }: { id: string }) {
       setInvoice(null);
       setLoadError(null);
       setShowOriginal(true);
+      setFileLoaded(false);
       setExpandedField(null);
       setEditingField(null);
       try {
@@ -568,12 +570,28 @@ export function InvoiceReview({ id }: { id: string }) {
                 Open in new tab
               </a>
             </div>
-            <div className="min-h-[400px] flex-1">
+            <div className="relative min-h-[400px] flex-1">
+              {!fileLoaded && <div className="absolute inset-0 animate-pulse bg-neutral-800" />}
               {/\.pdf(\?|#|$)/i.test(invoice.fileName) || /\.pdf(\?|#|$)/i.test(invoice.fileUrl) ? (
-                <iframe src={invoice.fileUrl} title="Original invoice file" className="h-full min-h-[400px] w-full" />
+                <iframe
+                  src={invoice.fileUrl}
+                  title="Original invoice file"
+                  onLoad={() => setFileLoaded(true)}
+                  className={`h-full min-h-[400px] w-full transition-opacity duration-300 ${
+                    fileLoaded ? "opacity-100" : "opacity-0"
+                  }`}
+                />
               ) : (
                 // eslint-disable-next-line @next/next/no-img-element -- arbitrary remote/blob source
-                <img src={invoice.fileUrl} alt="Original invoice" className="h-full w-full object-contain" />
+                <img
+                  src={invoice.fileUrl}
+                  alt="Original invoice"
+                  onLoad={() => setFileLoaded(true)}
+                  onError={() => setFileLoaded(true)}
+                  className={`h-full w-full object-contain transition-opacity duration-300 ${
+                    fileLoaded ? "opacity-100" : "opacity-0"
+                  }`}
+                />
               )}
             </div>
           </div>

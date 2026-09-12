@@ -76,6 +76,24 @@ function validateFile(file: File): string | null {
   return null;
 }
 
+function SearchIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="11" cy="11" r="7" />
+      <path d="m21 21-4.35-4.35" />
+    </svg>
+  );
+}
+
 function TrashIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -242,6 +260,7 @@ export default function Home() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isFirstRun = useRef(true);
   const router = useRouter();
 
   const fetchInvoices = useCallback(async (f: Filters) => {
@@ -265,6 +284,21 @@ export default function Home() {
     fetchInvoices(filters);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount only
   }, []);
+
+  // Live search: re-fetch as the vendor query changes, debounced so we're
+  // not firing a request on every keystroke.
+  useEffect(() => {
+    if (isFirstRun.current) {
+      isFirstRun.current = false;
+      return;
+    }
+    setLoadingList(true);
+    const timeout = setTimeout(() => {
+      fetchInvoices(filters);
+    }, 350);
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on vendor query changes
+  }, [filters.vendor]);
 
   function applyFile(file: File | null) {
     setUploadError(null);
@@ -315,12 +349,6 @@ export default function Home() {
     } finally {
       setUploading(false);
     }
-  }
-
-  function handleFilterSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoadingList(true);
-    fetchInvoices(filters);
   }
 
   function handleSort(key: SortKey) {
@@ -440,40 +468,37 @@ export default function Home() {
       <section className="space-y-4">
         <h2 className="font-medium text-neutral-100">Invoices</h2>
 
-        <form
-          onSubmit={handleFilterSubmit}
-          className="flex flex-wrap items-center gap-2.5 text-sm border-b border-neutral-800 pb-5"
-        >
-          <input
-            placeholder="Vendor contains…"
-            value={filters.vendor}
-            onChange={(e) => setFilters({ ...filters, vendor: e.target.value })}
-            className="border border-neutral-700 px-3 py-2 focus:outline-none focus:border-white"
-          />
-          <button
-            type="submit"
-            className="cursor-pointer border border-neutral-700 px-4 py-2 font-medium text-neutral-100 hover:border-white"
-          >
-            Filter
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setFilters(EMPTY_FILTERS);
-              fetchInvoices(EMPTY_FILTERS);
-            }}
-            className="cursor-pointer text-neutral-400 px-3 py-2 underline hover:text-neutral-100"
-          >
-            Clear
-          </button>
-        </form>
+        <div className="border-b border-neutral-800 pb-5 text-sm">
+          <div className="relative max-w-sm">
+            <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+            <input
+              placeholder="Search by vendor…"
+              value={filters.vendor}
+              onChange={(e) => setFilters({ ...filters, vendor: e.target.value })}
+              className="w-full border border-neutral-700 py-2 pl-9 pr-9 focus:outline-none focus:border-white"
+            />
+            {filters.vendor && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFilters(EMPTY_FILTERS);
+                  fetchInvoices(EMPTY_FILTERS);
+                }}
+                aria-label="Clear search"
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-neutral-500 hover:text-white"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
 
         {/* Desktop table */}
         <div className="hidden md:block">
-          <table className="w-full text-sm border-collapse">
+          <table className="w-full table-fixed text-sm border-collapse">
             <thead>
               <tr className="text-left border-b border-neutral-800 text-neutral-400">
-                <th className="py-3 pr-4">
+                <th className="w-[24%] py-3 pr-4">
                   <button
                     type="button"
                     onClick={() => handleSort("vendorName")}
@@ -483,7 +508,7 @@ export default function Home() {
                     {sortKey === "vendorName" && <SortIndicator direction={sortDirection} />}
                   </button>
                 </th>
-                <th className="py-3 pr-4">
+                <th className="w-[14%] py-3 pr-4">
                   <button
                     type="button"
                     onClick={() => handleSort("invoiceDate")}
@@ -493,7 +518,7 @@ export default function Home() {
                     {sortKey === "invoiceDate" && <SortIndicator direction={sortDirection} />}
                   </button>
                 </th>
-                <th className="py-3 pr-4">
+                <th className="w-[14%] py-3 pr-4">
                   <button
                     type="button"
                     onClick={() => handleSort("totalAmount")}
@@ -503,11 +528,11 @@ export default function Home() {
                     {sortKey === "totalAmount" && <SortIndicator direction={sortDirection} />}
                   </button>
                 </th>
-                <th className="py-3 pr-4 font-medium">Tax</th>
-                <th className="py-3 pr-4 font-medium">Line items</th>
-                <th className="py-3 pr-4 font-medium">Status</th>
-                <th className="py-3 pr-4 font-medium" />
-                <th className="py-3 pr-4 w-10" />
+                <th className="w-[11%] py-3 pr-4 font-medium">Tax</th>
+                <th className="w-[9%] py-3 pr-4 font-medium">Line items</th>
+                <th className="w-[14%] py-3 pr-4 font-medium">Status</th>
+                <th className="w-[10%] py-3 pr-4 font-medium" />
+                <th className="w-[4%] py-3 pr-4" />
               </tr>
             </thead>
             <tbody>
@@ -538,7 +563,12 @@ export default function Home() {
               ) : (
                 sortedInvoices.map((inv) => (
                   <tr key={inv.id} className="group border-b border-neutral-800 last:border-0 hover:bg-neutral-900">
-                    <td className="py-3 pr-4 text-neutral-100">{inv.vendorName ?? "—"}</td>
+                    <td
+                      className="truncate py-3 pr-4 text-neutral-100"
+                      title={inv.vendorName ?? undefined}
+                    >
+                      {inv.vendorName ?? "—"}
+                    </td>
                     <td className="py-3 pr-4 font-mono text-neutral-300">{inv.invoiceDate ?? "—"}</td>
                     <td className="py-3 pr-4 font-mono text-neutral-100">{formatINR(inv.totalAmount)}</td>
                     <td className="py-3 pr-4 font-mono text-neutral-300">{formatINR(inv.taxAmount)}</td>

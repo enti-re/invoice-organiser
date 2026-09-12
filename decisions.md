@@ -384,6 +384,24 @@ A third iteration on the same toggle (see the two entries above: default-open-wh
 
 **Not fixed, deliberately, for now:** since Vercel functions typically run in a US region, the same query in production would very likely see a US-to-US round trip instead of a cross-continental one, likely resolving most of the perceived slowness on its own. Swapping the local dev driver for one that reuses a persistent connection (e.g. `neon-serverless` with a `Pool`) was considered and explicitly deferred — it would only help local testing, not the deployed app's real performance, and isn't worth the added dependency this close to the deadline. The progress-feedback fix above (previous section) addresses the actual user-facing symptom either way: even if a wait is unavoidable, the user should be able to see that the app is working, not stalled.
 
+## Filter bar redesigned as a single live-search box
+
+**Problem:** after simplifying the filter bar down to vendor-only (see the "Future plans" entry on date/amount filtering), the leftover UI still looked like a form built for five fields — a bordered input, a separate bordered "Filter" submit button, and an underlined "Clear" text link, three different visual treatments sitting in a row for what is now conceptually a single search box. Flagged directly as bad UX/UI.
+
+**Fix:** rebuilt it as one real search bar: a single bordered input with a magnifying-glass icon inset on the left and an inline "×" clear button that only appears once there's a query (inset on the right, inside the same box) — no separate submit/clear controls floating beside it. Behavior changed to match the new shape: typing now live-searches (debounced 350ms, via a `filters.vendor`-keyed effect with an `isFirstRun` ref so it doesn't double-fire the initial page-load fetch) instead of requiring an explicit "Filter" click. The `<form onSubmit>` wrapper and `handleFilterSubmit` were removed entirely since there's no longer a submit action — Enter no longer does anything special, which is correct for a live-search box (typing already triggers the search).
+
+## Table column widths fixed, so skeleton and real rows render at identical widths
+
+**Problem, caught by direct comparison:** the desktop invoices table had no explicit column widths, so — like the height-based CLS issues fixed earlier — each column auto-sized to whatever content was *currently* rendered. The skeleton's placeholder bars (fixed arbitrary pixel widths like `w-32`, `w-20`) and real invoice data (variable-length vendor names, formatted currency strings) don't naturally produce the same column widths, so the table's per-column widths — and consequently light horizontal reflow of the whole table — shifted the moment real data replaced the skeleton, on top of the vertical shifts already addressed.
+
+**Fix:** added `table-fixed` to the table and explicit percentage widths on every header cell (Vendor 24%, Invoice date 14%, Total 14%, Tax 11%, Line items 9%, Status 14%, Review 10%, delete icon 4% — summing to 100%). With `table-fixed`, column widths come from the header row alone and don't reflow based on body content, so the skeleton and the real rows are now guaranteed to render at identical widths — verified by measuring column widths directly (`getBoundingClientRect`) for a skeleton row vs. a real row with a deliberately long vendor name spliced in: every column matched to the pixel. Added `truncate` (+ a `title` attribute for the full name on hover) to the vendor cell, since a fixed-width column needs an explicit overflow strategy for text that's actually too long to fit, rather than letting it silently reflow the layout the way the old auto-sized table did.
+
+## Loading skeleton added for the original document panel
+
+**Problem:** with `showOriginal` now defaulting to `true` (see the earlier entry), the original file panel's image/PDF has to actually finish fetching from Vercel Blob before anything appears there — until then it was just a blank dark rectangle, no different from "broken" or "still loading."
+
+**Fix:** added a `fileLoaded` boolean (reset on every invoice navigation, alongside the other per-invoice state resets in `load()`), a pulsing skeleton block (`animate-pulse bg-neutral-800`) shown as an absolutely-positioned overlay until it's `true`, and `onLoad`/`onError` handlers on both the `<img>` and the PDF `<iframe>` that flip it (an `onError` fallback matters here specifically — a broken/missing file must still clear the skeleton, or it would spin forever instead of failing visibly). The real content fades in over the skeleton via a 300ms opacity transition rather than popping in abruptly.
+
 ## Future plans (not attempted in this submission)
 
 Named here rather than left implicit, so it's clear these are deliberate deferrals with a time-boxed submission, not gaps nobody noticed:
