@@ -447,6 +447,8 @@ A third iteration on the same toggle (see the two entries above: default-open-wh
 
 **Follow-up — added a "Product scope" section, right after the problem statement.** A four-line MVP-scope list (invoice uploads — PDF/image; automatic extraction; confidence scoring; inline correction) sitting between the problem and the deeper product-thinking bullets — states *what was built* in one glance before the page gets into *why*, matching how a PM doc usually separates scope from rationale.
 
+**Follow-up — added a "Product decisions & rationale" section, right after scope.** Four compressed one-liners covering the questions actually asked while reviewing the page: why upload-only (invoices normally arrive as documents; day-to-day manual entry solves a problem nobody in this workflow has, though backlog migration without source files is named honestly as a real future gap, not hand-waved away), how the confidence model works (three signals, each field scored 1/0.5/0), what the document-type check is for, and what flagged-field correction does. Sits between the plain "what was built" scope list and the deeper "Product thinking & UX decisions" section — scope says what, this says why in one line each, UX decisions go into the actual iteration detail.
+
 ## Landing page copy tightened
 
 The intro paragraph went through one more round after initial ship — from a longer sentence explaining the confidence-scoring pitch in full, to a two-sentence, imperative version ("Upload an invoice. AI extracts the fields and flags only those that need review.") that reads faster on a page whose only job is to get someone to click "Open the app" or "Design overview." The fuller explanation still lives on `/design` and in the README, where more detail is appropriate.

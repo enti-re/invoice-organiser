@@ -106,6 +106,30 @@ export default function DesignPage() {
       </section>
 
       <section className="space-y-3 border-t border-neutral-800 pt-10">
+        <h2 className="text-xl font-semibold text-neutral-100">Product decisions &amp; rationale</h2>
+        <ul className="space-y-2 text-sm text-neutral-300">
+          <li>
+            <span className="text-neutral-100">Upload-only:</span> invoices usually arrive as
+            documents, so manual entry is unnecessary for day-to-day use. Backlog migration is a
+            future consideration.
+          </li>
+          <li>
+            <span className="text-neutral-100">Confidence model:</span> combines model
+            uncertainty, deterministic format/math checks, and model-reported ambiguity. Each
+            field is scored <span className="text-neutral-100">1, 0.5, or 0</span>.
+          </li>
+          <li>
+            <span className="text-neutral-100">Document-type check:</span> prevents incorrect
+            documents from being treated as valid invoices.
+          </li>
+          <li>
+            <span className="text-neutral-100">Flagged-field correction:</span> lets users fix
+            uncertain data without leaving the workflow.
+          </li>
+        </ul>
+      </section>
+
+      <section className="space-y-3 border-t border-neutral-800 pt-10">
         <h2 className="text-xl font-semibold text-neutral-100">Product thinking &amp; UX decisions</h2>
         <ul className="space-y-2 text-sm text-neutral-300">
           <li>
