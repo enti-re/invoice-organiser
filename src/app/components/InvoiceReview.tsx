@@ -76,19 +76,26 @@ function FlagIndicator({
   align?: "left" | "right";
 }) {
   const sideClass = align === "right" ? "right-0" : "left-0";
+  const actionHint = editable ? "Click to confirm or edit" : "Click to confirm";
   return (
     <span className="relative inline-block">
       <button
         type="button"
         onClick={onToggle}
-        className="group relative inline-flex items-center rounded-full border border-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-red-400 hover:bg-red-500/10"
+        aria-expanded={expanded}
+        className="group relative inline-flex items-center rounded-full border border-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-red-400 transition-colors hover:border-red-400 hover:bg-red-500/20 hover:text-red-300"
       >
         ⚠
-        {reason && !expanded && (
+        {!expanded && (
           <span
-            className={`pointer-events-none absolute top-full z-20 mt-1 hidden w-56 max-w-[70vw] rounded border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-left text-[11px] font-normal normal-case leading-snug text-neutral-300 shadow-lg group-hover:block ${sideClass}`}
+            className={`pointer-events-none absolute top-full z-20 mt-1 hidden w-56 max-w-[70vw] rounded border border-neutral-700 bg-neutral-950 text-left text-[11px] font-normal normal-case leading-snug shadow-lg group-hover:block ${sideClass}`}
           >
-            {reason}
+            {reason && <div className="px-2 py-1.5 text-neutral-300">{reason}</div>}
+            <div
+              className={`px-2 py-1 text-[10px] text-neutral-500 ${reason ? "border-t border-neutral-800" : ""}`}
+            >
+              {actionHint}
+            </div>
           </span>
         )}
       </button>
