@@ -85,6 +85,27 @@ export default function DesignPage() {
       </section>
 
       <section className="space-y-3 border-t border-neutral-800 pt-10">
+        <h2 className="text-xl font-semibold text-neutral-100">Product scope</h2>
+        <ul className="space-y-2 text-sm text-neutral-300">
+          <li>
+            <span className="text-neutral-100">Invoice uploads</span> — PDF and image files.
+          </li>
+          <li>
+            <span className="text-neutral-100">Automatic extraction</span> — extract key invoice
+            fields using artificial intelligence.
+          </li>
+          <li>
+            <span className="text-neutral-100">Confidence scoring</span> — flag fields that may
+            need review.
+          </li>
+          <li>
+            <span className="text-neutral-100">Inline correction</span> — review and correct
+            flagged fields.
+          </li>
+        </ul>
+      </section>
+
+      <section className="space-y-3 border-t border-neutral-800 pt-10">
         <h2 className="text-xl font-semibold text-neutral-100">Product thinking &amp; UX decisions</h2>
         <ul className="space-y-2 text-sm text-neutral-300">
           <li>
