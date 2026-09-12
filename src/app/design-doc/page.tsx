@@ -26,7 +26,9 @@ const DesignPage = () => {
         <h2 className="text-xl font-semibold text-neutral-100">Product scope</h2>
         <ul className="space-y-2 text-sm text-neutral-300">
           <li>
-            <span className="font-semibold text-neutral-100">Invoice uploads</span> — PDF and image files.
+            <span className="font-semibold text-neutral-100">Invoice uploads</span> — PDF and image files, up
+            to 4MB (the real ceiling Vercel enforces on Serverless Function request bodies in production,
+            confirmed by testing — not an arbitrary number).
           </li>
           <li>
             <span className="font-semibold text-neutral-100">Automatic extraction</span> — extract key invoice
