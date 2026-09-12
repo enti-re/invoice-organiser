@@ -240,7 +240,7 @@ export function InvoiceReview({ id }: { id: string }) {
 
   const confidence = invoice.confidence;
 
-  function renderScalar(label: string, key: string, value: string | null, mono = false) {
+  function renderScalar(label: string, key: string, value: string | null, mono = false, showReason = true) {
     const hasValue = value !== null && value !== "";
     const { flagged, reason } = fieldState(confidence, key, hasValue);
     const isEditing = editingField === key;
@@ -269,7 +269,9 @@ export function InvoiceReview({ id }: { id: string }) {
                 </span>
               )}
             </div>
-            {flagged && reason && <div className="mt-0.5 text-xs text-red-400">⚠ {reason}</div>}
+            {flagged && showReason && reason && (
+              <div className="mt-0.5 text-xs text-red-400">⚠ {reason}</div>
+            )}
             {flagged && (
               <ReviewControls
                 fieldKey={key}
@@ -289,6 +291,23 @@ export function InvoiceReview({ id }: { id: string }) {
 
   const lineItemsFlag = confidence?.["line_items"];
   const items = invoice.lineItems ?? [];
+
+  // Subtotal/tax/total commonly get flagged together when they don't
+  // reconcile (see confidence.ts) -- but their reasons aren't always
+  // byte-identical (total_amount can carry an extra self-reported clause
+  // on top of the shared math-mismatch sentence, joined with "; "). Union
+  // the unique reason *segments* across all flagged amount fields and show
+  // that once, instead of repeating near-duplicate paragraphs per field.
+  const amountFieldKeys = ["subtotal_amount", "tax_amount", "total_amount"] as const;
+  const flaggedAmountFields = amountFieldKeys.filter((k) => confidence?.[k]?.flagged);
+  const amountReasonSegments = new Set<string>();
+  for (const k of flaggedAmountFields) {
+    confidence?.[k]?.reason?.split("; ").forEach((segment) => {
+      if (segment) amountReasonSegments.add(segment);
+    });
+  }
+  const sharedAmountReason =
+    flaggedAmountFields.length > 1 ? Array.from(amountReasonSegments).join("; ") : null;
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12 md:px-8 space-y-6">
@@ -412,9 +431,14 @@ export function InvoiceReview({ id }: { id: string }) {
 
           <div className="flex justify-end border-t border-neutral-800 pt-4">
             <div className="w-full max-w-xs space-y-1">
-              {renderScalar("Subtotal", "subtotal_amount", invoice.subtotalAmount, true)}
-              {renderScalar("Tax", "tax_amount", invoice.taxAmount, true)}
-              {renderScalar("Total", "total_amount", invoice.totalAmount, true)}
+              {renderScalar("Subtotal", "subtotal_amount", invoice.subtotalAmount, true, !sharedAmountReason)}
+              {renderScalar("Tax", "tax_amount", invoice.taxAmount, true, !sharedAmountReason)}
+              {renderScalar("Total", "total_amount", invoice.totalAmount, true, !sharedAmountReason)}
+              {sharedAmountReason && (
+                <div className="mt-2 border-t border-red-500/30 pt-2 text-xs text-red-400">
+                  ⚠ {sharedAmountReason}
+                </div>
+              )}
             </div>
           </div>
         </div>
