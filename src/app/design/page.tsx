@@ -49,21 +49,6 @@ function HLink({ width = 150, left, right }: { width?: number; left: string; rig
   );
 }
 
-function StackRow({ items }: { items: string[] }) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {items.map((item) => (
-        <span
-          key={item}
-          className="border border-neutral-800 bg-neutral-900 px-2.5 py-1 text-xs text-neutral-300"
-        >
-          {item}
-        </span>
-      ))}
-    </div>
-  );
-}
-
 export default function DesignPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-14 px-6 py-16 md:px-8">
@@ -175,7 +160,7 @@ export default function DesignPage() {
       </section>
 
       <section className="space-y-8 border-t border-neutral-800 pt-10">
-        <h2 className="text-xl font-semibold text-neutral-100">Proposed solution</h2>
+        <h2 className="text-xl font-semibold text-neutral-100">Solution &amp; architecture</h2>
 
         <div className="space-y-2">
           <h3 className="text-xs font-medium uppercase tracking-wide text-neutral-500">
@@ -316,51 +301,32 @@ export default function DesignPage() {
           </div>
         </div>
 
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium uppercase tracking-wide text-neutral-500">Frontend — which, and why</h3>
-          <StackRow items={["Next.js 16 (App Router)", "React", "TypeScript", "Tailwind CSS"]} />
-          <ul className="space-y-2 text-sm text-neutral-300">
-            <li>
-              <span className="text-neutral-100">Next.js App Router</span> — one app for pages and
-              API routes, nothing separate to deploy. Considered a separate backend; skipped, not
-              needed at this size.
-            </li>
-            <li>
-              <span className="text-neutral-100">No state library</span> — actions save to the server
-              and re-render from its response. Considered Redux/React Query; skipped, would just add
-              a second copy of data to keep in sync.
-            </li>
-            <li>
-              <span className="text-neutral-100">Custom design system</span> — a small, consistent
-              dark theme. Considered a component library; skipped to avoid a borrowed look.
-            </li>
-          </ul>
-        </div>
-
-        <div className="space-y-3">
-          <h3 className="text-sm font-medium uppercase tracking-wide text-neutral-500">Backend — which, and why</h3>
-          <StackRow items={["PostgreSQL (Neon)", "Drizzle ORM", "Gemini", "Vercel Blob"]} />
-          <ul className="space-y-2 text-sm text-neutral-300">
-            <li>
-              <span className="text-neutral-100">Typed columns + <code className="text-xs">jsonb</code></span>{" "}
-              — vendor, dates, and amounts are real columns; line items and confidence are{" "}
-              <code className="text-xs">jsonb</code>, since their shape varies. Considered
-              all-<code className="text-xs">jsonb</code>; skipped, loses the ability to query them.
-            </li>
-            <li>
-              <span className="text-neutral-100">One shared schema</span> — the same Zod schema
-              drives both extraction and confidence scoring, so they can&apos;t drift apart.
-            </li>
-            <li>
-              <span className="text-neutral-100">Gemini reads documents directly</span> — no OCR step.
-              Considered a separate OCR pipeline; skipped, one less thing that can break.
-            </li>
-            <li>
-              <span className="text-neutral-100">Synchronous extraction on upload</span> — simple, and
-              fine for one user at a time. First thing to change at scale (see below).
-            </li>
-          </ul>
-        </div>
+        <ul className="space-y-2 text-sm text-neutral-300">
+          <li>
+            <span className="text-neutral-100">Frontend:</span> Next.js, React, TypeScript, and
+            Tailwind CSS.
+          </li>
+          <li>
+            <span className="text-neutral-100">Backend:</span> Next.js API routes handle invoice
+            processing and data operations.
+          </li>
+          <li>
+            <span className="text-neutral-100">AI extraction:</span> Gemini extracts invoice
+            fields using a shared Zod schema.
+          </li>
+          <li>
+            <span className="text-neutral-100">Database:</span> Neon PostgreSQL stores structured
+            invoice data through Drizzle ORM.
+          </li>
+          <li>
+            <span className="text-neutral-100">File storage:</span> Vercel Blob stores the
+            original invoice files.
+          </li>
+          <li>
+            <span className="text-neutral-100">Deployment:</span> the complete application runs
+            as a single deployment on Vercel.
+          </li>
+        </ul>
       </section>
 
       <section className="space-y-3 border-t border-neutral-800 pt-10">
