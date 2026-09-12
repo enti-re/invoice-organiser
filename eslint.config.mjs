@@ -5,13 +5,10 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
+  // .next/**, out/**, build/**, next-env.d.ts are already ignored by
+  // eslint-config-next's own default ignores (verified in its installed
+  // source) -- restating them here was redundant.
   globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
     // Isolated agent worktrees (and their own generated .next/**) live under here.
     ".claude/**",
   ]),
