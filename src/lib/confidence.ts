@@ -1,4 +1,5 @@
 import type { ConfidenceMap } from "@/db/schema";
+import { isValidIsoDate } from "@/lib/date";
 import { EXTRACTION_FIELD_KEYS, type InvoiceExtraction } from "@/lib/invoice-extraction-schema";
 
 /**
@@ -38,12 +39,6 @@ const PLACEHOLDER_VALUES = new Set([
 function isBlankOrPlaceholder(value: string): boolean {
   const normalized = value.trim().toLowerCase();
   return normalized.length === 0 || PLACEHOLDER_VALUES.has(normalized);
-}
-
-function isValidIsoDate(value: string): boolean {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const date = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
 function amountsMatch(a: number, b: number): boolean {

@@ -4,12 +4,6 @@ import Link from "next/link";
 export default function IntroPage() {
   return (
     <div className="relative isolate flex min-h-dvh w-full items-center justify-center overflow-hidden px-6 md:px-8">
-      {/* A 17th-century Dutch still life of scattered papers/ledgers on a desk --
-          the actual literal subject matter this product is for (messy documents,
-          organized). A grayscale version was tried first for strict consistency
-          with the app's monochrome-plus-one-accent system, but it flattened the
-          image's own tonal detail and hurt legibility more than the color it
-          removed helped -- kept in its natural tones with a dark overlay instead. */}
       <Image
         src="/hero-still-life.jpg"
         alt=""
@@ -19,9 +13,6 @@ export default function IntroPage() {
         className="object-cover object-center"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-black/78 via-black/65 to-black/82" />
-      {/* Extra darkening focused behind the text block specifically, rather than
-          crushing the whole image again -- keeps the painting's edges/corners
-          visible while guaranteeing contrast exactly where it's needed. */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_640px_320px_at_center,rgba(0,0,0,0.65),transparent_70%)]" />
 
       <div className="relative mx-auto max-w-2xl text-center">

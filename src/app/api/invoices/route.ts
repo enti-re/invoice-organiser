@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { invoices } from "@/db/schema";
 import { computeConfidence } from "@/lib/confidence";
+import { isValidIsoDate } from "@/lib/date";
 import { extractInvoice, type SupportedMediaType } from "@/lib/extract";
 
 const SUPPORTED_MEDIA_TYPES: SupportedMediaType[] = [
@@ -198,11 +199,10 @@ async function handleGet(request: Request) {
     return NextResponse.json({ error: "maxAmount must be a number" }, { status: 400 });
   }
 
-  const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-  if (dateFrom !== null && !DATE_RE.test(dateFrom)) {
+  if (dateFrom !== null && !isValidIsoDate(dateFrom)) {
     return NextResponse.json({ error: "dateFrom must be an ISO date (YYYY-MM-DD)" }, { status: 400 });
   }
-  if (dateTo !== null && !DATE_RE.test(dateTo)) {
+  if (dateTo !== null && !isValidIsoDate(dateTo)) {
     return NextResponse.json({ error: "dateTo must be an ISO date (YYYY-MM-DD)" }, { status: 400 });
   }
 
