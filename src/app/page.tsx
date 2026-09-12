@@ -102,7 +102,7 @@ function StatusBadge({ needsReview }: { needsReview: boolean }) {
   // specific field is flagged, and why) lives in the InvoiceDetail view.
   if (needsReview) {
     return (
-      <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 border border-amber-200">
+      <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-400 border border-amber-500/40">
         Needs review
       </span>
     );
@@ -111,7 +111,7 @@ function StatusBadge({ needsReview }: { needsReview: boolean }) {
 }
 
 function SortIndicator({ direction }: { direction: SortDirection }) {
-  return <span className="text-amber-600">{direction === "asc" ? "▲" : "▼"}</span>;
+  return <span className="text-amber-400">{direction === "asc" ? "▲" : "▼"}</span>;
 }
 
 function UploadIcon({ className }: { className?: string }) {
@@ -284,21 +284,16 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-12 md:px-8 md:py-16 space-y-14">
       <header className="space-y-3">
-        <p className="text-xs font-semibold tracking-widest text-amber-600 uppercase">
-          Accounts payable
-        </p>
-        <h1 className="text-4xl md:text-5xl font-bold text-black tracking-tight">
-          Invoice Extraction
-        </h1>
-        <p className="text-base text-neutral-600 max-w-2xl leading-relaxed">
+        <h1 className="text-3xl font-semibold text-neutral-100 tracking-tight">Invoice Extraction</h1>
+        <p className="text-base text-neutral-400 max-w-2xl leading-relaxed">
           Upload a vendor invoice or receipt and the fields are extracted automatically. Rows
-          flagged <span className="text-amber-600 font-medium">Needs review</span> are the ones
+          flagged <span className="text-amber-400 font-medium">Needs review</span> are the ones
           worth a second look — everything else you can trust as-is.
         </p>
       </header>
 
       <section className="space-y-3">
-        <h2 className="font-bold text-black text-lg">Upload an invoice</h2>
+        <h2 className="font-medium text-neutral-100">Upload an invoice</h2>
         <form onSubmit={handleUpload}>
           <div
             onClick={() => fileInputRef.current?.click()}
@@ -308,10 +303,8 @@ export default function Home() {
             }}
             onDragLeave={() => setDragActive(false)}
             onDrop={handleDrop}
-            className={`flex flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-10 text-center cursor-pointer transition-colors ${
-              dragActive
-                ? "border-amber-500 bg-amber-50/60"
-                : "border-neutral-300 bg-white hover:border-neutral-400"
+            className={`flex flex-col items-center justify-center gap-3 border p-10 text-center cursor-pointer transition-colors ${
+              dragActive ? "border-white bg-neutral-900" : "border-neutral-800 hover:border-neutral-600"
             }`}
           >
             <input
@@ -324,17 +317,17 @@ export default function Home() {
             />
             {selectedFile ? (
               <>
-                <FileIcon className="w-8 h-8 text-amber-600" />
-                <p className="font-medium text-black">{selectedFile.name}</p>
-                <p className="text-sm text-neutral-500">
+                <FileIcon className="w-6 h-6 text-neutral-400" />
+                <p className="font-medium text-neutral-100">{selectedFile.name}</p>
+                <p className="text-sm text-neutral-400">
                   {(selectedFile.size / 1024).toFixed(0)} KB — click or drop to replace
                 </p>
               </>
             ) : (
               <>
-                <UploadIcon className="w-8 h-8 text-neutral-400" />
-                <p className="font-medium text-black">Drop an invoice here, or click to browse</p>
-                <p className="text-sm text-neutral-500">PDF, PNG, JPEG, or WEBP — up to 15MB</p>
+                <UploadIcon className="w-6 h-6 text-neutral-400" />
+                <p className="font-medium text-neutral-100">Drop an invoice here, or click to browse</p>
+                <p className="text-sm text-neutral-400">PDF, PNG, JPEG, or WEBP — up to 15MB</p>
               </>
             )}
           </div>
@@ -342,59 +335,56 @@ export default function Home() {
             <button
               type="submit"
               disabled={uploading || !selectedFile}
-              className="bg-black text-white text-sm px-5 py-2.5 rounded-full font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+              className="bg-white text-black text-sm px-4 py-2 font-medium disabled:opacity-30 disabled:cursor-not-allowed"
             >
               {uploading ? "Extracting…" : "Upload & extract"}
             </button>
-            {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
+            {uploadError && <p className="text-sm text-red-400">{uploadError}</p>}
           </div>
         </form>
       </section>
 
       <section className="space-y-4">
-        <h2 className="font-bold text-black text-lg">Invoices</h2>
+        <h2 className="font-medium text-neutral-100">Invoices</h2>
 
         <form
           onSubmit={handleFilterSubmit}
-          className="flex flex-wrap items-center gap-2.5 text-sm bg-white border border-neutral-200 rounded-xl p-5"
+          className="flex flex-wrap items-center gap-2.5 text-sm border-b border-neutral-800 pb-5"
         >
           <input
             placeholder="Vendor contains…"
             value={filters.vendor}
             onChange={(e) => setFilters({ ...filters, vendor: e.target.value })}
-            className="border border-neutral-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
+            className="border border-neutral-700 px-3 py-2 focus:outline-none focus:border-white"
           />
           <input
             type="date"
             value={filters.dateFrom}
             onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-            className="border border-neutral-300 rounded-lg px-3 py-2 font-mono text-neutral-700 focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
+            className="border border-neutral-700 px-3 py-2 font-mono text-neutral-300 focus:outline-none focus:border-white"
           />
           <span className="text-neutral-400">to</span>
           <input
             type="date"
             value={filters.dateTo}
             onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-            className="border border-neutral-300 rounded-lg px-3 py-2 font-mono text-neutral-700 focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
+            className="border border-neutral-700 px-3 py-2 font-mono text-neutral-300 focus:outline-none focus:border-white"
           />
           <input
             type="number"
             placeholder="Min ₹"
             value={filters.minAmount}
             onChange={(e) => setFilters({ ...filters, minAmount: e.target.value })}
-            className="border border-neutral-300 rounded-lg px-3 py-2 w-24 font-mono focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
+            className="border border-neutral-700 px-3 py-2 w-24 font-mono focus:outline-none focus:border-white"
           />
           <input
             type="number"
             placeholder="Max ₹"
             value={filters.maxAmount}
             onChange={(e) => setFilters({ ...filters, maxAmount: e.target.value })}
-            className="border border-neutral-300 rounded-lg px-3 py-2 w-24 font-mono focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
+            className="border border-neutral-700 px-3 py-2 w-24 font-mono focus:outline-none focus:border-white"
           />
-          <button
-            type="submit"
-            className="border border-neutral-300 rounded-full px-4 py-2 font-medium text-black hover:border-black"
-          >
+          <button type="submit" className="border border-neutral-700 px-4 py-2 font-medium text-neutral-100 hover:border-white">
             Filter
           </button>
           <button
@@ -403,24 +393,24 @@ export default function Home() {
               setFilters(EMPTY_FILTERS);
               fetchInvoices(EMPTY_FILTERS);
             }}
-            className="text-neutral-500 px-3 py-2 hover:text-black"
+            className="text-neutral-400 px-3 py-2 underline hover:text-neutral-100"
           >
             Clear
           </button>
         </form>
 
-        {listError && <p className="text-sm text-red-600">{listError}</p>}
+        {listError && <p className="text-sm text-red-400">{listError}</p>}
 
         {/* Desktop table */}
-        <div className="hidden md:block bg-white border border-neutral-200 rounded-xl overflow-hidden">
+        <div className="hidden md:block">
           <table className="w-full text-sm border-collapse">
             <thead>
-              <tr className="text-left border-b border-neutral-200 text-neutral-500 bg-neutral-50">
-                <th className="py-3 pl-4 pr-4">
+              <tr className="text-left border-b border-neutral-800 text-neutral-400">
+                <th className="py-3 pr-4">
                   <button
                     type="button"
                     onClick={() => handleSort("vendorName")}
-                    className="flex items-center gap-1 font-medium text-neutral-500 hover:text-black"
+                    className="flex items-center gap-1 font-medium text-neutral-400 hover:text-neutral-100"
                   >
                     Vendor
                     {sortKey === "vendorName" && <SortIndicator direction={sortDirection} />}
@@ -430,7 +420,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => handleSort("invoiceDate")}
-                    className="flex items-center gap-1 font-medium text-neutral-500 hover:text-black"
+                    className="flex items-center gap-1 font-medium text-neutral-400 hover:text-neutral-100"
                   >
                     Invoice date
                     {sortKey === "invoiceDate" && <SortIndicator direction={sortDirection} />}
@@ -440,7 +430,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => handleSort("totalAmount")}
-                    className="flex items-center gap-1 font-medium text-neutral-500 hover:text-black"
+                    className="flex items-center gap-1 font-medium text-neutral-400 hover:text-neutral-100"
                   >
                     Total
                     {sortKey === "totalAmount" && <SortIndicator direction={sortDirection} />}
@@ -458,13 +448,13 @@ export default function Home() {
                 <tr
                   key={inv.id}
                   onClick={() => setSelectedInvoice(inv)}
-                  className="group border-b border-neutral-100 last:border-0 hover:bg-neutral-50 cursor-pointer"
+                  className="group border-b border-neutral-800 last:border-0 hover:bg-neutral-900 cursor-pointer"
                 >
-                  <td className="py-3 pl-4 pr-4 text-black">{inv.vendorName ?? "—"}</td>
-                  <td className="py-3 pr-4 font-mono text-neutral-700">{inv.invoiceDate ?? "—"}</td>
-                  <td className="py-3 pr-4 font-mono text-black">{formatINR(inv.totalAmount)}</td>
-                  <td className="py-3 pr-4 font-mono text-neutral-700">{formatINR(inv.taxAmount)}</td>
-                  <td className="py-3 pr-4 text-neutral-700">{inv.lineItems?.length ?? 0}</td>
+                  <td className="py-3 pr-4 text-neutral-100">{inv.vendorName ?? "—"}</td>
+                  <td className="py-3 pr-4 font-mono text-neutral-300">{inv.invoiceDate ?? "—"}</td>
+                  <td className="py-3 pr-4 font-mono text-neutral-100">{formatINR(inv.totalAmount)}</td>
+                  <td className="py-3 pr-4 font-mono text-neutral-300">{formatINR(inv.taxAmount)}</td>
+                  <td className="py-3 pr-4 text-neutral-300">{inv.lineItems?.length ?? 0}</td>
                   <td className="py-3 pr-4">
                     <StatusBadge needsReview={inv.needsReview} />
                   </td>
@@ -474,7 +464,7 @@ export default function Home() {
                       target="_blank"
                       rel="noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="text-amber-600 hover:underline"
+                      className="text-neutral-100 underline hover:text-neutral-400"
                     >
                       view
                     </a>
@@ -488,7 +478,7 @@ export default function Home() {
                         e.stopPropagation();
                         handleDelete(inv.id);
                       }}
-                      className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-600 disabled:opacity-40 transition-opacity"
+                      className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-400 disabled:opacity-40 transition-opacity"
                     >
                       <TrashIcon className="w-4 h-4" />
                     </button>
@@ -519,7 +509,7 @@ export default function Home() {
             <div
               key={inv.id}
               onClick={() => setSelectedInvoice(inv)}
-              className="relative bg-white border border-neutral-200 rounded-xl p-4 space-y-2 cursor-pointer"
+              className="relative border border-neutral-800 p-4 space-y-2 cursor-pointer"
             >
               <button
                 type="button"
@@ -529,26 +519,26 @@ export default function Home() {
                   e.stopPropagation();
                   handleDelete(inv.id);
                 }}
-                className="absolute top-3 right-3 text-neutral-400 hover:text-red-600 disabled:opacity-40"
+                className="absolute top-3 right-3 text-neutral-400 hover:text-red-400 disabled:opacity-40"
               >
                 <TrashIcon className="w-4 h-4" />
               </button>
               <div className="pr-6">
-                <p className="font-bold text-black">{inv.vendorName ?? "Unknown vendor"}</p>
-                <p className="font-mono text-lg text-black">{formatINR(inv.totalAmount)}</p>
+                <p className="font-bold text-neutral-100">{inv.vendorName ?? "Unknown vendor"}</p>
+                <p className="font-mono text-lg text-neutral-100">{formatINR(inv.totalAmount)}</p>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="font-mono text-neutral-600">{inv.invoiceDate ?? "—"}</span>
+                <span className="font-mono text-neutral-400">{inv.invoiceDate ?? "—"}</span>
                 <StatusBadge needsReview={inv.needsReview} />
               </div>
-              <div className="flex items-center justify-between text-sm text-neutral-500">
+              <div className="flex items-center justify-between text-sm text-neutral-400">
                 <span>{inv.lineItems?.length ?? 0} line items</span>
                 <a
                   href={inv.fileUrl}
                   target="_blank"
                   rel="noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="text-amber-600 hover:underline"
+                  className="text-neutral-100 underline hover:text-neutral-400"
                 >
                   view file
                 </a>
@@ -556,12 +546,12 @@ export default function Home() {
             </div>
           ))}
           {!loadingList && sortedInvoices.length === 0 && (
-            <div className="bg-white border border-neutral-200 rounded-xl p-10 text-center text-neutral-400">
+            <div className="border border-neutral-800 p-10 text-center text-neutral-400">
               No invoices yet — upload one above.
             </div>
           )}
           {loadingList && (
-            <div className="bg-white border border-neutral-200 rounded-xl p-10 text-center text-neutral-400">
+            <div className="border border-neutral-800 p-10 text-center text-neutral-400">
               Loading…
             </div>
           )}

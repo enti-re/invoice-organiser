@@ -42,8 +42,8 @@ function fieldState(confidence: ConfidenceMap, key: string, hasValue: boolean) {
 
 function MissingBadge({ label = "Unable to extract — please verify manually" }: { label?: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded border border-dashed border-amber-600 bg-amber-50 px-2 py-1 text-xs text-amber-800">
-      <span className="rounded-full bg-amber-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">!</span>
+    <span className="inline-flex items-center gap-1.5 rounded border border-dashed border-amber-500 bg-amber-500/10 px-2 py-1 text-xs text-amber-300">
+      <span className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-semibold text-black">!</span>
       {label}
     </span>
   );
@@ -51,7 +51,7 @@ function MissingBadge({ label = "Unable to extract — please verify manually" }
 
 function FlagBadge() {
   return (
-    <span className="rounded-full border border-amber-600 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700">
+    <span className="rounded-full border border-amber-500 px-1.5 py-0.5 text-[10px] font-semibold text-amber-400">
       ⚠
     </span>
   );
@@ -78,21 +78,21 @@ function FieldValue({
 
   return (
     <div>
-      <div className={`text-xs uppercase tracking-wide text-neutral-500 ${alignClass}`}>{label}</div>
+      <div className={`text-xs uppercase tracking-wide text-neutral-400 ${alignClass}`}>{label}</div>
       {missing ? (
         <div className={`mt-1 flex ${align === "right" ? "justify-end" : "justify-start"}`}>
           <MissingBadge />
         </div>
       ) : (
         <div className={`mt-0.5 flex items-baseline gap-1.5 ${align === "right" ? "justify-end" : ""}`}>
-          <span className={`text-sm text-black ${mono ? "font-mono" : ""}`}>
+          <span className={`text-sm text-neutral-100 ${mono ? "font-mono" : ""}`}>
             {hasValue ? value : <span className="text-neutral-400">—</span>}
           </span>
           {flagged && hasValue && <FlagBadge />}
         </div>
       )}
       {flagged && hasValue && reason && (
-        <div className={`mt-0.5 text-xs text-amber-700 ${alignClass}`}>⚠ {reason}</div>
+        <div className={`mt-0.5 text-xs text-amber-400 ${alignClass}`}>⚠ {reason}</div>
       )}
     </div>
   );
@@ -109,10 +109,10 @@ function VendorHeader({ value, confidence }: { value: string | null; confidence:
   return (
     <div>
       <div className="flex items-center gap-2">
-        <h2 className="text-2xl font-bold text-black">{hasValue ? value : "Unknown vendor"}</h2>
+        <h2 className="text-2xl font-bold text-neutral-100">{hasValue ? value : "Unknown vendor"}</h2>
         {flagged && hasValue && <FlagBadge />}
       </div>
-      {flagged && hasValue && reason && <p className="mt-1 text-xs text-amber-700">⚠ {reason}</p>}
+      {flagged && hasValue && reason && <p className="mt-1 text-xs text-amber-400">⚠ {reason}</p>}
     </div>
   );
 }
@@ -121,7 +121,7 @@ function SectionFlag({ fieldKey, confidence }: { fieldKey: string; confidence: C
   const fc = confidence?.[fieldKey];
   if (!fc?.flagged) return null;
   return (
-    <div className="mt-1 flex items-center gap-1.5 text-xs text-amber-700">
+    <div className="mt-1 flex items-center gap-1.5 text-xs text-amber-400">
       <FlagBadge />
       {fc.reason}
     </div>
@@ -154,7 +154,7 @@ function AmountRow({
 
   return (
     <div className="flex items-start justify-between gap-4 py-1">
-      <span className={emphasize ? "text-sm font-semibold text-black" : "text-sm text-neutral-500"}>{label}</span>
+      <span className={emphasize ? "text-sm font-semibold text-neutral-100" : "text-sm text-neutral-400"}>{label}</span>
       <div className="text-right">
         {missing ? (
           <MissingBadge label="Verify manually" />
@@ -162,14 +162,14 @@ function AmountRow({
           <span
             className={
               emphasize
-                ? "font-mono text-lg font-bold text-black"
-                : "font-mono text-sm text-black"
+                ? "font-mono text-lg font-bold text-neutral-100"
+                : "font-mono text-sm text-neutral-100"
             }
           >
             {display ?? "—"}
           </span>
         )}
-        {flagged && hasValue && reason && <div className="mt-0.5 text-xs text-amber-700">⚠ {reason}</div>}
+        {flagged && hasValue && reason && <div className="mt-0.5 text-xs text-amber-400">⚠ {reason}</div>}
       </div>
     </div>
   );
@@ -186,12 +186,12 @@ function LineItemsTable({
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-medium uppercase tracking-wide text-neutral-500">Line items</h3>
+        <h3 className="text-xs font-medium uppercase tracking-wide text-neutral-400">Line items</h3>
       </div>
       <SectionFlag fieldKey="line_items" confidence={confidence} />
       <table className="mt-3 w-full border-collapse text-sm">
         <thead>
-          <tr className="border-b border-neutral-200 text-left text-xs uppercase tracking-wide text-neutral-500">
+          <tr className="border-b border-neutral-800 text-left text-xs uppercase tracking-wide text-neutral-400">
             <th className="py-2 pr-4 font-medium">Description</th>
             <th className="py-2 pr-4 text-right font-medium">Qty</th>
             <th className="py-2 pr-4 text-right font-medium">Unit price</th>
@@ -200,11 +200,11 @@ function LineItemsTable({
         </thead>
         <tbody>
           {items.map((item, i) => (
-            <tr key={i} className="border-b border-neutral-100">
-              <td className="py-2 pr-4 text-black">{item.description}</td>
-              <td className="py-2 pr-4 text-right font-mono text-neutral-700">{item.quantity ?? "—"}</td>
-              <td className="py-2 pr-4 text-right font-mono text-neutral-700">{item.unit_price ?? "—"}</td>
-              <td className="py-2 pr-0 text-right font-mono text-black">{item.amount}</td>
+            <tr key={i} className="border-b border-neutral-800">
+              <td className="py-2 pr-4 text-neutral-100">{item.description}</td>
+              <td className="py-2 pr-4 text-right font-mono text-neutral-300">{item.quantity ?? "—"}</td>
+              <td className="py-2 pr-4 text-right font-mono text-neutral-300">{item.unit_price ?? "—"}</td>
+              <td className="py-2 pr-0 text-right font-mono text-neutral-100">{item.amount}</td>
             </tr>
           ))}
           {items.length === 0 && (
@@ -223,8 +223,8 @@ function LineItemsTable({
 function RenderedInvoice({ invoice }: { invoice: InvoiceDetailData }) {
   const confidence = invoice.confidence;
   return (
-    <div className="space-y-6 rounded-xl border border-neutral-200 bg-white p-6 md:p-8">
-      <div className="flex flex-col gap-4 border-b border-neutral-200 pb-6 sm:flex-row sm:items-start sm:justify-between">
+    <div className="space-y-6 border border-neutral-800 bg-neutral-900 p-6 md:p-8">
+      <div className="flex flex-col gap-4 border-b border-neutral-800 pb-6 sm:flex-row sm:items-start sm:justify-between">
         <VendorHeader value={invoice.vendorName} confidence={confidence} />
         <div className="grid grid-cols-2 gap-x-6 gap-y-3">
           <FieldValue
@@ -264,7 +264,7 @@ function RenderedInvoice({ invoice }: { invoice: InvoiceDetailData }) {
 
       <LineItemsTable lineItems={invoice.lineItems} confidence={confidence} />
 
-      <div className="flex justify-end border-t border-neutral-200 pt-4">
+      <div className="flex justify-end border-t border-neutral-800 pt-4">
         <div className="w-full max-w-xs">
           <AmountRow
             label="Subtotal"
@@ -280,7 +280,7 @@ function RenderedInvoice({ invoice }: { invoice: InvoiceDetailData }) {
             fieldKey="tax_amount"
             confidence={confidence}
           />
-          <div className="mt-1 border-t border-neutral-200 pt-2">
+          <div className="mt-1 border-t border-neutral-800 pt-2">
             <AmountRow
               label="Total"
               value={invoice.totalAmount}
@@ -303,10 +303,10 @@ function isPdfFile(name: string) {
 function OriginalFileViewer({ fileUrl, fileName }: { fileUrl: string; fileName: string }) {
   const pdf = isPdfFile(fileName) || isPdfFile(fileUrl);
   return (
-    <div className="flex h-full min-h-[400px] flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white">
-      <div className="flex items-center justify-between border-b border-neutral-200 bg-neutral-50 px-4 py-2 text-xs text-neutral-500">
+    <div className="flex h-full min-h-[400px] flex-col overflow-hidden border border-neutral-800 bg-neutral-900">
+      <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900 px-4 py-2 text-xs text-neutral-400">
         <span>Original file</span>
-        <a href={fileUrl} target="_blank" rel="noreferrer" className="text-amber-600 hover:underline">
+        <a href={fileUrl} target="_blank" rel="noreferrer" className="text-neutral-100 underline hover:text-neutral-400">
           Open in new tab
         </a>
       </div>
@@ -347,26 +347,22 @@ export function InvoiceDetail({ invoice, onClose }: InvoiceDetailProps) {
   if (!invoice) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={onClose}>
       <div
-        className={`max-h-[90vh] w-full overflow-y-auto rounded-xl border border-neutral-200 bg-[#F0EEE6] p-6 shadow-none ${
+        className={`max-h-[90vh] w-full overflow-y-auto border border-neutral-800 bg-neutral-900 p-6 shadow-none ${
           showOriginal ? "max-w-6xl" : "max-w-3xl"
         }`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between gap-4">
           <div className="min-w-0">
-            <p className="truncate text-xs text-neutral-500">{invoice.fileName}</p>
+            <p className="truncate text-xs text-neutral-400">{invoice.fileName}</p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
               onClick={() => setShowOriginal((v) => !v)}
-              className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
-                showOriginal
-                  ? "border-amber-600 bg-amber-50 text-amber-700"
-                  : "border-neutral-300 text-neutral-600 hover:border-neutral-400"
-              }`}
+              className="border border-neutral-700 px-3 py-1.5 text-xs font-medium text-neutral-300 underline hover:border-white"
             >
               {showOriginal ? "Hide original" : "View original"}
             </button>
@@ -374,7 +370,7 @@ export function InvoiceDetail({ invoice, onClose }: InvoiceDetailProps) {
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="rounded-full border border-neutral-300 px-2.5 py-1.5 text-sm text-neutral-600 hover:border-neutral-400"
+              className="border border-neutral-700 px-2.5 py-1.5 text-sm text-neutral-400 hover:border-white"
             >
               ✕
             </button>
@@ -382,8 +378,8 @@ export function InvoiceDetail({ invoice, onClose }: InvoiceDetailProps) {
         </div>
 
         {!invoice.confidence && invoice.needsReview && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-600 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-            <span className="rounded-full bg-amber-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">!</span>
+          <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-500 bg-amber-500/10 px-3 py-2 text-sm text-amber-300">
+            <span className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-semibold text-black">!</span>
             This invoice has fields that may need review
           </div>
         )}

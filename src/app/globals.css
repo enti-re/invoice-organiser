@@ -1,9 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  /* Warm off-white per design system — never pure white/black. */
-  --background: #f0eee6;
-  --foreground: #171717;
+  /* Monochrome, matching nikhilchandna.com — black/white, no accent except
+     where color is functional (flagged fields), not decorative. Dark is
+     the default theme (no light/dark toggle — out of scope for now). */
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  color-scheme: dark;
 }
 
 @theme inline {
