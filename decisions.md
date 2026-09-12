@@ -494,6 +494,34 @@ The intro paragraph went through one more round after initial ship — from a lo
 
 **Verified, not assumed:** all fixes tested with Playwright at a real 390×844 mobile viewport (the Chrome-extension-based browser tool in this environment could not actually resize its rendering viewport — `resize_window` reported success but `window.innerWidth` never changed — so Playwright's own browser was used instead specifically because it supports genuine viewport control). Confirmed via direct measurement: `/design`'s `document.documentElement.scrollWidth` now equals `window.innerWidth` exactly (no page-wide scroll), the diagram's own `overflow-x-auto` container is independently scrollable (`scrollLeft` works, `maxScroll: 378`), the landing page has zero vertical *or* horizontal overflow at 390×844, and the review page's line-items table and card width behave consistently before/after toggling "Hide original."
 
+## Split confidence.ts's monolithic function, extracted the design-page diagram to its own component
+
+**`computeConfidence()`, from one 95-line function to six named checks.** The function was doing six independent checks (null fields, blank/placeholder values, date format, amount math, line-item sum, the model's own `uncertain_fields`) plus building the confidence map plus the document-level check, all inline. Not a strict SRP violation — it's genuinely one job — but reading it meant holding the whole thing in your head at once. Extracted each check into its own named function (`flagNullFields`, `flagBlankPlaceholders`, `flagInvalidDates`, `flagAmountMismatch`, `flagLineItemMismatch`, `flagUncertainFields`, `buildConfidenceMap`, `flagDocumentType`); `computeConfidence` itself is now an 8-line list of steps that reads as the checklist it always conceptually was. Same logic, same 20 passing tests, zero behavior change.
+
+**`isValidIsoDate` moved to `src/lib/date.ts` — a real duplicate, not a hypothetical one.** Checked before moving anything: `amountsMatch` and `isBlankOrPlaceholder` have exactly one caller each (still in `confidence.ts`, left alone). But `src/app/api/invoices/route.ts` had its own `DATE_RE = /^\d{4}-\d{2}-\d{2}$/` for validating the `dateFrom`/`dateTo` query params — a real second use of the same concern, and a looser one: format-only, so it would have accepted an invalid calendar date like `2024-02-30`. Moved the stricter, already-tested version to a shared file and pointed both call sites at it — fixes a real (if minor) validation gap as a side effect of deduplicating.
+
+**`src/app/design/page.tsx` was pushing 300 lines; the architecture diagram (StackBox/VLink/HLink plus the whole SVG) was the reason.** That diagram is a genuinely self-contained, reusable visual — exactly what `src/app/components/` already exists for (see `InvoiceReview.tsx`, `DatePicker.tsx`). Extracted it whole into `src/app/components/ArchitectureDiagram.tsx`; the design page now just renders `<ArchitectureDiagram />`. Page dropped from 304 lines to 191, with zero visual or behavioral change — verified by comparing full-page screenshots before and after.
+
+**Comment audit, extended to the whole codebase.** Same bar as `src/lib/`: does removing this comment lose a fact the code itself doesn't already say? Two purely-decorative JSX comments on the landing page (about the grayscale-hero and radial-darkening decisions, already fully documented in this file) were removed outright per direct instruction, since the reasoning lives here, not usefully duplicated as inline commentary on every page that reflects a past decision.
+
+## New project rules: 250-line file limit, types/helpers out of components
+
+Added to `AGENTS.md` (outside the block `next dev` auto-manages, verified safe by reading `generate-agent-files.js` — it only replaces the marked `<!-- BEGIN/END:nextjs-agent-rules -->` region): keep each component/page file under 250 lines, and keep types and pure helpers out of component files (types go in a dedicated types file or `src/db/schema.ts` if they describe stored data; non-JSX helpers go in `src/lib/`).
+
+**`InvoiceReview.tsx`, from 628 lines to 186, split into six files:**
+- `InlineReviewPanel.tsx` — `FlagIcon`, `InlineReviewPanel`, `EditRow` (the flagged-field review UI, previously three components defined inline).
+- `InvoiceReviewSkeleton.tsx` — the loading-state skeleton, a parameterless component.
+- `OriginalFilePanel.tsx` — the original-file viewer, now owning its own `fileLoaded` state internally rather than the parent managing it. Mounted with `key={invoice.id}` at the call site, so navigating between invoices resets it by remounting rather than the parent having to remember to call `setFileLoaded(false)` — one less manual reset for future state to accidentally miss.
+- `useInvoiceReview.ts` — a custom hook holding all the fetch/patch/expand/edit state and handlers that used to live directly in the component. `InvoiceReview` itself now just calls the hook and renders.
+- `ScalarField.tsx` — `renderScalar` was a closure defined inside the component, capturing half its state directly. Turned into a real, standalone component: it takes the hook's return value as one `review` prop instead of a dozen individually-drilled props, and can be reasoned about (or reused) independent of `InvoiceReview` itself.
+- `InvoiceReview.types.ts` — the one genuinely new type (`InvoiceData`, the API's JSON shape). While doing this, found that `LineItem` and `ConfidenceMap` were being redefined here identically to types already exported from `src/db/schema.ts` — switched to importing those instead of maintaining two copies of the same shape.
+
+**`isValidIsoDate` reused, not just moved (see the entry above) — same principle applied again here for `EDITABLE_FIELDS`/`fieldState`:** both moved to `src/lib/field-review.ts` since they're pure data logic (which fields can be edited, what a field's flag state is), not UI, and `ScalarField.tsx` needed them independent of `InvoiceReview.tsx`.
+
+**Deleted `DatePicker.tsx` — genuinely dead code, not just unused for now.** Confirmed with a repo-wide grep: zero imports anywhere. This is a known leftover named honestly in an earlier entry ("Date-range and amount-range filtering" future plan) — the date-range filter UI was removed, and the component was kept "in case it comes back," but it never did, and a broken build isn't the moment to discover that. Deleted rather than left as unreachable code nobody will notice going stale.
+
+**`src/app/design/page.tsx`, from ~300 lines to 191, by extracting `ArchitectureDiagram.tsx`** — see its own entry above; same pattern, same rule.
+
 ## Future plans (not attempted in this submission)
 
 Named here rather than left implicit, so it's clear these are deliberate deferrals with a time-boxed submission, not gaps nobody noticed:

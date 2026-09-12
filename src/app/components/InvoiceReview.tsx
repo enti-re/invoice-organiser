@@ -1,384 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
 
-export type LineItem = {
-  description: string;
-  quantity: number | null;
-  unit_price: number | null;
-  amount: number;
-};
+import type { InvoiceData } from "@/app/components/InvoiceReview.types";
+import { InvoiceReviewSkeleton } from "@/app/components/InvoiceReviewSkeleton";
+import { FlagIcon, InlineReviewPanel } from "@/app/components/InlineReviewPanel";
+import { OriginalFilePanel } from "@/app/components/OriginalFilePanel";
+import { ScalarField } from "@/app/components/ScalarField";
+import { useInvoiceReview } from "@/app/components/useInvoiceReview";
+import { EDITABLE_FIELDS, fieldState } from "@/lib/field-review";
 
-export type ConfidenceMap = Record<string, { score: number; flagged: boolean; reason: string }>;
-
-export type InvoiceData = {
-  id: string;
-  createdAt: string;
-  fileName: string;
-  fileUrl: string;
-  vendorName: string | null;
-  invoiceNumber: string | null;
-  invoiceDate: string | null;
-  dueDate: string | null;
-  currency: string | null;
-  subtotalAmount: string | null;
-  taxAmount: string | null;
-  totalAmount: string | null;
-  lineItems: LineItem[] | null;
-  needsReview: boolean;
-  confidence: ConfidenceMap | null;
-};
-
-// Matches the API's EDITABLE_FIELD_COLUMNS -- line_items is confirmable
-// but not directly editable, same as the backend.
-const EDITABLE_FIELDS = new Set([
-  "vendor_name",
-  "invoice_number",
-  "invoice_date",
-  "due_date",
-  "currency",
-  "subtotal_amount",
-  "tax_amount",
-  "total_amount",
-]);
-
-function fieldState(confidence: ConfidenceMap | null, key: string, hasValue: boolean) {
-  const fc = confidence?.[key];
-  const flagged = fc?.flagged ?? false;
-  return { flagged, missing: flagged && !hasValue, reason: fc?.reason };
-}
-
-// Two earlier approaches were dropped: a hover tooltip (moving toward it
-// broke the hover state it depended on) and a centered modal (too much
-// ceremony, and it dims the document being compared against).
-function FlagIcon({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label="Needs review"
-      className="inline-flex cursor-pointer items-center rounded-full border border-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-red-400 transition-colors hover:border-red-400 hover:bg-red-500/20 hover:text-red-300"
-    >
-      ⚠
-    </button>
-  );
-}
-
-function InlineReviewPanel({
-  reason,
-  editable,
-  editing,
-  editValue,
-  onEditChange,
-  onConfirm,
-  onStartEdit,
-  onSave,
-  onCancelEdit,
-  onClose,
-  saving,
-  error,
-  align = "left",
-}: {
-  reason?: string;
-  editable: boolean;
-  editing: boolean;
-  editValue: string;
-  onEditChange: (v: string) => void;
-  onConfirm: () => void;
-  onStartEdit: () => void;
-  onSave: () => void;
-  onCancelEdit: () => void;
-  onClose: () => void;
-  saving: boolean;
-  error: string | null;
-  align?: "left" | "right";
-}) {
-  const sideClass = align === "right" ? "right-0" : "left-0";
-  return (
-    <div
-      className={`absolute top-full z-20 mt-1.5 w-72 max-w-[90vw] border border-neutral-700 bg-neutral-950 p-3 text-left text-sm shadow-lg ${editing ? "" : "pr-7"} ${sideClass}`}
-    >
-      {!editing && (
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute right-1.5 top-1.5 cursor-pointer text-neutral-500 hover:text-white"
-        >
-          ✕
-        </button>
-      )}
-      {editing ? (
-        <EditRow
-          value={editValue}
-          onChange={onEditChange}
-          onSave={onSave}
-          onCancel={onCancelEdit}
-          saving={saving}
-        />
-      ) : (
-        <>
-          {reason && <p className="text-xs text-red-400">⚠ {reason}</p>}
-          {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
-          <div className="mt-2 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={onConfirm}
-              disabled={saving}
-              className="cursor-pointer border border-neutral-700 px-3 py-1 text-xs font-medium text-neutral-100 hover:border-white disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {saving ? "Saving…" : "Confirm"}
-            </button>
-            {editable && (
-              <button
-                type="button"
-                onClick={onStartEdit}
-                className="cursor-pointer bg-white px-3 py-1 text-xs font-medium text-black"
-              >
-                Edit
-              </button>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-function EditRow({
-  value,
-  onChange,
-  onSave,
-  onCancel,
-  saving,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  onSave: () => void;
-  onCancel: () => void;
-  saving: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <input
-        autoFocus
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") onSave();
-          if (e.key === "Escape") onCancel();
-        }}
-        className="min-w-0 flex-1 border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm font-mono text-neutral-100 focus:outline-none focus:border-white"
-      />
-      <button
-        type="button"
-        onClick={onSave}
-        disabled={saving}
-        className="shrink-0 cursor-pointer bg-white px-2 py-1 text-xs font-medium text-black disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        {saving ? "Saving…" : "Save"}
-      </button>
-      <button
-        type="button"
-        onClick={onCancel}
-        className="shrink-0 cursor-pointer text-xs text-neutral-400 hover:text-white"
-      >
-        Cancel
-      </button>
-    </div>
-  );
-}
+export type { InvoiceData };
 
 export function InvoiceReview({ id }: { id: string }) {
-  const [invoice, setInvoice] = useState<InvoiceData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [showOriginal, setShowOriginal] = useState(true);
-  const [fileLoaded, setFileLoaded] = useState(false);
-  const [expandedField, setExpandedField] = useState<string | null>(null);
-  const [editingField, setEditingField] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState("");
-  const [savingField, setSavingField] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const expandedPanelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!expandedField) return;
-    function onDocClick(e: MouseEvent) {
-      if (expandedPanelRef.current && !expandedPanelRef.current.contains(e.target as Node)) {
-        setExpandedField(null);
-        setEditingField(null);
-      }
-    }
-    function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        setExpandedField(null);
-        setEditingField(null);
-      }
-    }
-    document.addEventListener("mousedown", onDocClick);
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.removeEventListener("mousedown", onDocClick);
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [expandedField]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      setInvoice(null);
-      setLoadError(null);
-      setShowOriginal(true);
-      setFileLoaded(false);
-      setExpandedField(null);
-      setEditingField(null);
-      try {
-        const res = await fetch(`/api/invoices/${id}`);
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error ?? `Failed to load invoice (${res.status})`);
-        }
-        const data: InvoiceData = await res.json();
-        if (cancelled) return;
-        setInvoice(data);
-      } catch (err) {
-        if (!cancelled) setLoadError(err instanceof Error ? err.message : "Failed to load invoice");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
-
-  async function submitPatch(
-    field: string,
-    action: "confirm" | "correct",
-    value?: string,
-  ): Promise<boolean> {
-    setActionError(null);
-    setSavingField(field);
-    try {
-      const res = await fetch(`/api/invoices/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ field, action, value }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? `Update failed (${res.status})`);
-      }
-      const updated: InvoiceData = await res.json();
-      setInvoice(updated);
-      return true;
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Update failed");
-      return false;
-    } finally {
-      setSavingField(null);
-    }
-  }
-
-  function toggleExpand(key: string) {
-    setExpandedField((f) => (f === key ? null : key));
-    setEditingField(null);
-    setActionError(null);
-  }
-
-  function startEdit(key: string, value: string | null) {
-    setEditingField(key);
-    setEditValue(value ?? "");
-  }
-
-  async function handleConfirm(key: string) {
-    const ok = await submitPatch(key, "confirm");
-    if (ok) setExpandedField(null);
-  }
-
-  async function handleSave(key: string) {
-    const ok = await submitPatch(key, "correct", editValue);
-    if (ok) {
-      setExpandedField(null);
-      setEditingField(null);
-    }
-  }
+  const review = useInvoiceReview(id);
+  const { invoice, loading, loadError } = review;
 
   if (loading) {
-    // Placeholder heights are measured from real rendered content, not
-    // guessed -- e.g. text-xs is a 12px font but a 16px line-height, so its
-    // placeholder is h-4, not h-3. This is what prevents layout shift (CLS)
-    // when real data replaces the skeleton.
-    return (
-      <div className="mx-auto w-full min-w-0 max-w-6xl px-6 py-12 md:px-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="h-5 w-24 animate-pulse bg-neutral-800" />
-          <div className="h-[30px] w-28 animate-pulse bg-neutral-800" />
-        </div>
-        {/* showOriginal defaults to true, so the loaded page will almost
-            always render this two-column grid -- matching it here (instead
-            of a single column that suddenly grows a second one once data
-            arrives) avoids the card visibly shrinking/shifting left the
-            moment the original-file panel pops in. */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <div className="space-y-6 border border-neutral-800 bg-neutral-900 p-6 md:p-8">
-            <div className="flex flex-col gap-4 border-b border-neutral-800 pb-6 sm:flex-row sm:items-start sm:justify-between">
-              <div className="h-8 w-48 animate-pulse bg-neutral-800" />
-              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="space-y-0.5">
-                    <div className="h-4 w-16 animate-pulse bg-neutral-800" />
-                    <div className="h-5 w-24 animate-pulse bg-neutral-800" />
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <div className="h-4 w-20 animate-pulse bg-neutral-800" />
-              {/* Column %s match the real table-fixed widths exactly, so nothing
-                  drifts between skeleton and real content at any viewport width. */}
-              <div className="mt-3 grid grid-cols-[52%_12%_18%_18%] border-b border-neutral-800 py-2 pr-0">
-                <div className="h-4 w-3/4 animate-pulse bg-neutral-800" />
-                <div className="ml-auto h-4 w-6 animate-pulse bg-neutral-800" />
-                <div className="ml-auto h-4 w-10 animate-pulse bg-neutral-800" />
-                <div className="ml-auto h-4 w-10 animate-pulse bg-neutral-800" />
-              </div>
-              {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className="grid grid-cols-[52%_12%_18%_18%] border-b border-neutral-800 py-2.5 pr-0">
-                  <div className="h-4 w-full max-w-[85%] animate-pulse bg-neutral-800" />
-                  <div className="ml-auto h-4 w-6 animate-pulse bg-neutral-800" />
-                  <div className="ml-auto h-4 w-10 animate-pulse bg-neutral-800" />
-                  <div className="ml-auto h-4 w-12 animate-pulse bg-neutral-800" />
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-end border-t border-neutral-800 pt-4">
-              <div className="w-full max-w-xs space-y-1">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="ml-auto space-y-0.5">
-                    <div className="ml-auto h-4 w-16 animate-pulse bg-neutral-800" />
-                    <div className="ml-auto h-5 w-24 animate-pulse bg-neutral-800" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="flex h-full min-h-[400px] flex-col overflow-hidden border border-neutral-800 bg-neutral-900">
-            <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900 px-4 py-2">
-              <div className="h-4 w-20 animate-pulse bg-neutral-800" />
-              <div className="h-4 w-24 animate-pulse bg-neutral-800" />
-            </div>
-            <div className="min-h-[400px] flex-1 animate-pulse bg-neutral-800" />
-          </div>
-        </div>
-      </div>
-    );
+    return <InvoiceReviewSkeleton />;
   }
 
   if (loadError || !invoice) {
@@ -393,51 +32,6 @@ export function InvoiceReview({ id }: { id: string }) {
   }
 
   const confidence = invoice.confidence;
-
-  function renderScalar(
-    label: string,
-    key: string,
-    value: string | null,
-    mono = false,
-    align: "left" | "right" = "left",
-  ) {
-    const hasValue = value !== null && value !== "";
-    const { flagged, reason } = fieldState(confidence, key, hasValue);
-    const alignClass = align === "right" ? "text-right" : "";
-
-    return (
-      <div
-        className={`relative ${alignClass}`}
-        ref={expandedField === key ? expandedPanelRef : undefined}
-      >
-        <div className="text-xs uppercase tracking-wide text-neutral-500">{label}</div>
-        <div className={`mt-0.5 flex items-center gap-1.5 ${align === "right" ? "justify-end" : ""}`}>
-          <span className={`text-sm text-neutral-100 ${mono ? "font-mono" : ""}`}>
-            {hasValue ? value : <span className="text-neutral-500">— not extracted —</span>}
-          </span>
-          {flagged && <FlagIcon onClick={() => toggleExpand(key)} />}
-        </div>
-        {flagged && expandedField === key && (
-          <InlineReviewPanel
-            reason={reason}
-            editable={EDITABLE_FIELDS.has(key)}
-            editing={editingField === key}
-            editValue={editValue}
-            onEditChange={setEditValue}
-            onConfirm={() => handleConfirm(key)}
-            onStartEdit={() => startEdit(key, value)}
-            onSave={() => handleSave(key)}
-            onCancelEdit={() => setEditingField(null)}
-            onClose={() => toggleExpand(key)}
-            saving={savingField === key}
-            error={actionError}
-            align={align}
-          />
-        )}
-      </div>
-    );
-  }
-
   const lineItemsFlag = confidence?.["line_items"];
   const vendorFlag = fieldState(confidence, "vendor_name", !!invoice.vendorName);
   const documentTypeFlag = confidence?.["document_type"];
@@ -451,10 +45,10 @@ export function InvoiceReview({ id }: { id: string }) {
         </Link>
         <button
           type="button"
-          onClick={() => setShowOriginal((v) => !v)}
+          onClick={() => review.setShowOriginal((v) => !v)}
           className="cursor-pointer border border-neutral-700 px-3 py-1.5 text-xs font-medium text-neutral-100 underline hover:border-white"
         >
-          {showOriginal ? "Hide original" : "View original"}
+          {review.showOriginal ? "Hide original" : "View original"}
         </button>
       </div>
 
@@ -466,79 +60,79 @@ export function InvoiceReview({ id }: { id: string }) {
           </div>
           <button
             type="button"
-            onClick={() => handleConfirm("document_type")}
-            disabled={savingField === "document_type"}
+            onClick={() => review.handleConfirm("document_type")}
+            disabled={review.savingField === "document_type"}
             className="shrink-0 cursor-pointer border border-red-500/40 px-3 py-1.5 text-xs font-medium text-red-300 hover:border-red-400 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-40"
           >
-            {savingField === "document_type" ? "Saving…" : "This is actually an invoice"}
+            {review.savingField === "document_type" ? "Saving…" : "This is actually an invoice"}
           </button>
         </div>
       )}
 
-      <div className={`grid grid-cols-1 gap-6 ${showOriginal ? "md:grid-cols-2" : ""}`}>
+      <div className={`grid grid-cols-1 gap-6 ${review.showOriginal ? "md:grid-cols-2" : ""}`}>
         <div className="space-y-6 border border-neutral-800 bg-neutral-900 p-6 md:p-8">
           <div className="flex flex-col gap-4 border-b border-neutral-800 pb-6 sm:flex-row sm:items-start sm:justify-between">
             <div
               className="relative"
-              ref={expandedField === "vendor_name" ? expandedPanelRef : undefined}
+              ref={review.expandedField === "vendor_name" ? review.expandedPanelRef : undefined}
             >
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-neutral-100">
                   {invoice.vendorName || "Unknown vendor"}
                 </h1>
-                {vendorFlag.flagged && <FlagIcon onClick={() => toggleExpand("vendor_name")} />}
+                {vendorFlag.flagged && <FlagIcon onClick={() => review.toggleExpand("vendor_name")} />}
               </div>
-              {vendorFlag.flagged && expandedField === "vendor_name" && (
+              {vendorFlag.flagged && review.expandedField === "vendor_name" && (
                 <InlineReviewPanel
                   reason={vendorFlag.reason}
                   editable={EDITABLE_FIELDS.has("vendor_name")}
-                  editing={editingField === "vendor_name"}
-                  editValue={editValue}
-                  onEditChange={setEditValue}
-                  onConfirm={() => handleConfirm("vendor_name")}
-                  onStartEdit={() => startEdit("vendor_name", invoice.vendorName)}
-                  onSave={() => handleSave("vendor_name")}
-                  onCancelEdit={() => setEditingField(null)}
-                  onClose={() => toggleExpand("vendor_name")}
-                  saving={savingField === "vendor_name"}
-                  error={actionError}
+                  editing={review.editingField === "vendor_name"}
+                  editValue={review.editValue}
+                  onEditChange={review.setEditValue}
+                  onConfirm={() => review.handleConfirm("vendor_name")}
+                  onStartEdit={() => review.startEdit("vendor_name", invoice.vendorName)}
+                  onSave={() => review.handleSave("vendor_name")}
+                  onCancelEdit={() => review.setEditingField(null)}
+                  onClose={() => review.toggleExpand("vendor_name")}
+                  saving={review.savingField === "vendor_name"}
+                  error={review.actionError}
                 />
               )}
             </div>
             <div className="grid grid-cols-2 gap-x-6 gap-y-3">
-              {renderScalar("Invoice #", "invoice_number", invoice.invoiceNumber, true)}
-              {renderScalar("Invoice date", "invoice_date", invoice.invoiceDate, true)}
-              {renderScalar("Due date", "due_date", invoice.dueDate, true)}
-              {renderScalar("Currency", "currency", invoice.currency, true)}
+              <ScalarField label="Invoice #" fieldKey="invoice_number" value={invoice.invoiceNumber} mono review={review} />
+              <ScalarField label="Invoice date" fieldKey="invoice_date" value={invoice.invoiceDate} mono review={review} />
+              <ScalarField label="Due date" fieldKey="due_date" value={invoice.dueDate} mono review={review} />
+              <ScalarField label="Currency" fieldKey="currency" value={invoice.currency} mono review={review} />
             </div>
           </div>
 
           <div
             className="relative"
-            ref={expandedField === "line_items" ? expandedPanelRef : undefined}
+            ref={review.expandedField === "line_items" ? review.expandedPanelRef : undefined}
           >
             <div className="flex items-center gap-2">
               <h3 className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                 Line items
               </h3>
               {lineItemsFlag?.flagged && (
-                <FlagIcon onClick={() => toggleExpand("line_items")} />
+                <FlagIcon onClick={() => review.toggleExpand("line_items")} />
               )}
             </div>
-            {lineItemsFlag?.flagged && expandedField === "line_items" && (
+            {lineItemsFlag?.flagged && review.expandedField === "line_items" && (
               <InlineReviewPanel
                 reason={lineItemsFlag.reason}
                 editable={false}
                 editing={false}
                 editValue=""
                 onEditChange={() => {}}
-                onConfirm={() => handleConfirm("line_items")}
+                onConfirm={() => review.handleConfirm("line_items")}
                 onStartEdit={() => {}}
                 onSave={() => {}}
                 onCancelEdit={() => {}}
-                onClose={() => toggleExpand("line_items")}
-                saving={savingField === "line_items"}
-                error={actionError}
+                onClose={() => review.toggleExpand("line_items")}
+                saving={review.savingField === "line_items"}
+                error={review.actionError}
               />
             )}
             <table className="mt-3 w-full table-fixed border-collapse text-sm">
@@ -576,51 +170,15 @@ export function InvoiceReview({ id }: { id: string }) {
 
           <div className="flex justify-end border-t border-neutral-800 pt-4">
             <div className="w-full max-w-xs space-y-1">
-              {renderScalar("Subtotal", "subtotal_amount", invoice.subtotalAmount, true, "right")}
-              {renderScalar("Tax", "tax_amount", invoice.taxAmount, true, "right")}
-              {renderScalar("Total", "total_amount", invoice.totalAmount, true, "right")}
+              <ScalarField label="Subtotal" fieldKey="subtotal_amount" value={invoice.subtotalAmount} mono align="right" review={review} />
+              <ScalarField label="Tax" fieldKey="tax_amount" value={invoice.taxAmount} mono align="right" review={review} />
+              <ScalarField label="Total" fieldKey="total_amount" value={invoice.totalAmount} mono align="right" review={review} />
             </div>
           </div>
         </div>
 
-        {showOriginal && (
-          <div className="flex h-full min-h-[400px] flex-col overflow-hidden border border-neutral-800 bg-neutral-900">
-            <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900 px-4 py-2 text-xs text-neutral-500">
-              <span>Original file</span>
-              <a
-                href={invoice.fileUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-neutral-100 underline hover:text-white"
-              >
-                Open in new tab
-              </a>
-            </div>
-            <div className="relative min-h-[400px] flex-1">
-              {!fileLoaded && <div className="absolute inset-0 animate-pulse bg-neutral-800" />}
-              {/\.pdf(\?|#|$)/i.test(invoice.fileName) || /\.pdf(\?|#|$)/i.test(invoice.fileUrl) ? (
-                <iframe
-                  src={invoice.fileUrl}
-                  title="Original invoice file"
-                  onLoad={() => setFileLoaded(true)}
-                  className={`h-full min-h-[400px] w-full transition-opacity duration-300 ${
-                    fileLoaded ? "opacity-100" : "opacity-0"
-                  }`}
-                />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element -- arbitrary remote/blob source
-                <img
-                  src={invoice.fileUrl}
-                  alt="Original invoice"
-                  onLoad={() => setFileLoaded(true)}
-                  onError={() => setFileLoaded(true)}
-                  className={`h-full w-full object-contain transition-opacity duration-300 ${
-                    fileLoaded ? "opacity-100" : "opacity-0"
-                  }`}
-                />
-              )}
-            </div>
-          </div>
+        {review.showOriginal && (
+          <OriginalFilePanel key={invoice.id} fileUrl={invoice.fileUrl} fileName={invoice.fileName} />
         )}
       </div>
     </div>
