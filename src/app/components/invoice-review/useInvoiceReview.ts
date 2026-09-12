@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { InvoiceData } from "@/app/components/invoice-review/InvoiceReview.types";
 import { getInvoice, updateInvoiceField } from "@/lib/api/api-client";
 
-export function useInvoiceReview(id: string) {
+export const useInvoiceReview = (id: string) => {
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -17,18 +17,18 @@ export function useInvoiceReview(id: string) {
 
   useEffect(() => {
     if (!expandedField) return;
-    function onDocClick(e: MouseEvent) {
+    const onDocClick = (e: MouseEvent) => {
       if (expandedPanelRef.current && !expandedPanelRef.current.contains(e.target as Node)) {
         setExpandedField(null);
         setEditingField(null);
       }
-    }
-    function onKeyDown(e: KeyboardEvent) {
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setExpandedField(null);
         setEditingField(null);
       }
-    }
+    };
     document.addEventListener("mousedown", onDocClick);
     document.addEventListener("keydown", onKeyDown);
     return () => {
@@ -40,7 +40,7 @@ export function useInvoiceReview(id: string) {
   useEffect(() => {
     let cancelled = false;
 
-    async function load() {
+    const load = async () => {
       setLoading(true);
       setInvoice(null);
       setLoadError(null);
@@ -56,7 +56,7 @@ export function useInvoiceReview(id: string) {
       } finally {
         if (!cancelled) setLoading(false);
       }
-    }
+    };
 
     load();
     return () => {
@@ -64,11 +64,11 @@ export function useInvoiceReview(id: string) {
     };
   }, [id]);
 
-  async function submitPatch(
+  const submitPatch = async (
     field: string,
     action: "confirm" | "correct",
     value?: string,
-  ): Promise<boolean> {
+  ): Promise<boolean> => {
     setActionError(null);
     setSavingField(field);
     try {
@@ -81,31 +81,31 @@ export function useInvoiceReview(id: string) {
     } finally {
       setSavingField(null);
     }
-  }
+  };
 
-  function toggleExpand(key: string) {
+  const toggleExpand = (key: string) => {
     setExpandedField((f) => (f === key ? null : key));
     setEditingField(null);
     setActionError(null);
-  }
+  };
 
-  function startEdit(key: string, value: string | null) {
+  const startEdit = (key: string, value: string | null) => {
     setEditingField(key);
     setEditValue(value ?? "");
-  }
+  };
 
-  async function handleConfirm(key: string) {
+  const handleConfirm = async (key: string) => {
     const ok = await submitPatch(key, "confirm");
     if (ok) setExpandedField(null);
-  }
+  };
 
-  async function handleSave(key: string) {
+  const handleSave = async (key: string) => {
     const ok = await submitPatch(key, "correct", editValue);
     if (ok) {
       setExpandedField(null);
       setEditingField(null);
     }
-  }
+  };
 
   return {
     invoice,
@@ -126,6 +126,6 @@ export function useInvoiceReview(id: string) {
     handleConfirm,
     handleSave,
   };
-}
+};
 
 export type InvoiceReviewController = ReturnType<typeof useInvoiceReview>;

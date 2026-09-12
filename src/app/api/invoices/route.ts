@@ -30,7 +30,7 @@ type BlobUpload = { ok: true; blobUrl: string } | StepFailure;
 
 // ---- POST /api/invoices — upload, extract, save ----
 
-function validateUploadedFile(entry: FormDataEntryValue | null): FileValidation {
+const validateUploadedFile = (entry: FormDataEntryValue | null): FileValidation => {
   if (!(entry instanceof File)) {
     return fail(UPLOAD_ERRORS.missingFile, 400);
   }
@@ -44,13 +44,13 @@ function validateUploadedFile(entry: FormDataEntryValue | null): FileValidation 
     return fail(UPLOAD_ERRORS.fileTooLarge, 400);
   }
   return { ok: true, file: entry };
-}
+};
 
-async function uploadFileToBlob(
+const uploadFileToBlob = async (
   file: File,
   buffer: Buffer,
   mediaType: SupportedMediaType,
-): Promise<BlobUpload> {
+): Promise<BlobUpload> => {
   try {
     const blob = await put(`invoices/${Date.now()}-${file.name}`, buffer, {
       access: "public",
@@ -67,9 +67,9 @@ async function uploadFileToBlob(
     }
     return fail(UPLOAD_ERRORS.blobUploadFailed, 502);
   }
-}
+};
 
-async function saveExtractedInvoice({
+const saveExtractedInvoice = async ({
   file,
   blobUrl,
   extraction,
@@ -81,7 +81,7 @@ async function saveExtractedInvoice({
   extraction: InvoiceExtraction;
   rawResponse: unknown;
   model: string;
-}) {
+}) => {
   const { confidence, needsReview } = computeConfidence(extraction);
 
   try {
@@ -114,9 +114,9 @@ async function saveExtractedInvoice({
       { status: 500 },
     );
   }
-}
+};
 
-async function handlePost(request: Request) {
+const handlePost = async (request: Request) => {
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -148,11 +148,11 @@ async function handlePost(request: Request) {
   }
 
   return saveExtractedInvoice({ file, blobUrl, extraction, rawResponse, model });
-}
+};
 
 // ---- GET /api/invoices — filtered list ----
 
-async function handleGet(request: Request) {
+const handleGet = async (request: Request) => {
   const { searchParams } = new URL(request.url);
   const params = parseInvoiceListParams(searchParams);
 
@@ -175,24 +175,24 @@ async function handleGet(request: Request) {
     console.error("Failed to query invoices", error);
     return NextResponse.json({ error: LIST_ERRORS.loadFailed }, { status: 500 });
   }
-}
+};
 
 // ---- Route entry points ----
 
-export async function POST(request: Request) {
+export const POST = async (request: Request) => {
   try {
     return await handlePost(request);
   } catch (error) {
     console.error("Unexpected error handling invoice upload", error);
     return NextResponse.json({ error: COMMON_ERRORS.unexpectedServer }, { status: 500 });
   }
-}
+};
 
-export async function GET(request: Request) {
+export const GET = async (request: Request) => {
   try {
     return await handleGet(request);
   } catch (error) {
     console.error("Unexpected error handling invoice list request", error);
     return NextResponse.json({ error: COMMON_ERRORS.unexpectedServer }, { status: 500 });
   }
-}
+};

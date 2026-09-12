@@ -23,10 +23,10 @@ const EXTRACTION_INSTRUCTIONS = [
   "You may also use uncertain_fields to explain a null value when that's informative — e.g. a due date that's genuinely absent from the document, versus one that's present but illegible.",
 ].join(" ");
 
-export async function extractInvoice(params: {
+export const extractInvoice = async (params: {
   base64Data: string;
   mediaType: SupportedMediaType;
-}): Promise<{ extraction: InvoiceExtraction; rawResponse: unknown; model: string }> {
+}): Promise<{ extraction: InvoiceExtraction; rawResponse: unknown; model: string }> => {
   const filePart: FilePart = {
     type: "file",
     data: params.base64Data,
@@ -46,4 +46,4 @@ export async function extractInvoice(params: {
   });
 
   return { extraction: object, rawResponse: response, model: EXTRACTION_MODEL_ID };
-}
+};

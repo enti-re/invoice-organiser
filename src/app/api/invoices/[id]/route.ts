@@ -17,7 +17,7 @@ type InvoiceLookup = { ok: true; invoice: typeof invoices.$inferSelect } | StepF
 
 // ---- GET /api/invoices/[id] ----
 
-async function handleGet(id: string) {
+const handleGet = async (id: string) => {
   const [row] = await db.select().from(invoices).where(eq(invoices.id, id)).limit(1);
 
   if (!row) {
@@ -25,11 +25,11 @@ async function handleGet(id: string) {
   }
 
   return NextResponse.json(row);
-}
+};
 
 // ---- PATCH /api/invoices/[id] ----
 
-async function parsePatchRequest(request: Request): Promise<PatchRequest> {
+const parsePatchRequest = async (request: Request): Promise<PatchRequest> => {
   let body: unknown;
   try {
     body = await request.json();
@@ -53,14 +53,14 @@ async function parsePatchRequest(request: Request): Promise<PatchRequest> {
   }
 
   return { ok: true, field, action, value };
-}
+};
 
-function buildPatchValues(
+const buildPatchValues = (
   existing: typeof invoices.$inferSelect,
   field: string,
   action: PatchAction,
   value: unknown,
-): Partial<typeof invoices.$inferInsert> {
+): Partial<typeof invoices.$inferInsert> => {
   const confidence: ConfidenceMap = { ...(existing.confidence ?? {}) };
   confidence[field] = {
     score: 1,
@@ -74,9 +74,9 @@ function buildPatchValues(
     Object.assign(setValues, buildFieldUpdate(field, value));
   }
   return setValues;
-}
+};
 
-async function handlePatch(request: Request, id: string) {
+const handlePatch = async (request: Request, id: string) => {
   const parsed = await parsePatchRequest(request);
   if (!parsed.ok) return parsed.response;
   const { field, action, value } = parsed;
@@ -91,11 +91,11 @@ async function handlePatch(request: Request, id: string) {
   const [updated] = await db.update(invoices).set(setValues).where(eq(invoices.id, id)).returning();
 
   return NextResponse.json(updated);
-}
+};
 
 // ---- DELETE /api/invoices/[id] ----
 
-async function findInvoiceOrFail(id: string): Promise<InvoiceLookup> {
+const findInvoiceOrFail = async (id: string): Promise<InvoiceLookup> => {
   let invoice;
   try {
     [invoice] = await db.select().from(invoices).where(eq(invoices.id, id)).limit(1);
@@ -109,9 +109,9 @@ async function findInvoiceOrFail(id: string): Promise<InvoiceLookup> {
   }
 
   return { ok: true, invoice };
-}
+};
 
-async function deleteInvoiceRow(id: string): Promise<StepFailure | { ok: true }> {
+const deleteInvoiceRow = async (id: string): Promise<StepFailure | { ok: true }> => {
   try {
     await db.delete(invoices).where(eq(invoices.id, id));
     return { ok: true };
@@ -119,9 +119,9 @@ async function deleteInvoiceRow(id: string): Promise<StepFailure | { ok: true }>
     console.error("Failed to delete invoice row", { id }, error);
     return fail(INVOICE_ERRORS.deleteFailed, 500);
   }
-}
+};
 
-async function deleteInvoiceBlob(fileUrl: string, id: string): Promise<void> {
+const deleteInvoiceBlob = async (fileUrl: string, id: string): Promise<void> => {
   try {
     await del(fileUrl);
   } catch (error) {
@@ -129,9 +129,9 @@ async function deleteInvoiceBlob(fileUrl: string, id: string): Promise<void> {
     // A leftover blob is an orphaned-file cleanup concern, not a request failure.
     console.error("Failed to delete blob for invoice (row already deleted)", { id, fileUrl, error });
   }
-}
+};
 
-async function handleDelete(id: string) {
+const handleDelete = async (id: string) => {
   const found = await findInvoiceOrFail(id);
   if (!found.ok) return found.response;
 
@@ -141,11 +141,11 @@ async function handleDelete(id: string) {
   await deleteInvoiceBlob(found.invoice.fileUrl, id);
 
   return NextResponse.json({ deleted: true, id });
-}
+};
 
 // ---- Route entry points ----
 
-export async function GET(request: Request, ctx: RouteContext<"/api/invoices/[id]">) {
+export const GET = async (request: Request, ctx: RouteContext<"/api/invoices/[id]">) => {
   try {
     const { id } = await ctx.params;
     const badId = invalidUuidResponse(id);
@@ -156,9 +156,9 @@ export async function GET(request: Request, ctx: RouteContext<"/api/invoices/[id
     console.error("Unexpected error fetching invoice", error);
     return NextResponse.json({ error: COMMON_ERRORS.unexpectedServer }, { status: 500 });
   }
-}
+};
 
-export async function PATCH(request: Request, ctx: RouteContext<"/api/invoices/[id]">) {
+export const PATCH = async (request: Request, ctx: RouteContext<"/api/invoices/[id]">) => {
   try {
     const { id } = await ctx.params;
     const badId = invalidUuidResponse(id);
@@ -169,9 +169,9 @@ export async function PATCH(request: Request, ctx: RouteContext<"/api/invoices/[
     console.error("Unexpected error updating invoice", error);
     return NextResponse.json({ error: COMMON_ERRORS.unexpectedServer }, { status: 500 });
   }
-}
+};
 
-export async function DELETE(request: Request, ctx: RouteContext<"/api/invoices/[id]">) {
+export const DELETE = async (request: Request, ctx: RouteContext<"/api/invoices/[id]">) => {
   try {
     const { id } = await ctx.params;
     const badId = invalidUuidResponse(id);
@@ -182,4 +182,4 @@ export async function DELETE(request: Request, ctx: RouteContext<"/api/invoices/
     console.error("Unexpected error handling invoice deletion", error);
     return NextResponse.json({ error: COMMON_ERRORS.unexpectedServer }, { status: 500 });
   }
-}
+};

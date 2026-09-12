@@ -1,4 +1,4 @@
-export function SearchIcon({ className }: { className?: string }) {
+export const SearchIcon = ({ className }: { className?: string }) => {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -14,9 +14,9 @@ export function SearchIcon({ className }: { className?: string }) {
       <path d="m21 21-4.35-4.35" />
     </svg>
   );
-}
+};
 
-export function TrashIcon({ className }: { className?: string }) {
+export const TrashIcon = ({ className }: { className?: string }) => {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -35,9 +35,9 @@ export function TrashIcon({ className }: { className?: string }) {
       <path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3" />
     </svg>
   );
-}
+};
 
-export function UploadIcon({ className }: { className?: string }) {
+export const UploadIcon = ({ className }: { className?: string }) => {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -54,9 +54,9 @@ export function UploadIcon({ className }: { className?: string }) {
       <path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3" />
     </svg>
   );
-}
+};
 
-export function FileIcon({ className }: { className?: string }) {
+export const FileIcon = ({ className }: { className?: string }) => {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -72,9 +72,9 @@ export function FileIcon({ className }: { className?: string }) {
       <path d="M14 2v6h6" />
     </svg>
   );
-}
+};
 
-export function Spinner({ className = "" }: { className?: string }) {
+export const Spinner = ({ className = "" }: { className?: string }) => {
   return (
     <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
@@ -85,4 +85,4 @@ export function Spinner({ className = "" }: { className?: string }) {
       />
     </svg>
   );
-}
+};

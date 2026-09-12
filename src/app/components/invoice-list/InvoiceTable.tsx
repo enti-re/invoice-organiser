@@ -2,7 +2,7 @@ import type { InvoiceListController } from "@/app/components/invoice-list/useInv
 import { InvoiceTableRow } from "@/app/components/invoice-list/InvoiceTableRow";
 import { SkeletonRow, SortIndicator } from "@/app/components/invoice-list/InvoiceListUI";
 
-export function InvoiceTable({ list }: { list: InvoiceListController }) {
+export const InvoiceTable = ({ list }: { list: InvoiceListController }) => {
   return (
     <div className="hidden md:block">
       <table className="w-full table-fixed text-sm border-collapse">
@@ -82,4 +82,4 @@ export function InvoiceTable({ list }: { list: InvoiceListController }) {
       </table>
     </div>
   );
-}
+};

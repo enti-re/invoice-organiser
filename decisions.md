@@ -600,6 +600,14 @@ Two Claude Code skills guided this build: `nikhilchandna-design` (the monochrome
 
 Both started as global skills (`~/.claude/skills/`), invisible to anyone browsing this repo. Copied them into `.claude/skills/` inside the project instead, and narrowed `.gitignore`'s blanket `.claude/` ignore to `.claude/*` + `!.claude/skills/` — worktrees and other Claude Code local state stay ignored, but the skills (authored, durable content, not session state) are tracked and reviewable alongside the code they shaped. Referenced both by name in the "Architecture & technical design" section of `/design-doc`.
 
+## Converted every `function` declaration to an arrow function
+
+Explicit style preference: `function foo() {}` everywhere in `src/` — components, hooks, lib helpers, API route handlers, page/layout components — rewritten as `const foo = () => {}`. Applies uniformly: named function components (`export const Foo = () => {...}`), default-exported pages (kept named — `const IntroPage = () => {...}; export default IntroPage;` — rather than an anonymous arrow default export, so the name still shows up in React DevTools and stack traces), Next.js route handlers (`export const GET = async (request) => {...}`, valid in the App Router since handlers just need to be named exports), and nested functions inside hooks (`useInvoiceList`'s and `useInvoiceReview`'s internal handlers, the two `useEffect` callbacks in `useInvoiceReview`).
+
+Purely syntactic — no behavior changed. The one thing that mattered mechanically: `function` declarations hoist, `const` arrow functions don't, so each file's helper functions had to already be defined before their first call in that file (they were, in every case, since the earlier extraction passes had already ordered helpers-before-callers) — no reordering was needed. Class methods (`FieldIssues.flag`/`.reasonsFor` in `confidence.ts`) were left as-is; they're not `function`-keyword declarations and the request was specifically about those.
+
+Verified with `tsc --noEmit`, `pnpm lint`, `pnpm test` (all pass), and a live check against the running dev server: all four pages (`/`, `/app`, `/design-doc`, `/invoices/[id]`) return 200, and the API's GET list, GET-by-id, and invalid-UUID branches all behave identically to before.
+
 ## Future plans (not attempted in this submission)
 
 Named here rather than left implicit, so it's clear these are deliberate deferrals with a time-boxed submission, not gaps nobody noticed:

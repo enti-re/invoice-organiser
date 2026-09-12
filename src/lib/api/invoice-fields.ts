@@ -16,9 +16,9 @@ export const EDITABLE_FIELD_COLUMNS = {
 
 export type EditableField = keyof typeof EDITABLE_FIELD_COLUMNS;
 
-export function isEditableField(field: unknown): field is EditableField {
+export const isEditableField = (field: unknown): field is EditableField => {
   return typeof field === "string" && field in EDITABLE_FIELD_COLUMNS;
-}
+};
 
 const COLUMN_SETTERS: {
   [K in EditableField]: (value: string | null) => Partial<typeof invoices.$inferInsert>;
@@ -33,7 +33,10 @@ const COLUMN_SETTERS: {
   total_amount: (v) => ({ totalAmount: v }),
 };
 
-export function buildFieldUpdate(field: EditableField, value: unknown): Partial<typeof invoices.$inferInsert> {
+export const buildFieldUpdate = (
+  field: EditableField,
+  value: unknown,
+): Partial<typeof invoices.$inferInsert> => {
   const stringValue = value === null || value === undefined ? null : String(value);
   return COLUMN_SETTERS[field](stringValue);
-}
+};

@@ -4,6 +4,6 @@ import { NextResponse } from "next/server";
 // ready-to-return error response, so the caller just checks `.ok`.
 export type StepFailure = { ok: false; response: NextResponse };
 
-export function fail(message: string, status: number): StepFailure {
+export const fail = (message: string, status: number): StepFailure => {
   return { ok: false, response: NextResponse.json({ error: message }, { status }) };
-}
+};

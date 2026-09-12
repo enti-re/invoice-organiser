@@ -36,15 +36,15 @@ const PLACEHOLDER_VALUES = new Set([
   "undefined",
 ]);
 
-function isBlankOrPlaceholder(value: string): boolean {
+const isBlankOrPlaceholder = (value: string): boolean => {
   const normalized = value.trim().toLowerCase();
   return normalized.length === 0 || PLACEHOLDER_VALUES.has(normalized);
-}
+};
 
-function amountsMatch(a: number, b: number): boolean {
+const amountsMatch = (a: number, b: number): boolean => {
   const tolerance = Math.max(AMOUNT_TOLERANCE_ABS, Math.abs(b) * AMOUNT_TOLERANCE_RATIO);
   return Math.abs(a - b) <= tolerance;
-}
+};
 
 class FieldIssues {
   private reasons = new Map<FieldKey, string[]>();
@@ -64,15 +64,15 @@ class FieldIssues {
   }
 }
 
-function flagNullFields(extraction: InvoiceExtraction, issues: FieldIssues): void {
+const flagNullFields = (extraction: InvoiceExtraction, issues: FieldIssues): void => {
   for (const field of SCALAR_FIELD_KEYS) {
     if (extraction[field] === null) {
       issues.flag(field, MISSING_REASON);
     }
   }
-}
+};
 
-function flagBlankPlaceholders(extraction: InvoiceExtraction, issues: FieldIssues): void {
+const flagBlankPlaceholders = (extraction: InvoiceExtraction, issues: FieldIssues): void => {
   const reason = "Looks like a blank or placeholder value — please verify manually";
   if (extraction.vendor_name !== null && isBlankOrPlaceholder(extraction.vendor_name)) {
     issues.flag("vendor_name", reason);
@@ -80,18 +80,18 @@ function flagBlankPlaceholders(extraction: InvoiceExtraction, issues: FieldIssue
   if (extraction.invoice_number !== null && isBlankOrPlaceholder(extraction.invoice_number)) {
     issues.flag("invoice_number", reason);
   }
-}
+};
 
-function flagInvalidDates(extraction: InvoiceExtraction, issues: FieldIssues): void {
+const flagInvalidDates = (extraction: InvoiceExtraction, issues: FieldIssues): void => {
   for (const field of ["invoice_date", "due_date"] as const) {
     const value = extraction[field];
     if (value !== null && !isValidIsoDate(value)) {
       issues.flag(field, `Invalid or unparseable date format (expected YYYY-MM-DD): "${value}"`);
     }
   }
-}
+};
 
-function flagAmountMismatch(extraction: InvoiceExtraction, issues: FieldIssues): void {
+const flagAmountMismatch = (extraction: InvoiceExtraction, issues: FieldIssues): void => {
   const { subtotal_amount, tax_amount, total_amount } = extraction;
   if (
     subtotal_amount === null ||
@@ -105,9 +105,9 @@ function flagAmountMismatch(extraction: InvoiceExtraction, issues: FieldIssues):
   issues.flag("subtotal_amount", reason);
   issues.flag("tax_amount", reason);
   issues.flag("total_amount", reason);
-}
+};
 
-function flagLineItemMismatch(extraction: InvoiceExtraction, issues: FieldIssues): void {
+const flagLineItemMismatch = (extraction: InvoiceExtraction, issues: FieldIssues): void => {
   if (extraction.line_items.length === 0) {
     if (extraction.total_amount !== null) {
       issues.flag("line_items", "No line items were extracted despite a total amount being present");
@@ -129,15 +129,15 @@ function flagLineItemMismatch(extraction: InvoiceExtraction, issues: FieldIssues
     issues.flag("line_items", reason);
     issues.flag(comparisonField, reason);
   }
-}
+};
 
-function flagUncertainFields(extraction: InvoiceExtraction, issues: FieldIssues): void {
+const flagUncertainFields = (extraction: InvoiceExtraction, issues: FieldIssues): void => {
   for (const entry of extraction.uncertain_fields) {
     issues.flag(entry.field, entry.reason);
   }
-}
+};
 
-function buildConfidenceMap(extraction: InvoiceExtraction, issues: FieldIssues): ConfidenceMap {
+const buildConfidenceMap = (extraction: InvoiceExtraction, issues: FieldIssues): ConfidenceMap => {
   const confidence: ConfidenceMap = {};
   for (const field of EXTRACTION_FIELD_KEYS) {
     const reasons = issues.reasonsFor(field);
@@ -153,25 +153,27 @@ function buildConfidenceMap(extraction: InvoiceExtraction, issues: FieldIssues):
     };
   }
   return confidence;
-}
+};
 
 // Document-level, not field-level: catches "wrong kind of document
 // entirely" (a resume, an ID card), which per-field checks can't see.
 // Stored under a synthetic key (not in EXTRACTION_FIELD_KEYS) so it
 // reuses the existing flagged/needsReview/confirm machinery for free.
-function flagDocumentType(extraction: InvoiceExtraction, confidence: ConfidenceMap): void {
+const flagDocumentType = (extraction: InvoiceExtraction, confidence: ConfidenceMap): void => {
   if (extraction.is_invoice) return;
   confidence.document_type = {
     score: 0,
     flagged: true,
     reason: extraction.not_invoice_reason ?? "This document doesn't look like an invoice or receipt.",
   };
-}
+};
 
-export function computeConfidence(extraction: InvoiceExtraction): {
+export const computeConfidence = (
+  extraction: InvoiceExtraction,
+): {
   confidence: ConfidenceMap;
   needsReview: boolean;
-} {
+} => {
   const issues = new FieldIssues();
 
   flagNullFields(extraction, issues);
@@ -187,4 +189,4 @@ export function computeConfidence(extraction: InvoiceExtraction): {
   const needsReview = Object.values(confidence).some((field) => field.flagged);
 
   return { confidence, needsReview };
-}
+};

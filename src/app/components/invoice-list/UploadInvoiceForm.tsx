@@ -2,7 +2,7 @@ import type { InvoiceListController } from "@/app/components/invoice-list/useInv
 import { FileIcon, Spinner, UploadIcon } from "@/app/components/icons";
 import { ACCEPTED_FILE_TYPES } from "@/lib/invoice-list";
 
-export function UploadInvoiceForm({ list }: { list: InvoiceListController }) {
+export const UploadInvoiceForm = ({ list }: { list: InvoiceListController }) => {
   const { fileInputRef } = list;
   return (
     <section className="space-y-3">
@@ -74,4 +74,4 @@ export function UploadInvoiceForm({ list }: { list: InvoiceListController }) {
       </form>
     </section>
   );
-}
+};

@@ -3,7 +3,7 @@ import { StatusBadge } from "@/app/components/invoice-list/InvoiceListUI";
 import { Spinner, TrashIcon } from "@/app/components/icons";
 import { formatINR } from "@/lib/invoice-list";
 
-export function InvoiceCard({
+export const InvoiceCard = ({
   invoice,
   isDeleting,
   onDeleteRequest,
@@ -13,7 +13,7 @@ export function InvoiceCard({
   isDeleting: boolean;
   onDeleteRequest: () => void;
   onReview: () => void;
-}) {
+}) => {
   return (
     <div className="relative border border-neutral-800 p-4 space-y-2">
       <button
@@ -43,4 +43,4 @@ export function InvoiceCard({
       </button>
     </div>
   );
-}
+};

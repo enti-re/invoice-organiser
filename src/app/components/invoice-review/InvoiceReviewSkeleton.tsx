@@ -2,7 +2,7 @@
 // guessed -- e.g. text-xs is a 12px font but a 16px line-height, so its
 // placeholder is h-4, not h-3. This is what prevents layout shift (CLS)
 // when real data replaces the skeleton.
-export function InvoiceReviewSkeleton() {
+export const InvoiceReviewSkeleton = () => {
   return (
     <div className="mx-auto w-full min-w-0 max-w-6xl px-6 py-12 md:px-8 space-y-6">
       <div className="flex items-center justify-between">
@@ -67,4 +67,4 @@ export function InvoiceReviewSkeleton() {
       </div>
     </div>
   );
-}
+};

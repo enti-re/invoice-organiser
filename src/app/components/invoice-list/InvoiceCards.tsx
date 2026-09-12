@@ -2,7 +2,7 @@ import type { InvoiceListController } from "@/app/components/invoice-list/useInv
 import { InvoiceCard } from "@/app/components/invoice-list/InvoiceCard";
 import { SkeletonCard } from "@/app/components/invoice-list/InvoiceListUI";
 
-export function InvoiceCards({ list }: { list: InvoiceListController }) {
+export const InvoiceCards = ({ list }: { list: InvoiceListController }) => {
   return (
     <div className="md:hidden flex flex-col gap-3">
       {list.loadingList ? (
@@ -37,4 +37,4 @@ export function InvoiceCards({ list }: { list: InvoiceListController }) {
       )}
     </div>
   );
-}
+};

@@ -1,15 +1,15 @@
-function StackBox({ label, title }: { label: string; title: string }) {
+const StackBox = ({ label, title }: { label: string; title: string }) => {
   return (
     <div className="min-w-[210px] border border-neutral-800 bg-neutral-900 px-5 py-3.5 text-center">
       <div className="text-[0.68rem] font-semibold uppercase tracking-wide text-neutral-500">{label}</div>
       <div className="mt-1 text-sm font-semibold text-neutral-100">{title}</div>
     </div>
   );
-}
+};
 
 // Every link is a request/response pair, so the label states what travels
 // each way rather than leaving the double-headed arrow to speak for itself.
-function VLink({ height = 64, down, up }: { height?: number; down?: string; up?: string }) {
+const VLink = ({ height = 64, down, up }: { height?: number; down?: string; up?: string }) => {
   return (
     <div className="relative flex flex-col items-center" style={{ height }}>
       <div className="h-0 w-0 border-x-4 border-x-transparent border-b-[6px] border-b-neutral-600" />
@@ -27,9 +27,9 @@ function VLink({ height = 64, down, up }: { height?: number; down?: string; up?:
       ) : null}
     </div>
   );
-}
+};
 
-function HLink({ width = 150, label }: { width?: number; label: string }) {
+const HLink = ({ width = 150, label }: { width?: number; label: string }) => {
   return (
     <div className="relative flex items-center" style={{ width }}>
       <div className="h-0 w-0 border-y-4 border-y-transparent border-r-[6px] border-r-neutral-600" />
@@ -40,9 +40,9 @@ function HLink({ width = 150, label }: { width?: number; label: string }) {
       </div>
     </div>
   );
-}
+};
 
-export function ArchitectureDiagram() {
+export const ArchitectureDiagram = () => {
   return (
     <div className="space-y-2">
       <div className="overflow-x-auto pt-4">
@@ -117,4 +117,4 @@ export function ArchitectureDiagram() {
       </div>
     </div>
   );
-}
+};

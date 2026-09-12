@@ -1,6 +1,6 @@
 import type { SortDirection } from "@/app/components/invoice-list/InvoiceList.types";
 
-export function StatusBadge({ needsReview }: { needsReview: boolean }) {
+export const StatusBadge = ({ needsReview }: { needsReview: boolean }) => {
   // Both states share the same pill shape; only color signals the difference.
   // Per-field detail lives on the review page, not here.
   if (needsReview) {
@@ -15,20 +15,20 @@ export function StatusBadge({ needsReview }: { needsReview: boolean }) {
       Reviewed
     </span>
   );
-}
+};
 
-export function SortIndicator({ direction }: { direction: SortDirection }) {
+export const SortIndicator = ({ direction }: { direction: SortDirection }) => {
   return <span className="text-red-400">{direction === "asc" ? "▲" : "▼"}</span>;
-}
+};
 
-function SkeletonBlock({ className = "" }: { className?: string }) {
+const SkeletonBlock = ({ className = "" }: { className?: string }) => {
   return <div className={`animate-pulse bg-neutral-800 ${className}`} />;
-}
+};
 
 // Placeholder heights are measured from real rendered content, not guessed
 // -- text-xs is a 12px font but a 16px line-height, so its placeholder is
 // h-4, not h-3. This is what prevents layout shift (CLS).
-export function SkeletonRow() {
+export const SkeletonRow = () => {
   return (
     <tr className="border-b border-neutral-800 last:border-0">
       <td className="py-3 pr-4">
@@ -57,9 +57,9 @@ export function SkeletonRow() {
       </td>
     </tr>
   );
-}
+};
 
-export function SkeletonCard() {
+export const SkeletonCard = () => {
   return (
     <div className="border border-neutral-800 p-4 space-y-2">
       <div>
@@ -74,4 +74,4 @@ export function SkeletonCard() {
       <SkeletonBlock className="h-[38px] w-full" />
     </div>
   );
-}
+};

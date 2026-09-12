@@ -5,7 +5,7 @@ import { EMPTY_FILTERS, type Filters, type InvoiceRow, type SortDirection, type 
 import { deleteInvoice, listInvoices, uploadInvoice } from "@/lib/api/api-client";
 import { compareInvoices, validateFile } from "@/lib/invoice-list";
 
-export function useInvoiceList() {
+export const useInvoiceList = () => {
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [loadingList, setLoadingList] = useState(true);
@@ -52,12 +52,12 @@ export function useInvoiceList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only re-run on vendor query changes
   }, [filters.vendor]);
 
-  function clearFilters() {
+  const clearFilters = () => {
     setFilters(EMPTY_FILTERS);
     fetchInvoices(EMPTY_FILTERS);
-  }
+  };
 
-  function applyFile(file: File | null) {
+  const applyFile = (file: File | null) => {
     setUploadError(null);
     if (!file) {
       setSelectedFile(null);
@@ -71,19 +71,19 @@ export function useInvoiceList() {
       return;
     }
     setSelectedFile(file);
-  }
+  };
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     applyFile(e.target.files?.[0] ?? null);
-  }
+  };
 
-  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragActive(false);
     applyFile(e.dataTransfer.files?.[0] ?? null);
-  }
+  };
 
-  async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
+  const handleUpload = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!selectedFile) return;
 
@@ -100,18 +100,18 @@ export function useInvoiceList() {
     } finally {
       setUploading(false);
     }
-  }
+  };
 
-  function handleSort(key: SortKey) {
+  const handleSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortDirection((d) => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
       setSortDirection("asc");
     }
-  }
+  };
 
-  async function handleDelete(id: string) {
+  const handleDelete = async (id: string) => {
     setListError(null);
     setDeletingId(id);
     try {
@@ -123,7 +123,7 @@ export function useInvoiceList() {
     } finally {
       setDeletingId(null);
     }
-  }
+  };
 
   const sortedInvoices = useMemo(() => {
     if (!sortKey) return invoices;
@@ -160,6 +160,6 @@ export function useInvoiceList() {
     handleSort,
     handleDelete,
   };
-}
+};
 
 export type InvoiceListController = ReturnType<typeof useInvoiceList>;

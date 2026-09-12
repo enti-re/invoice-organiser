@@ -2,7 +2,7 @@ import type { InvoiceReviewController } from "@/app/components/invoice-review/us
 import { FlagIcon, InlineReviewPanel } from "@/app/components/invoice-review/InlineReviewPanel";
 import { EDITABLE_FIELDS, fieldState } from "@/lib/extraction/field-review";
 
-export function ScalarField({
+export const ScalarField = ({
   label,
   fieldKey,
   value,
@@ -16,7 +16,7 @@ export function ScalarField({
   mono?: boolean;
   align?: "left" | "right";
   review: InvoiceReviewController;
-}) {
+}) => {
   const { expandedPanelRef } = review;
   const hasValue = value !== null && value !== "";
   const { flagged, reason } = fieldState(review.invoice?.confidence ?? null, fieldKey, hasValue);
@@ -53,4 +53,4 @@ export function ScalarField({
       )}
     </div>
   );
-}
+};

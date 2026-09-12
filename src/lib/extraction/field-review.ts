@@ -13,8 +13,8 @@ export const EDITABLE_FIELDS = new Set([
   "total_amount",
 ]);
 
-export function fieldState(confidence: ConfidenceMap | null, key: string, hasValue: boolean) {
+export const fieldState = (confidence: ConfidenceMap | null, key: string, hasValue: boolean) => {
   const fc = confidence?.[key];
   const flagged = fc?.flagged ?? false;
   return { flagged, missing: flagged && !hasValue, reason: fc?.reason };
-}
+};

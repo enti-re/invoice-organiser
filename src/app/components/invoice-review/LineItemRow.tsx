@@ -1,6 +1,6 @@
 import type { LineItem } from "@/app/components/invoice-review/InvoiceReview.types";
 
-export function LineItemRow({ item }: { item: LineItem }) {
+export const LineItemRow = ({ item }: { item: LineItem }) => {
   return (
     <tr className="border-b border-neutral-800">
       <td className="py-2 pr-4 text-neutral-100 break-words">{item.description}</td>
@@ -9,4 +9,4 @@ export function LineItemRow({ item }: { item: LineItem }) {
       <td className="py-2 pr-0 text-right font-mono text-neutral-100">{item.amount}</td>
     </tr>
   );
-}
+};

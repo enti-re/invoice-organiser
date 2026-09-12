@@ -6,7 +6,7 @@ import { useState } from "react";
 // mounting it fresh per invoice -- via `key={invoice.id}` at the call site --
 // naturally resets `fileLoaded` on navigation, instead of the parent having
 // to remember to reset it manually.
-export function OriginalFilePanel({ fileUrl, fileName }: { fileUrl: string; fileName: string }) {
+export const OriginalFilePanel = ({ fileUrl, fileName }: { fileUrl: string; fileName: string }) => {
   const [fileLoaded, setFileLoaded] = useState(false);
   const isPdf = /\.pdf(\?|#|$)/i.test(fileName) || /\.pdf(\?|#|$)/i.test(fileUrl);
 
@@ -44,4 +44,4 @@ export function OriginalFilePanel({ fileUrl, fileName }: { fileUrl: string; file
       </div>
     </div>
   );
-}
+};

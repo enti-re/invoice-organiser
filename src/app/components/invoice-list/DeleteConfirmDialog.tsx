@@ -1,7 +1,7 @@
 import type { InvoiceListController } from "@/app/components/invoice-list/useInvoiceList";
 import { Spinner } from "@/app/components/icons";
 
-export function DeleteConfirmDialog({ list }: { list: InvoiceListController }) {
+export const DeleteConfirmDialog = ({ list }: { list: InvoiceListController }) => {
   if (!list.confirmDeleteId) return null;
 
   const isDeleting = list.deletingId === list.confirmDeleteId;
@@ -45,4 +45,4 @@ export function DeleteConfirmDialog({ list }: { list: InvoiceListController }) {
       </div>
     </div>
   );
-}
+};

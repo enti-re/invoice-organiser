@@ -3,7 +3,7 @@ import { StatusBadge } from "@/app/components/invoice-list/InvoiceListUI";
 import { Spinner, TrashIcon } from "@/app/components/icons";
 import { formatINR } from "@/lib/invoice-list";
 
-export function InvoiceTableRow({
+export const InvoiceTableRow = ({
   invoice,
   isDeleting,
   onDeleteRequest,
@@ -13,7 +13,7 @@ export function InvoiceTableRow({
   isDeleting: boolean;
   onDeleteRequest: () => void;
   onReview: () => void;
-}) {
+}) => {
   return (
     <tr className="group border-b border-neutral-800 last:border-0 hover:bg-neutral-900">
       <td className="truncate py-3 pr-4 text-neutral-100" title={invoice.vendorName ?? undefined}>
@@ -48,4 +48,4 @@ export function InvoiceTableRow({
       </td>
     </tr>
   );
-}
+};

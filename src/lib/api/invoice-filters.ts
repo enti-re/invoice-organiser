@@ -11,7 +11,7 @@ export type InvoiceListParams = {
   maxAmount: string | null;
 };
 
-export function parseInvoiceListParams(searchParams: URLSearchParams): InvoiceListParams {
+export const parseInvoiceListParams = (searchParams: URLSearchParams): InvoiceListParams => {
   return {
     vendor: searchParams.get("vendor"),
     dateFrom: searchParams.get("dateFrom"),
@@ -19,14 +19,14 @@ export function parseInvoiceListParams(searchParams: URLSearchParams): InvoiceLi
     minAmount: searchParams.get("minAmount"),
     maxAmount: searchParams.get("maxAmount"),
   };
-}
+};
 
-export function validateInvoiceListParams({
+export const validateInvoiceListParams = ({
   dateFrom,
   dateTo,
   minAmount,
   maxAmount,
-}: InvoiceListParams): string | null {
+}: InvoiceListParams): string | null => {
   if (minAmount !== null && (minAmount.trim() === "" || Number.isNaN(Number(minAmount)))) {
     return "minAmount must be a number";
   }
@@ -40,15 +40,15 @@ export function validateInvoiceListParams({
     return "dateTo must be an ISO date (YYYY-MM-DD)";
   }
   return null;
-}
+};
 
-export function buildInvoiceListConditions({
+export const buildInvoiceListConditions = ({
   vendor,
   dateFrom,
   dateTo,
   minAmount,
   maxAmount,
-}: InvoiceListParams): SQL[] {
+}: InvoiceListParams): SQL[] => {
   const conditions: SQL[] = [];
   if (vendor) conditions.push(ilike(invoices.vendorName, `%${vendor}%`));
   if (dateFrom) conditions.push(gte(invoices.invoiceDate, dateFrom));
@@ -56,4 +56,4 @@ export function buildInvoiceListConditions({
   if (minAmount) conditions.push(gte(invoices.totalAmount, minAmount));
   if (maxAmount) conditions.push(lte(invoices.totalAmount, maxAmount));
   return conditions;
-}
+};

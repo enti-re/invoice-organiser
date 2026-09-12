@@ -4,14 +4,14 @@ export const ACCEPTED_FILE_TYPES = ["application/pdf", "image/png", "image/jpeg"
 export const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024;
 
 // INR-only by scope, not oversight -- multi-currency is a future extension.
-export function formatINR(amount: string | null): string {
+export const formatINR = (amount: string | null): string => {
   if (amount == null) return "—";
   const value = Number(amount);
   if (Number.isNaN(value)) return "—";
   return `₹${value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
+};
 
-export function compareInvoices(a: InvoiceRow, b: InvoiceRow, key: SortKey): number {
+export const compareInvoices = (a: InvoiceRow, b: InvoiceRow, key: SortKey): number => {
   if (key === "vendorName") {
     return (a.vendorName ?? "").localeCompare(b.vendorName ?? "");
   }
@@ -21,9 +21,9 @@ export function compareInvoices(a: InvoiceRow, b: InvoiceRow, key: SortKey): num
   const av = a.totalAmount != null ? Number(a.totalAmount) : -Infinity;
   const bv = b.totalAmount != null ? Number(b.totalAmount) : -Infinity;
   return av - bv;
-}
+};
 
-export function validateFile(file: File): string | null {
+export const validateFile = (file: File): string | null => {
   if (!ACCEPTED_FILE_TYPES.includes(file.type)) {
     return "Unsupported file type — upload a PDF, PNG, JPEG, or WEBP.";
   }
@@ -31,4 +31,4 @@ export function validateFile(file: File): string | null {
     return "File is too large — max size is 15MB.";
   }
   return null;
-}
+};

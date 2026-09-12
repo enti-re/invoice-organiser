@@ -10,13 +10,13 @@ const EXTRACTION_ERRORS = {
   generic: "Extraction failed",
 } as const;
 
-function extractionErrorResponse(message: string, blobUrl: string): NextResponse {
+const extractionErrorResponse = (message: string, blobUrl: string): NextResponse => {
   return NextResponse.json({ error: message, fileUrl: blobUrl }, { status: 502 });
-}
+};
 
 // generateObject wraps the real cause in RetryError.lastError once
 // internal retries are exhausted, rather than throwing it directly.
-export function mapExtractionErrorToResponse(rawError: unknown, blobUrl: string): NextResponse {
+export const mapExtractionErrorToResponse = (rawError: unknown, blobUrl: string): NextResponse => {
   const error = RetryError.isInstance(rawError) ? rawError.lastError : rawError;
 
   if (
@@ -41,4 +41,4 @@ export function mapExtractionErrorToResponse(rawError: unknown, blobUrl: string)
   }
 
   return extractionErrorResponse(EXTRACTION_ERRORS.generic, blobUrl);
-}
+};

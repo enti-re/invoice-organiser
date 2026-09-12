@@ -1,7 +1,7 @@
 // Two earlier approaches were dropped: a hover tooltip (moving toward it
 // broke the hover state it depended on) and a centered modal (too much
 // ceremony, and it dims the document being compared against).
-export function FlagIcon({ onClick }: { onClick: () => void }) {
+export const FlagIcon = ({ onClick }: { onClick: () => void }) => {
   return (
     <button
       type="button"
@@ -12,9 +12,9 @@ export function FlagIcon({ onClick }: { onClick: () => void }) {
       ⚠
     </button>
   );
-}
+};
 
-function EditRow({
+const EditRow = ({
   value,
   onChange,
   onSave,
@@ -26,7 +26,7 @@ function EditRow({
   onSave: () => void;
   onCancel: () => void;
   saving: boolean;
-}) {
+}) => {
   return (
     <div className="flex items-center gap-2">
       <input
@@ -56,9 +56,9 @@ function EditRow({
       </button>
     </div>
   );
-}
+};
 
-export function InlineReviewPanel({
+export const InlineReviewPanel = ({
   reason,
   editable,
   editing,
@@ -86,7 +86,7 @@ export function InlineReviewPanel({
   saving: boolean;
   error: string | null;
   align?: "left" | "right";
-}) {
+}) => {
   const sideClass = align === "right" ? "right-0" : "left-0";
   return (
     <div
@@ -137,4 +137,4 @@ export function InlineReviewPanel({
       )}
     </div>
   );
-}
+};

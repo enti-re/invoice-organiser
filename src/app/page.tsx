@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export default function IntroPage() {
+const IntroPage = () => {
   return (
     <div className="relative isolate flex min-h-dvh w-full items-center justify-center overflow-hidden px-6 md:px-8">
       <Image
@@ -39,4 +39,6 @@ export default function IntroPage() {
       </div>
     </div>
   );
-}
+};
+
+export default IntroPage;

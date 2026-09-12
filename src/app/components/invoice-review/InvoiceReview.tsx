@@ -13,7 +13,7 @@ import { EDITABLE_FIELDS, fieldState } from "@/lib/extraction/field-review";
 
 export type { InvoiceData };
 
-export function InvoiceReview({ id }: { id: string }) {
+export const InvoiceReview = ({ id }: { id: string }) => {
   const review = useInvoiceReview(id);
   const { invoice, loading, loadError, expandedPanelRef } = review;
 
@@ -175,4 +175,4 @@ export function InvoiceReview({ id }: { id: string }) {
       </div>
     </div>
   );
-}
+};

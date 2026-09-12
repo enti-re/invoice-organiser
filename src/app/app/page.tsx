@@ -9,7 +9,7 @@ import { SearchIcon } from "@/app/components/icons";
 import { UploadInvoiceForm } from "@/app/components/invoice-list/UploadInvoiceForm";
 import { useInvoiceList } from "@/app/components/invoice-list/useInvoiceList";
 
-export default function Home() {
+const Home = () => {
   const list = useInvoiceList();
 
   return (
@@ -61,4 +61,6 @@ export default function Home() {
       <DeleteConfirmDialog list={list} />
     </div>
   );
-}
+};
+
+export default Home;
