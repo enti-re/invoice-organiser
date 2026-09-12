@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { DatePicker } from "@/app/components/DatePicker";
 import { InvoiceDetail } from "@/app/components/InvoiceDetail";
 
 type LineItem = {
@@ -357,18 +358,18 @@ export default function Home() {
             onChange={(e) => setFilters({ ...filters, vendor: e.target.value })}
             className="border border-neutral-700 px-3 py-2 focus:outline-none focus:border-white"
           />
-          <input
-            type="date"
+          <DatePicker
             value={filters.dateFrom}
-            onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-            className="border border-neutral-700 px-3 py-2 font-mono text-neutral-300 focus:outline-none focus:border-white"
+            onChange={(v) => setFilters({ ...filters, dateFrom: v })}
+            placeholder="From"
+            className="w-36"
           />
           <span className="text-neutral-400">to</span>
-          <input
-            type="date"
+          <DatePicker
             value={filters.dateTo}
-            onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-            className="border border-neutral-700 px-3 py-2 font-mono text-neutral-300 focus:outline-none focus:border-white"
+            onChange={(v) => setFilters({ ...filters, dateTo: v })}
+            placeholder="To"
+            className="w-36"
           />
           <input
             type="number"

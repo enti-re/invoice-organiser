@@ -258,3 +258,11 @@ One honest miss in constructing the test: a CSS blur applied to the vendor name 
 **What changed:** the delete icon was originally hidden until row hover (`opacity-0 group-hover:opacity-100`) and used the browser's native `window.confirm()` dialog. Both changed:
 - The icon is now always present, but styled subtly (a dim neutral gray, only becoming fully red on hover) — visible without demanding attention, rather than either fully hidden or fully prominent.
 - `window.confirm()` replaced with a custom modal matching the app's actual theme (dark, sharp corners, the same overlay pattern as the invoice detail view) — the native browser dialog looked jarring against the rest of the polished UI. The modal names the vendor being deleted and makes clear the action is permanent, before committing to the delete API call.
+
+## Custom date picker, replacing the native `<input type="date">`
+
+**Problem:** the native date input's calendar popup is browser/OS-rendered — `color-scheme: dark` (already set) makes its small calendar icon and the popup's base colors dark-appropriate, but the popup itself is still generic OS chrome, disconnected from the app's actual typography, spacing, and sharp-corner monochrome+orange styling. It can't be made to look like a designed part of the page, only a slightly-tinted version of the OS default.
+
+**Decision:** built a small custom `DatePicker` component (`src/app/components/DatePicker.tsx`) — a button showing the selected date, opening a calendar dropdown (month grid, prev/next navigation, click-to-select, outside-click/Escape to close) styled identically to the rest of the app. No new dependency — plain React state and native `Date` math, consistent with this project's general preference for avoiding dependencies for small, well-scoped UI pieces. Replaces both date-range filter inputs.
+
+**A real lint bug caught building it:** the initial implementation used a `useEffect` to keep the picker's displayed month in sync with the selected date, calling `setViewDate` inside that effect — the same `react-hooks/set-state-in-effect` issue hit earlier in this project (see the Session 1 fix in `page.tsx`'s initial data-fetch effect). Fixed the same way: moved the sync to the moment the picker actually opens (in the button's click handler) instead of reactively watching for value changes via an effect.
