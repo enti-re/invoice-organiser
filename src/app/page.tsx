@@ -357,6 +357,9 @@ export default function Home() {
     return [...invoices].sort((a, b) => compareInvoices(a, b, sortKey) * dir);
   }, [invoices, sortKey, sortDirection]);
 
+  const hasActiveFilters = Object.values(filters).some(Boolean);
+  const showFirstRunEmptyState = !loadingList && sortedInvoices.length === 0 && !hasActiveFilters;
+
   return (
     <div className="mx-auto max-w-5xl px-6 py-12 md:px-8 md:py-16 space-y-14">
       <header className="space-y-3">
@@ -439,6 +442,7 @@ export default function Home() {
       <section className="space-y-4">
         <h2 className="font-medium text-neutral-100">Invoices</h2>
 
+        {!showFirstRunEmptyState && (
         <form
           onSubmit={handleFilterSubmit}
           className="flex flex-wrap items-center gap-2.5 text-sm border-b border-neutral-800 pb-5"
@@ -493,7 +497,18 @@ export default function Home() {
             Clear
           </button>
         </form>
+        )}
 
+        {showFirstRunEmptyState ? (
+          <div className="flex flex-col items-center justify-center gap-3 border border-neutral-800 px-10 py-16 text-center">
+            <FileIcon className="h-8 w-8 text-neutral-700" />
+            <div>
+              <p className="font-medium text-neutral-100">No invoices yet</p>
+              <p className="mt-1 text-sm text-neutral-500">Upload one above to get started.</p>
+            </div>
+          </div>
+        ) : (
+          <>
         {/* Desktop table */}
         <div className="hidden md:block">
           <table className="w-full text-sm border-collapse">
@@ -542,8 +557,17 @@ export default function Home() {
               ) : sortedInvoices.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-10 text-center text-neutral-400">
-                    <span className="block text-2xl grayscale">📥</span>
-                    <span className="mt-2 block">No invoices yet — upload one above.</span>
+                    No invoices match your filters.{" "}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFilters(EMPTY_FILTERS);
+                        fetchInvoices(EMPTY_FILTERS);
+                      }}
+                      className="cursor-pointer underline hover:text-neutral-100"
+                    >
+                      Clear filters
+                    </button>
                   </td>
                 </tr>
               ) : (
@@ -594,8 +618,17 @@ export default function Home() {
             Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
           ) : sortedInvoices.length === 0 ? (
             <div className="border border-neutral-800 p-10 text-center text-neutral-400">
-              <span className="block text-2xl grayscale">📥</span>
-              <span className="mt-2 block">No invoices yet — upload one above.</span>
+              No invoices match your filters.{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setFilters(EMPTY_FILTERS);
+                  fetchInvoices(EMPTY_FILTERS);
+                }}
+                className="cursor-pointer underline hover:text-neutral-100"
+              >
+                Clear filters
+              </button>
             </div>
           ) : (
             sortedInvoices.map((inv) => (
@@ -633,6 +666,8 @@ export default function Home() {
             ))
           )}
         </div>
+          </>
+        )}
       </section>
 
       {confirmDeleteId &&
