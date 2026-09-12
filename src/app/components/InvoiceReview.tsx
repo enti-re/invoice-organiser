@@ -153,7 +153,6 @@ export function InvoiceReview({ id }: { id: string }) {
         const data: InvoiceData = await res.json();
         if (cancelled) return;
         setInvoice(data);
-        setShowOriginal(data.needsReview);
       } catch (err) {
         if (!cancelled) setLoadError(err instanceof Error ? err.message : "Failed to load invoice");
       } finally {
@@ -209,10 +208,21 @@ export function InvoiceReview({ id }: { id: string }) {
               ))}
             </div>
           </div>
-          <div className="space-y-3">
+          <div>
             <div className="h-3 w-20 animate-pulse bg-neutral-800" />
+            <div className="mt-3 border-b border-neutral-800 pb-2 flex gap-4">
+              <div className="h-3 flex-1 animate-pulse bg-neutral-800" />
+              <div className="h-3 w-10 animate-pulse bg-neutral-800" />
+              <div className="h-3 w-16 animate-pulse bg-neutral-800" />
+              <div className="h-3 w-16 animate-pulse bg-neutral-800" />
+            </div>
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-4 w-full animate-pulse bg-neutral-800" />
+              <div key={i} className="flex gap-4 border-b border-neutral-800 py-2.5">
+                <div className="h-4 flex-1 animate-pulse bg-neutral-800" />
+                <div className="h-4 w-10 animate-pulse bg-neutral-800" />
+                <div className="h-4 w-16 animate-pulse bg-neutral-800" />
+                <div className="h-4 w-16 animate-pulse bg-neutral-800" />
+              </div>
             ))}
           </div>
           <div className="flex justify-end border-t border-neutral-800 pt-4">
