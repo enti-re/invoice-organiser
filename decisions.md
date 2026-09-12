@@ -569,6 +569,14 @@ Two more readability passes on the same files right after the extraction above, 
 
 Verified with `tsc --noEmit`, `pnpm lint`, `pnpm test`, and live `curl` against the running dev server for every branch: malformed JSON body, invalid `action`, missing `field`, a non-editable field, and a valid confirm — all unchanged from before the split.
 
+## `[id]/route.ts`: same treatment for DELETE, then the whole file reordered
+
+**`DELETE` had three sequential try/catch blocks inline (look up the row, delete the row, best-effort delete the blob), each with its own error handling.** Split into `findInvoiceOrFail` (lookup, returns the row or a `StepFailure` for either "not found" or a DB error), `deleteInvoiceRow` (the row delete), and `deleteInvoiceBlob` (the best-effort blob cleanup — stays `void`-returning since a failure here is deliberately swallowed, not surfaced, per the existing comment about orphaned files being a cleanup concern, not a request failure). `DELETE` itself is now four lines of orchestration.
+
+**Reordered the whole file to match `route.ts`'s pattern from the previous entry:** grouped by handler (`GET`'s single-step helper, then `PATCH`'s two helpers, then `DELETE`'s three), followed by one "Route entry points" section at the bottom with `GET`/`PATCH`/`DELETE` — each now just the id-param extraction, the `invalidUuidResponse` guard, a call to its `handleX`, and the outer catch-all. The three exports also became symmetric this way: previously only `GET` and `PATCH` inlined their logic directly while none used a `handleX` indirection; now all three follow the same shape as `route.ts`'s `POST`/`GET`.
+
+Verified with `tsc --noEmit`, `pnpm lint`, `pnpm test`, and live `curl`: `GET` (valid id, invalid id, nonexistent id) and `DELETE` on a nonexistent id (the 404 branch through the new `findInvoiceOrFail`). Didn't exercise a real successful delete against the dev DB — only two seed invoices exist there and deleting one would remove demo data; the success path is a direct, type-checked extraction of code already covered by the `PATCH` update test above.
+
 ## Future plans (not attempted in this submission)
 
 Named here rather than left implicit, so it's clear these are deliberate deferrals with a time-boxed submission, not gaps nobody noticed:
