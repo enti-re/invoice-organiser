@@ -272,31 +272,38 @@ export function InvoiceReview({ id }: { id: string }) {
   }
 
   if (loading) {
+    // Every placeholder size below is measured from the real rendered page
+    // (getBoundingClientRect on each section), not guessed -- e.g. a label
+    // uses text-xs, which is a 12px font but a 16px line-height, so its
+    // placeholder is h-4 (16px), not h-3 (12px); a value uses text-sm (20px
+    // line-height), so h-5. Matching real content-box heights exactly is
+    // what keeps this loading state from shifting the layout (CLS) once
+    // real data replaces it.
     return (
       <div className="mx-auto max-w-6xl px-6 py-12 md:px-8 space-y-6">
         <div className="flex items-center justify-between">
-          <div className="h-4 w-24 animate-pulse bg-neutral-800" />
-          <div className="h-8 w-28 animate-pulse bg-neutral-800" />
+          <div className="h-5 w-24 animate-pulse bg-neutral-800" />
+          <div className="h-[30px] w-28 animate-pulse bg-neutral-800" />
         </div>
         <div className="space-y-6 border border-neutral-800 bg-neutral-900 p-6 md:p-8">
           <div className="flex flex-col gap-4 border-b border-neutral-800 pb-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="h-8 w-48 animate-pulse bg-neutral-800" />
             <div className="grid grid-cols-2 gap-x-6 gap-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="space-y-1.5">
-                  <div className="h-3 w-16 animate-pulse bg-neutral-800" />
-                  <div className="h-4 w-24 animate-pulse bg-neutral-800" />
+                <div key={i} className="space-y-0.5">
+                  <div className="h-4 w-16 animate-pulse bg-neutral-800" />
+                  <div className="h-5 w-24 animate-pulse bg-neutral-800" />
                 </div>
               ))}
             </div>
           </div>
           <div>
-            <div className="h-3 w-20 animate-pulse bg-neutral-800" />
-            <div className="mt-3 border-b border-neutral-800 pb-2 flex gap-4">
-              <div className="h-3 flex-1 animate-pulse bg-neutral-800" />
-              <div className="h-3 w-10 animate-pulse bg-neutral-800" />
-              <div className="h-3 w-16 animate-pulse bg-neutral-800" />
-              <div className="h-3 w-16 animate-pulse bg-neutral-800" />
+            <div className="h-4 w-20 animate-pulse bg-neutral-800" />
+            <div className="mt-3 flex gap-4 border-b border-neutral-800 py-2">
+              <div className="h-4 flex-1 animate-pulse bg-neutral-800" />
+              <div className="h-4 w-10 animate-pulse bg-neutral-800" />
+              <div className="h-4 w-16 animate-pulse bg-neutral-800" />
+              <div className="h-4 w-16 animate-pulse bg-neutral-800" />
             </div>
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="flex gap-4 border-b border-neutral-800 py-2.5">
@@ -308,9 +315,12 @@ export function InvoiceReview({ id }: { id: string }) {
             ))}
           </div>
           <div className="flex justify-end border-t border-neutral-800 pt-4">
-            <div className="w-full max-w-xs space-y-2">
+            <div className="w-full max-w-xs space-y-1">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-4 w-full animate-pulse bg-neutral-800" />
+                <div key={i} className="ml-auto space-y-0.5">
+                  <div className="ml-auto h-4 w-16 animate-pulse bg-neutral-800" />
+                  <div className="ml-auto h-5 w-24 animate-pulse bg-neutral-800" />
+                </div>
               ))}
             </div>
           </div>

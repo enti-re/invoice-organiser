@@ -125,29 +125,34 @@ function SkeletonBlock({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse bg-neutral-800 ${className}`} />;
 }
 
+// Sizes below are measured from the real rendered row/card (getBoundingClientRect),
+// not guessed -- each placeholder height matches its real counterpart's actual
+// content-box height (accounting for line-height, not just font-size: text-xs is
+// 12px font but a 16px line-height, text-sm is 14px font but a 20px line-height,
+// etc.) so swapping skeleton for real content doesn't shift the layout (CLS).
 function SkeletonRow() {
   return (
     <tr className="border-b border-neutral-800 last:border-0">
       <td className="py-3 pr-4">
-        <SkeletonBlock className="h-4 w-32" />
+        <SkeletonBlock className="h-5 w-32" />
       </td>
       <td className="py-3 pr-4">
-        <SkeletonBlock className="h-4 w-20" />
+        <SkeletonBlock className="h-5 w-20" />
       </td>
       <td className="py-3 pr-4">
-        <SkeletonBlock className="h-4 w-24" />
+        <SkeletonBlock className="h-5 w-24" />
       </td>
       <td className="py-3 pr-4">
-        <SkeletonBlock className="h-4 w-16" />
+        <SkeletonBlock className="h-5 w-16" />
       </td>
       <td className="py-3 pr-4">
-        <SkeletonBlock className="h-4 w-6" />
+        <SkeletonBlock className="h-5 w-6" />
       </td>
       <td className="py-3 pr-4">
-        <SkeletonBlock className="h-5 w-24 rounded-full" />
+        <SkeletonBlock className="h-[22px] w-24 rounded-full" />
       </td>
       <td className="py-3 pr-4">
-        <SkeletonBlock className="h-7 w-20" />
+        <SkeletonBlock className="h-[26px] w-20" />
       </td>
       <td className="py-3 pr-4">
         <SkeletonBlock className="h-4 w-4" />
@@ -158,14 +163,17 @@ function SkeletonRow() {
 
 function SkeletonCard() {
   return (
-    <div className="border border-neutral-800 p-4 space-y-3">
-      <SkeletonBlock className="h-4 w-32" />
-      <SkeletonBlock className="h-6 w-24" />
-      <div className="flex items-center justify-between">
-        <SkeletonBlock className="h-4 w-20" />
-        <SkeletonBlock className="h-5 w-24 rounded-full" />
+    <div className="border border-neutral-800 p-4 space-y-2">
+      <div>
+        <SkeletonBlock className="h-6 w-32" />
+        <SkeletonBlock className="h-7 w-28" />
       </div>
-      <SkeletonBlock className="h-9 w-full" />
+      <div className="flex items-center justify-between">
+        <SkeletonBlock className="h-5 w-20" />
+        <SkeletonBlock className="h-[22px] w-24 rounded-full" />
+      </div>
+      <SkeletonBlock className="h-5 w-24" />
+      <SkeletonBlock className="h-[38px] w-full" />
     </div>
   );
 }
