@@ -226,135 +226,96 @@ export default function DesignPage() {
         </div>
       </section>
 
-      <section className="space-y-4 border-t border-neutral-800 pt-10">
-        <h2 className="text-xl font-semibold text-neutral-100">1. Problem framing</h2>
+      <section className="space-y-3 border-t border-neutral-800 pt-10">
+        <h2 className="text-xl font-semibold text-neutral-100">Problem statement</h2>
         <p className="text-sm leading-relaxed text-neutral-300">
-          An LLM extraction is only useful if a reviewer can trust it without re-checking every
-          field by hand — and it&apos;s only safe if they don&apos;t trust it blindly either. Most
-          &quot;AI extraction&quot; tools pick one of those two failure modes: either the confidence
-          number is decorative and everyone re-checks everything anyway, or nothing is flagged and
-          wrong data slips straight into the record. The actual design problem here is making
-          confidence <em>mean</em> something — narrow enough that a reviewer only looks at what&apos;s
-          genuinely uncertain, honest enough that &quot;not flagged&quot; is a real guarantee, not an
-          optimistic default.
-        </p>
-        <p className="text-sm leading-relaxed text-neutral-300">
-          That problem doesn&apos;t stop at individual fields. Field-level checks alone couldn&apos;t
-          catch the wrong <em>kind</em> of document — a resume run through the extractor came back
-          with plausible-shaped nulls and would have quietly passed. That gap only surfaced from
-          testing with real adversarial input, not from the spec, which is why a document-level
-          &quot;is this even an invoice&quot; check exists as its own signal rather than being folded
-          into the field checks.
+          An LLM can read an invoice and pull out the fields, but a reviewer still can&apos;t just
+          trust it — and re-checking every field by hand defeats the point of automating it. This
+          app scores each field&apos;s confidence and flags only what actually looks wrong,
+          including documents that aren&apos;t invoices at all.
         </p>
       </section>
 
       <section className="space-y-8 border-t border-neutral-800 pt-10">
-        <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-neutral-100">2. Key decisions &amp; tradeoffs</h2>
-          <p className="text-sm text-neutral-400">
-            Framed as what was chosen over what, and why — the alternatives were real options, not
-            straw men.
-          </p>
-        </div>
+        <h2 className="text-xl font-semibold text-neutral-100">Tech stack &amp; why</h2>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <h3 className="text-sm font-medium uppercase tracking-wide text-neutral-500">Frontend</h3>
           <StackRow items={["Next.js 16 (App Router)", "React", "TypeScript", "Tailwind CSS"]} />
-          <ul className="space-y-3 text-sm text-neutral-300">
+          <ul className="space-y-2 text-sm text-neutral-300">
             <li>
-              <span className="text-neutral-100">Inline accordion over a hover-tooltip or a modal,</span>{" "}
-              for the flagged-field review control. Both alternatives shipped and were actually
-              clicked through first: the tooltip fought its own hover state (moving toward the hint
-              text dismissed it), and a modal disconnected the flag from the number it was about. The
-              accordion stays anchored to the exact field, with no overlay and nothing to lose focus
-              on.
+              <span className="text-neutral-100">Next.js App Router</span> — one app for pages and
+              API routes, nothing separate to deploy. Considered a separate backend; skipped, not
+              needed at this size.
             </li>
             <li>
-              <span className="text-neutral-100">No global state library, over a client cache.</span>{" "}
-              Confirm/edit actions patch the server directly and re-render from its response.
-              Redux/Zustand/React Query would add a second source of truth to keep in sync for data
-              that&apos;s already server-owned — the wrong cost for this surface area, though it
-              would start to matter if the app grew multiple views sharing the same live data.
+              <span className="text-neutral-100">No state library</span> — actions save to the server
+              and re-render from its response. Considered Redux/React Query; skipped, would just add
+              a second copy of data to keep in sync.
             </li>
             <li>
-              <span className="text-neutral-100">Hand-built design system, over a component library.</span>{" "}
-              Buys a monochrome-plus-one-accent look with nothing borrowed from a UI kit, at the cost
-              of building and maintaining every skeleton, icon, and the date picker by hand — a
-              tradeoff that stops paying off past a certain surface area.
-            </li>
-            <li>
-              <span className="text-neutral-100">Measured skeletons, over guessed placeholder shapes.</span>{" "}
-              Every loading state is sized from the real rendered DOM (
-              <code className="text-xs">getBoundingClientRect</code>) instead of an approximate box,
-              so nothing shifts when data arrives — more upfront effort per skeleton, worth it because
-              layout shift on a data-review page directly undermines trust in the data itself.
+              <span className="text-neutral-100">Custom design system</span> — a small, consistent
+              dark theme. Considered a component library; skipped to avoid a borrowed look.
             </li>
           </ul>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           <h3 className="text-sm font-medium uppercase tracking-wide text-neutral-500">Backend</h3>
           <StackRow items={["PostgreSQL (Neon)", "Drizzle ORM", "Gemini", "Vercel Blob"]} />
-          <ul className="space-y-3 text-sm text-neutral-300">
+          <ul className="space-y-2 text-sm text-neutral-300">
             <li>
-              <span className="text-neutral-100">Typed columns for fixed-shape fields, <code className="text-xs">jsonb</code> only where the shape genuinely varies,</span>{" "}
-              over an all-<code className="text-xs">jsonb</code> or all-typed schema. Vendor, dates,
-              amounts, and tax stay indexable and queryable columns; line items and the confidence map
-              are <code className="text-xs">jsonb</code> because forcing them into fixed columns would
-              mean a migration every time an invoice&apos;s shape doesn&apos;t match the last one.
+              <span className="text-neutral-100">Typed columns + <code className="text-xs">jsonb</code></span>{" "}
+              — vendor, dates, and amounts are real columns; line items and confidence are{" "}
+              <code className="text-xs">jsonb</code>, since their shape varies. Considered
+              all-<code className="text-xs">jsonb</code>; skipped, loses the ability to query them.
             </li>
             <li>
-              <span className="text-neutral-100">One schema shared between extraction and scoring,</span>{" "}
-              over two separately maintained ones. The same Zod schema drives Gemini&apos;s structured
-              output and the confidence-computation logic, so a field added to one can&apos;t silently
-              stop being checked by the other.
+              <span className="text-neutral-100">One shared schema</span> — the same Zod schema
+              drives both extraction and confidence scoring, so they can&apos;t drift apart.
             </li>
             <li>
-              <span className="text-neutral-100">Native document understanding, over a separate OCR
-              step.</span> Gemini reads the PDF/image directly via the Vercel AI SDK&apos;s{" "}
-              <code className="text-xs">generateObject</code> — one fewer moving part and one fewer
-              place for text to get mangled before extraction even starts.
+              <span className="text-neutral-100">Gemini reads documents directly</span> — no OCR step.
+              Considered a separate OCR pipeline; skipped, one less thing that can break.
             </li>
             <li>
-              <span className="text-neutral-100">Synchronous extraction on upload, over a background
-              job queue.</span> The upload request blocks until Gemini returns, which is simple and
-              was the right call for something demoed and tested by one person at a time — the first
-              thing that would need to change under real load (see below).
+              <span className="text-neutral-100">Synchronous extraction on upload</span> — simple, and
+              fine for one user at a time. First thing to change at scale (see below).
             </li>
           </ul>
         </div>
       </section>
 
-      <section className="space-y-4 border-t border-neutral-800 pt-10">
-        <h2 className="text-xl font-semibold text-neutral-100">3. What I&apos;d do differently at scale</h2>
-        <p className="text-sm text-neutral-400">
-          Named honestly rather than pretending this is a finished product — these are the specific
-          things that would break or become wrong first under real usage, not a generic roadmap.
-        </p>
+      <section className="space-y-3 border-t border-neutral-800 pt-10">
+        <h2 className="text-xl font-semibold text-neutral-100">Product &amp; UX decisions</h2>
         <ul className="space-y-2 text-sm text-neutral-300">
           <li>
-            <span className="text-neutral-100">Move extraction off the request path.</span> A
-            synchronous Gemini call inside the upload request works for one user at a time; a queue
-            (upload → enqueue → poll or stream status) would stop a slow or rate-limited extraction
-            from holding a connection open, and would let uploads degrade gracefully under load
-            instead of timing out.
+            <span className="text-neutral-100">Confidence is honest, not decorative</span> — a
+            document-level check flags things that aren&apos;t invoices at all. Caught a resume and a
+            wedding invite during testing.
           </li>
           <li>
-            <span className="text-neutral-100">Add auth and per-user/org data isolation.</span> There
-            is currently one implicit shared workspace and no login — the right call for a
-            single-reviewer test, not for multiple real companies&apos; invoices in the same table.
+            <span className="text-neutral-100">Flagged fields open inline,</span> right next to the
+            number. Tried a tooltip, then a modal — both got in the way; inline won.
           </li>
           <li>
-            <span className="text-neutral-100">Duplicate-upload detection</span> — nothing today stops
-            the same invoice being uploaded twice and creating two rows; needs a real decision on what
-            &quot;the same invoice&quot; means (exact file vs. same vendor+invoice number) before it&apos;s
-            worth building.
+            <span className="text-neutral-100">Loading skeletons match the real layout,</span> so
+            nothing shifts once data loads.
           </li>
           <li>
-            <span className="text-neutral-100">Batch upload,</span> with per-file status and
-            partial-failure handling — today&apos;s one-file-at-a-time flow was the right scope for
-            this submission, not the right ceiling for a real tool.
+            <span className="text-neutral-100">Mobile has its own layout,</span> not a squeezed-down
+            table.
           </li>
+        </ul>
+      </section>
+
+      <section className="space-y-3 border-t border-neutral-800 pt-10">
+        <h2 className="text-xl font-semibold text-neutral-100">What I&apos;d do differently at scale</h2>
+        <ul className="space-y-2 text-sm text-neutral-300">
+          <li>Move extraction off the upload request, into a queue.</li>
+          <li>Add login — right now everyone shares one workspace.</li>
+          <li>Detect duplicate uploads.</li>
+          <li>Support uploading more than one invoice at a time.</li>
         </ul>
       </section>
 
