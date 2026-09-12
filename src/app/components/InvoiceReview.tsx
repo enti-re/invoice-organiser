@@ -163,7 +163,7 @@ function EditRow({
   saving: boolean;
 }) {
   return (
-    <div className="mt-1 flex items-center gap-2">
+    <div className="flex items-center gap-2">
       <input
         autoFocus
         value={value}
@@ -172,17 +172,21 @@ function EditRow({
           if (e.key === "Enter") onSave();
           if (e.key === "Escape") onCancel();
         }}
-        className="border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm font-mono text-neutral-100 focus:outline-none focus:border-white"
+        className="min-w-0 flex-1 border border-neutral-700 bg-neutral-950 px-2 py-1 text-sm font-mono text-neutral-100 focus:outline-none focus:border-white"
       />
       <button
         type="button"
         onClick={onSave}
         disabled={saving}
-        className="bg-white px-2 py-1 text-xs font-medium text-black disabled:opacity-40"
+        className="shrink-0 bg-white px-2 py-1 text-xs font-medium text-black disabled:opacity-40"
       >
         {saving ? "Saving…" : "Save"}
       </button>
-      <button type="button" onClick={onCancel} className="text-xs text-neutral-400 hover:text-white">
+      <button
+        type="button"
+        onClick={onCancel}
+        className="shrink-0 text-xs text-neutral-400 hover:text-white"
+      >
         Cancel
       </button>
     </div>
@@ -341,7 +345,7 @@ export function InvoiceReview({ id }: { id: string }) {
               <div className="h-4 w-16 animate-pulse bg-neutral-800" />
               <div className="h-4 w-16 animate-pulse bg-neutral-800" />
             </div>
-            {Array.from({ length: 3 }).map((_, i) => (
+            {Array.from({ length: 2 }).map((_, i) => (
               <div key={i} className="flex gap-4 border-b border-neutral-800 py-2.5">
                 <div className="h-4 flex-1 animate-pulse bg-neutral-800" />
                 <div className="h-4 w-10 animate-pulse bg-neutral-800" />
