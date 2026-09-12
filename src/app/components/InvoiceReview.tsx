@@ -102,16 +102,18 @@ function InlineReviewPanel({
   const sideClass = align === "right" ? "right-0" : "left-0";
   return (
     <div
-      className={`absolute top-full z-20 mt-1.5 w-72 max-w-[90vw] border border-neutral-700 bg-neutral-950 p-3 pr-7 text-left text-sm shadow-lg ${sideClass}`}
+      className={`absolute top-full z-20 mt-1.5 w-72 max-w-[90vw] border border-neutral-700 bg-neutral-950 p-3 text-left text-sm shadow-lg ${editing ? "" : "pr-7"} ${sideClass}`}
     >
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label="Close"
-        className="absolute right-1.5 top-1.5 text-neutral-500 hover:text-white"
-      >
-        ✕
-      </button>
+      {!editing && (
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-1.5 top-1.5 text-neutral-500 hover:text-white"
+        >
+          ✕
+        </button>
+      )}
       {editing ? (
         <EditRow
           value={editValue}
