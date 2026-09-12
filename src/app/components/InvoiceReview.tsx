@@ -250,14 +250,22 @@ export function InvoiceReview({ id }: { id: string }) {
 
   const confidence = invoice.confidence;
 
-  function renderScalar(label: string, key: string, value: string | null, mono = false, showReason = true) {
+  function renderScalar(
+    label: string,
+    key: string,
+    value: string | null,
+    mono = false,
+    showReason = true,
+    align: "left" | "right" = "left",
+  ) {
     const hasValue = value !== null && value !== "";
     const { flagged, reason } = fieldState(confidence, key, hasValue);
     const isEditing = editingField === key;
     const saving = savingField === key;
+    const alignClass = align === "right" ? "text-right" : "";
 
     return (
-      <div>
+      <div className={alignClass}>
         <div className="text-xs uppercase tracking-wide text-neutral-500">{label}</div>
         {isEditing ? (
           <EditRow
@@ -269,7 +277,7 @@ export function InvoiceReview({ id }: { id: string }) {
           />
         ) : (
           <>
-            <div className="mt-0.5 flex items-center gap-1.5">
+            <div className={`mt-0.5 flex items-center gap-1.5 ${align === "right" ? "justify-end" : ""}`}>
               <span className={`text-sm text-neutral-100 ${mono ? "font-mono" : ""}`}>
                 {hasValue ? value : <span className="text-neutral-500">— not extracted —</span>}
               </span>
@@ -441,9 +449,9 @@ export function InvoiceReview({ id }: { id: string }) {
 
           <div className="flex justify-end border-t border-neutral-800 pt-4">
             <div className="w-full max-w-xs space-y-1">
-              {renderScalar("Subtotal", "subtotal_amount", invoice.subtotalAmount, true, !sharedAmountReason)}
-              {renderScalar("Tax", "tax_amount", invoice.taxAmount, true, !sharedAmountReason)}
-              {renderScalar("Total", "total_amount", invoice.totalAmount, true, !sharedAmountReason)}
+              {renderScalar("Subtotal", "subtotal_amount", invoice.subtotalAmount, true, !sharedAmountReason, "right")}
+              {renderScalar("Tax", "tax_amount", invoice.taxAmount, true, !sharedAmountReason, "right")}
+              {renderScalar("Total", "total_amount", invoice.totalAmount, true, !sharedAmountReason, "right")}
               {sharedAmountReason && (
                 <div className="mt-2 border-t border-red-500/30 pt-2 text-xs text-red-400">
                   ⚠ {sharedAmountReason}
