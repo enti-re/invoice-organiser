@@ -105,7 +105,7 @@ function StatusBadge({ needsReview }: { needsReview: boolean }) {
   // only the color signals the difference.
   if (needsReview) {
     return (
-      <span className="inline-flex items-center rounded-full bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-400 border border-orange-500/40">
+      <span className="inline-flex items-center rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-400 border border-red-500/40">
         Needs review
       </span>
     );
@@ -118,7 +118,7 @@ function StatusBadge({ needsReview }: { needsReview: boolean }) {
 }
 
 function SortIndicator({ direction }: { direction: SortDirection }) {
-  return <span className="text-orange-400">{direction === "asc" ? "▲" : "▼"}</span>;
+  return <span className="text-red-400">{direction === "asc" ? "▲" : "▼"}</span>;
 }
 
 function SkeletonBlock({ className = "" }: { className?: string }) {
@@ -342,7 +342,7 @@ export default function Home() {
         <h1 className="text-3xl font-semibold text-neutral-100 tracking-tight">Invoice Extraction</h1>
         <p className="text-base text-neutral-400 max-w-2xl leading-relaxed">
           Upload a vendor invoice or receipt and the fields are extracted automatically. Rows
-          flagged <span className="text-orange-400 font-medium">Needs review</span> are the ones
+          flagged <span className="text-red-400 font-medium">Needs review</span> are the ones
           worth a second look — everything else you can trust as-is.
         </p>
       </header>
@@ -394,7 +394,7 @@ export default function Home() {
             >
               {uploading ? "Extracting…" : "Upload & extract"}
             </button>
-            {uploadError && <p className="text-sm text-orange-400">{uploadError}</p>}
+            {uploadError && <p className="text-sm text-red-400">{uploadError}</p>}
           </div>
         </form>
       </section>
@@ -454,7 +454,7 @@ export default function Home() {
           </button>
         </form>
 
-        {listError && <p className="text-sm text-orange-400">{listError}</p>}
+        {listError && <p className="text-sm text-red-400">{listError}</p>}
 
         {/* Desktop table */}
         <div className="hidden md:block">
@@ -499,93 +499,90 @@ export default function Home() {
               </tr>
             </thead>
             <tbody>
-              {sortedInvoices.map((inv) => (
-                <tr key={inv.id} className="group border-b border-neutral-800 last:border-0 hover:bg-neutral-900">
-                  <td className="py-3 pr-4 text-neutral-100">{inv.vendorName ?? "—"}</td>
-                  <td className="py-3 pr-4 font-mono text-neutral-300">{inv.invoiceDate ?? "—"}</td>
-                  <td className="py-3 pr-4 font-mono text-neutral-100">{formatINR(inv.totalAmount)}</td>
-                  <td className="py-3 pr-4 font-mono text-neutral-300">{formatINR(inv.taxAmount)}</td>
-                  <td className="py-3 pr-4 text-neutral-300">{inv.lineItems?.length ?? 0}</td>
-                  <td className="py-3 pr-4">
-                    <StatusBadge needsReview={inv.needsReview} />
-                  </td>
-                  <td className="py-3 pr-4">
-                    <button
-                      type="button"
-                      onClick={() => router.push(`/invoices/${inv.id}`)}
-                      className="border border-neutral-700 px-3 py-1 text-xs font-medium text-neutral-100 hover:border-white"
-                    >
-                      Review
-                    </button>
-                  </td>
-                  <td className="py-3 pr-4">
-                    <button
-                      type="button"
-                      aria-label="Delete invoice"
-                      disabled={deletingId === inv.id}
-                      onClick={() => setConfirmDeleteId(inv.id)}
-                      className="text-neutral-700 hover:text-red-500 disabled:opacity-40 transition-colors"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {!loadingList && sortedInvoices.length === 0 && (
+              {loadingList ? (
+                Array.from({ length: 3 }).map((_, i) => <SkeletonRow key={i} />)
+              ) : sortedInvoices.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-10 text-center text-neutral-400">
                     No invoices yet — upload one above.
                   </td>
                 </tr>
+              ) : (
+                sortedInvoices.map((inv) => (
+                  <tr key={inv.id} className="group border-b border-neutral-800 last:border-0 hover:bg-neutral-900">
+                    <td className="py-3 pr-4 text-neutral-100">{inv.vendorName ?? "—"}</td>
+                    <td className="py-3 pr-4 font-mono text-neutral-300">{inv.invoiceDate ?? "—"}</td>
+                    <td className="py-3 pr-4 font-mono text-neutral-100">{formatINR(inv.totalAmount)}</td>
+                    <td className="py-3 pr-4 font-mono text-neutral-300">{formatINR(inv.taxAmount)}</td>
+                    <td className="py-3 pr-4 text-neutral-300">{inv.lineItems?.length ?? 0}</td>
+                    <td className="py-3 pr-4">
+                      <StatusBadge needsReview={inv.needsReview} />
+                    </td>
+                    <td className="py-3 pr-4">
+                      <button
+                        type="button"
+                        onClick={() => router.push(`/invoices/${inv.id}`)}
+                        className="border border-neutral-700 px-3 py-1 text-xs font-medium text-neutral-100 hover:border-white"
+                      >
+                        Review
+                      </button>
+                    </td>
+                    <td className="py-3 pr-4">
+                      <button
+                        type="button"
+                        aria-label="Delete invoice"
+                        disabled={deletingId === inv.id}
+                        onClick={() => setConfirmDeleteId(inv.id)}
+                        className="text-neutral-700 hover:text-red-500 disabled:opacity-40 transition-colors"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
               )}
-              {loadingList &&
-                Array.from({ length: 3 }).map((_, i) => <SkeletonRow key={i} />)}
             </tbody>
           </table>
         </div>
 
         {/* Mobile cards */}
         <div className="md:hidden flex flex-col gap-3">
-          {sortedInvoices.map((inv) => (
-            <div key={inv.id} className="relative border border-neutral-800 p-4 space-y-2">
-              <button
-                type="button"
-                aria-label="Delete invoice"
-                disabled={deletingId === inv.id}
-                onClick={() => setConfirmDeleteId(inv.id)}
-                className="absolute top-3 right-3 text-neutral-600 hover:text-red-500 disabled:opacity-40"
-              >
-                <TrashIcon className="w-4 h-4" />
-              </button>
-              <div className="pr-6">
-                <p className="font-bold text-neutral-100">{inv.vendorName ?? "Unknown vendor"}</p>
-                <p className="font-mono text-lg text-neutral-100">{formatINR(inv.totalAmount)}</p>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-mono text-neutral-400">{inv.invoiceDate ?? "—"}</span>
-                <StatusBadge needsReview={inv.needsReview} />
-              </div>
-              <div className="text-sm text-neutral-400">{inv.lineItems?.length ?? 0} line items</div>
-              <button
-                type="button"
-                onClick={() => router.push(`/invoices/${inv.id}`)}
-                className="w-full border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-100 hover:border-white"
-              >
-                Review
-              </button>
-            </div>
-          ))}
-          {!loadingList && sortedInvoices.length === 0 && (
+          {loadingList ? (
+            Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
+          ) : sortedInvoices.length === 0 ? (
             <div className="border border-neutral-800 p-10 text-center text-neutral-400">
               No invoices yet — upload one above.
             </div>
-          )}
-          {loadingList && (
-            <div className="flex flex-col gap-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <SkeletonCard key={i} />
-              ))}
-            </div>
+          ) : (
+            sortedInvoices.map((inv) => (
+              <div key={inv.id} className="relative border border-neutral-800 p-4 space-y-2">
+                <button
+                  type="button"
+                  aria-label="Delete invoice"
+                  disabled={deletingId === inv.id}
+                  onClick={() => setConfirmDeleteId(inv.id)}
+                  className="absolute top-3 right-3 text-neutral-600 hover:text-red-500 disabled:opacity-40"
+                >
+                  <TrashIcon className="w-4 h-4" />
+                </button>
+                <div className="pr-6">
+                  <p className="font-bold text-neutral-100">{inv.vendorName ?? "Unknown vendor"}</p>
+                  <p className="font-mono text-lg text-neutral-100">{formatINR(inv.totalAmount)}</p>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="font-mono text-neutral-400">{inv.invoiceDate ?? "—"}</span>
+                  <StatusBadge needsReview={inv.needsReview} />
+                </div>
+                <div className="text-sm text-neutral-400">{inv.lineItems?.length ?? 0} line items</div>
+                <button
+                  type="button"
+                  onClick={() => router.push(`/invoices/${inv.id}`)}
+                  className="w-full border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-100 hover:border-white"
+                >
+                  Review
+                </button>
+              </div>
+            ))
           )}
         </div>
       </section>

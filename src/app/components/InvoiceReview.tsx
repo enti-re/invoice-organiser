@@ -139,6 +139,11 @@ export function InvoiceReview({ id }: { id: string }) {
     let cancelled = false;
 
     async function load() {
+      setLoading(true);
+      setInvoice(null);
+      setLoadError(null);
+      setShowOriginal(false);
+      setEditingField(null);
       try {
         const res = await fetch(`/api/invoices/${id}`);
         if (!res.ok) {
@@ -259,12 +264,12 @@ export function InvoiceReview({ id }: { id: string }) {
                 {hasValue ? value : <span className="text-neutral-500">— not extracted —</span>}
               </span>
               {flagged && (
-                <span className="rounded-full border border-orange-500 px-1.5 py-0.5 text-[10px] font-semibold text-orange-400">
+                <span className="rounded-full border border-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-red-400">
                   ⚠
                 </span>
               )}
             </div>
-            {flagged && reason && <div className="mt-0.5 text-xs text-orange-400">⚠ {reason}</div>}
+            {flagged && reason && <div className="mt-0.5 text-xs text-red-400">⚠ {reason}</div>}
             {flagged && (
               <ReviewControls
                 fieldKey={key}
@@ -311,7 +316,7 @@ export function InvoiceReview({ id }: { id: string }) {
                   {invoice.vendorName || "Unknown vendor"}
                 </h1>
                 {fieldState(confidence, "vendor_name", !!invoice.vendorName).flagged && (
-                  <span className="rounded-full border border-orange-500 px-1.5 py-0.5 text-[10px] font-semibold text-orange-400">
+                  <span className="rounded-full border border-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-red-400">
                     ⚠
                   </span>
                 )}
@@ -323,7 +328,7 @@ export function InvoiceReview({ id }: { id: string }) {
                 if (!flagged) return null;
                 return (
                   <div className="mt-1">
-                    {reason && <p className="text-xs text-orange-400">⚠ {reason}</p>}
+                    {reason && <p className="text-xs text-red-400">⚠ {reason}</p>}
                     {isEditing ? (
                       <EditRow
                         value={editValue}
@@ -370,7 +375,7 @@ export function InvoiceReview({ id }: { id: string }) {
               )}
             </div>
             {lineItemsFlag?.flagged && lineItemsFlag.reason && (
-              <div className="mt-1 text-xs text-orange-400">⚠ {lineItemsFlag.reason}</div>
+              <div className="mt-1 text-xs text-red-400">⚠ {lineItemsFlag.reason}</div>
             )}
             <table className="mt-3 w-full border-collapse text-sm">
               <thead>
