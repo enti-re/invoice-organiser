@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export type LineItem = {
   description: string;
@@ -51,14 +51,12 @@ function fieldState(confidence: ConfidenceMap | null, key: string, hasValue: boo
 }
 
 // Compact flagged-field indicator: a small warning icon. Clicking it
-// expands an inline panel directly below the field (see InlineReviewPanel)
+// opens an inline panel anchored below the field (see InlineReviewPanel)
 // with the reason and Confirm/Edit actions. Two earlier approaches were
 // tried and dropped: a hover tooltip (moving the mouse toward it to
 // interact broke the hover state it depended on) and a centered modal
 // (too much ceremony for what's often a one-click "confirm" action, and it
 // dims the document the reviewer is actually trying to compare against).
-// An inline accordion keeps the action anchored to the exact field it's
-// about, with no overlay and no hover fragility.
 function FlagIcon({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -82,8 +80,10 @@ function InlineReviewPanel({
   onStartEdit,
   onSave,
   onCancelEdit,
+  onClose,
   saving,
   error,
+  align = "left",
 }: {
   reason?: string;
   editable: boolean;
@@ -94,11 +94,24 @@ function InlineReviewPanel({
   onStartEdit: () => void;
   onSave: () => void;
   onCancelEdit: () => void;
+  onClose: () => void;
   saving: boolean;
   error: string | null;
+  align?: "left" | "right";
 }) {
+  const sideClass = align === "right" ? "right-0" : "left-0";
   return (
-    <div className="mt-1.5 border border-neutral-700 bg-neutral-950 p-3 text-left text-sm">
+    <div
+      className={`absolute top-full z-20 mt-1.5 w-72 max-w-[90vw] border border-neutral-700 bg-neutral-950 p-3 pr-7 text-left text-sm shadow-lg ${sideClass}`}
+    >
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="Close"
+        className="absolute right-1.5 top-1.5 text-neutral-500 hover:text-white"
+      >
+        ✕
+      </button>
       {editing ? (
         <EditRow
           value={editValue}
@@ -186,6 +199,29 @@ export function InvoiceReview({ id }: { id: string }) {
   const [editValue, setEditValue] = useState("");
   const [savingField, setSavingField] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const expandedPanelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!expandedField) return;
+    function onDocClick(e: MouseEvent) {
+      if (expandedPanelRef.current && !expandedPanelRef.current.contains(e.target as Node)) {
+        setExpandedField(null);
+        setEditingField(null);
+      }
+    }
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setExpandedField(null);
+        setEditingField(null);
+      }
+    }
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [expandedField]);
 
   useEffect(() => {
     let cancelled = false;
@@ -354,7 +390,10 @@ export function InvoiceReview({ id }: { id: string }) {
     const alignClass = align === "right" ? "text-right" : "";
 
     return (
-      <div className={alignClass}>
+      <div
+        className={`relative ${alignClass}`}
+        ref={expandedField === key ? expandedPanelRef : undefined}
+      >
         <div className="text-xs uppercase tracking-wide text-neutral-500">{label}</div>
         <div className={`mt-0.5 flex items-center gap-1.5 ${align === "right" ? "justify-end" : ""}`}>
           <span className={`text-sm text-neutral-100 ${mono ? "font-mono" : ""}`}>
@@ -373,8 +412,10 @@ export function InvoiceReview({ id }: { id: string }) {
             onStartEdit={() => startEdit(key, value)}
             onSave={() => handleSave(key)}
             onCancelEdit={() => setEditingField(null)}
+            onClose={() => toggleExpand(key)}
             saving={savingField === key}
             error={actionError}
+            align={align}
           />
         )}
       </div>
@@ -403,7 +444,10 @@ export function InvoiceReview({ id }: { id: string }) {
       <div className={`grid grid-cols-1 gap-6 ${showOriginal ? "md:grid-cols-2" : ""}`}>
         <div className="space-y-6 border border-neutral-800 bg-neutral-900 p-6 md:p-8">
           <div className="flex flex-col gap-4 border-b border-neutral-800 pb-6 sm:flex-row sm:items-start sm:justify-between">
-            <div>
+            <div
+              className="relative"
+              ref={expandedField === "vendor_name" ? expandedPanelRef : undefined}
+            >
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-neutral-100">
                   {invoice.vendorName || "Unknown vendor"}
@@ -421,6 +465,7 @@ export function InvoiceReview({ id }: { id: string }) {
                   onStartEdit={() => startEdit("vendor_name", invoice.vendorName)}
                   onSave={() => handleSave("vendor_name")}
                   onCancelEdit={() => setEditingField(null)}
+                  onClose={() => toggleExpand("vendor_name")}
                   saving={savingField === "vendor_name"}
                   error={actionError}
                 />
@@ -434,7 +479,10 @@ export function InvoiceReview({ id }: { id: string }) {
             </div>
           </div>
 
-          <div>
+          <div
+            className="relative"
+            ref={expandedField === "line_items" ? expandedPanelRef : undefined}
+          >
             <div className="flex items-center gap-2">
               <h3 className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                 Line items
@@ -454,6 +502,7 @@ export function InvoiceReview({ id }: { id: string }) {
                 onStartEdit={() => {}}
                 onSave={() => {}}
                 onCancelEdit={() => {}}
+                onClose={() => toggleExpand("line_items")}
                 saving={savingField === "line_items"}
                 error={actionError}
               />
