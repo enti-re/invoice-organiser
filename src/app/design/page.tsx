@@ -130,6 +130,28 @@ export default function DesignPage() {
       </section>
 
       <section className="space-y-3 border-t border-neutral-800 pt-10">
+        <h2 className="text-xl font-semibold text-neutral-100">Confidence model</h2>
+        <ul className="space-y-2 text-sm text-neutral-300">
+          <li>
+            <span className="text-neutral-100">Document-level confidence:</span> first checks
+            whether the uploaded file is actually an invoice.
+          </li>
+          <li>
+            <span className="text-neutral-100">Field-level confidence:</span> each extracted
+            field receives a score of <span className="text-neutral-100">1, 0.5, or 0</span>.
+          </li>
+          <li>
+            <span className="text-neutral-100">Multiple signals:</span> scores combine model
+            uncertainty, deterministic format/math checks, and model-reported ambiguity.
+          </li>
+          <li>
+            <span className="text-neutral-100">Needs review:</span> low-confidence fields are
+            flagged for user verification instead of requiring users to re-check everything.
+          </li>
+        </ul>
+      </section>
+
+      <section className="space-y-3 border-t border-neutral-800 pt-10">
         <h2 className="text-xl font-semibold text-neutral-100">Product thinking &amp; UX decisions</h2>
         <ul className="space-y-2 text-sm text-neutral-300">
           <li>
