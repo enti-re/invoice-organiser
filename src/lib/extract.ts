@@ -9,16 +9,12 @@ export type SupportedMediaType =
   | "image/jpeg"
   | "image/webp";
 
-// Generous enough for a multi-page PDF read + structured response, short
-// enough that a hung request fails fast with a clear error instead of
-// leaving the caller (and the user) waiting indefinitely.
+// Long enough for a multi-page PDF read; short enough to fail fast
+// instead of hanging indefinitely.
 const EXTRACTION_TIMEOUT_MS = 60_000;
 
-// Signal 1 of the confidence-scoring layer (see confidence.ts): prompted
-// conservatism. The other two signals (deterministic sanity checks, and
-// folding `uncertain_fields` into the confidence map) are pure post-hoc
-// logic and don't depend on this prompt, but they only work if the model
-// is honest here about what it isn't sure of.
+// Signal 1 of confidence.ts's 3-signal system: prompted conservatism.
+// The other two signals only work if the model is honest here.
 const EXTRACTION_INSTRUCTIONS = [
   "First, decide whether this document actually is an invoice, receipt, or bill. Set is_invoice accordingly, and if it's false, briefly say in not_invoice_reason what the document actually looks like (e.g. a resume, an ID card, a letter).",
   "Then extract the invoice/receipt fields from this document, even if you set is_invoice to false — extract whatever happens to fit the schema on a best-effort basis, so a human reviewer can still see what the model found.",

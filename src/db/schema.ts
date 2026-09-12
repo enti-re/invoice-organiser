@@ -19,11 +19,10 @@ export const invoices = pgTable("invoices", {
   id: uuid("id").primaryKey().defaultRandom(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 
-  // Original file
   fileName: text("file_name").notNull(),
   fileUrl: text("file_url").notNull(),
 
-  // Extracted fields (strict, typed columns — these are the ones we filter/sort/search on)
+  // Typed columns (vs. jsonb below) so these can be filtered/sorted/searched.
   vendorName: text("vendor_name"),
   invoiceNumber: text("invoice_number"),
   invoiceDate: text("invoice_date"), // stored as ISO date string (YYYY-MM-DD); see decisions.md

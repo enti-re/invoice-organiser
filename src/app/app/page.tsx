@@ -46,8 +46,7 @@ const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024;
 type SortKey = "vendorName" | "invoiceDate" | "totalAmount";
 type SortDirection = "asc" | "desc";
 
-// INR-only: the extraction pipeline targets Indian vendor invoices for this assignment,
-// so multi-currency formatting is explicitly out of scope rather than an oversight.
+// INR-only by scope, not oversight -- multi-currency is a future extension.
 function formatINR(amount: string | null): string {
   if (amount == null) return "—";
   const value = Number(amount);
@@ -117,10 +116,8 @@ function TrashIcon({ className }: { className?: string }) {
 }
 
 function StatusBadge({ needsReview }: { needsReview: boolean }) {
-  // Row-level summary badge for the list view — per-field detail (which
-  // specific field is flagged, and why) lives on the invoice review page.
-  // Both states use the same pill shape so the column reads consistently;
-  // only the color signals the difference.
+  // Both states share the same pill shape; only color signals the difference.
+  // Per-field detail lives on the review page, not here.
   if (needsReview) {
     return (
       <span className="inline-flex items-center rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-medium text-red-400 border border-red-500/40">
@@ -143,11 +140,9 @@ function SkeletonBlock({ className = "" }: { className?: string }) {
   return <div className={`animate-pulse bg-neutral-800 ${className}`} />;
 }
 
-// Sizes below are measured from the real rendered row/card (getBoundingClientRect),
-// not guessed -- each placeholder height matches its real counterpart's actual
-// content-box height (accounting for line-height, not just font-size: text-xs is
-// 12px font but a 16px line-height, text-sm is 14px font but a 20px line-height,
-// etc.) so swapping skeleton for real content doesn't shift the layout (CLS).
+// Placeholder heights are measured from real rendered content, not guessed
+// -- text-xs is a 12px font but a 16px line-height, so its placeholder is
+// h-4, not h-3. This is what prevents layout shift (CLS).
 function SkeletonRow() {
   return (
     <tr className="border-b border-neutral-800 last:border-0">

@@ -1,10 +1,7 @@
 import { z } from "zod";
 
-/**
- * Shape of a single extraction pass. Nullable fields reflect reality: not
- * every invoice has every field, and a bad/blurry scan shouldn't force the
- * model to hallucinate a value just to satisfy the schema.
- */
+// Nullable fields reflect reality — not every invoice has every value, and
+// a bad scan shouldn't force the model to hallucinate one.
 export const lineItemSchema = z.object({
   description: z.string(),
   quantity: z.number().nullable(),
@@ -12,9 +9,8 @@ export const lineItemSchema = z.object({
   amount: z.number(),
 });
 
-// Single source of truth for which top-level fields the confidence layer
-// reviews — shared with confidence.ts so the `uncertain_fields` enum below
-// and the confidence map it produces can never drift apart.
+// Single source of truth for reviewed fields, shared with confidence.ts
+// so this enum and the confidence map can't drift apart.
 export const EXTRACTION_FIELD_KEYS = [
   "vendor_name",
   "invoice_number",

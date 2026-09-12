@@ -30,9 +30,8 @@ export type InvoiceData = {
   confidence: ConfidenceMap | null;
 };
 
-// Fields that can be corrected via the edit UI (matches the API's
-// EDITABLE_FIELD_COLUMNS) -- line_items is confirmable but not directly
-// editable here, same reasoning as the backend.
+// Matches the API's EDITABLE_FIELD_COLUMNS -- line_items is confirmable
+// but not directly editable, same as the backend.
 const EDITABLE_FIELDS = new Set([
   "vendor_name",
   "invoice_number",
@@ -50,13 +49,9 @@ function fieldState(confidence: ConfidenceMap | null, key: string, hasValue: boo
   return { flagged, missing: flagged && !hasValue, reason: fc?.reason };
 }
 
-// Compact flagged-field indicator: a small warning icon. Clicking it
-// opens an inline panel anchored below the field (see InlineReviewPanel)
-// with the reason and Confirm/Edit actions. Two earlier approaches were
-// tried and dropped: a hover tooltip (moving the mouse toward it to
-// interact broke the hover state it depended on) and a centered modal
-// (too much ceremony for what's often a one-click "confirm" action, and it
-// dims the document the reviewer is actually trying to compare against).
+// Two earlier approaches were dropped: a hover tooltip (moving toward it
+// broke the hover state it depended on) and a centered modal (too much
+// ceremony, and it dims the document being compared against).
 function FlagIcon({ onClick }: { onClick: () => void }) {
   return (
     <button
@@ -316,13 +311,10 @@ export function InvoiceReview({ id }: { id: string }) {
   }
 
   if (loading) {
-    // Every placeholder size below is measured from the real rendered page
-    // (getBoundingClientRect on each section), not guessed -- e.g. a label
-    // uses text-xs, which is a 12px font but a 16px line-height, so its
-    // placeholder is h-4 (16px), not h-3 (12px); a value uses text-sm (20px
-    // line-height), so h-5. Matching real content-box heights exactly is
-    // what keeps this loading state from shifting the layout (CLS) once
-    // real data replaces it.
+    // Placeholder heights are measured from real rendered content, not
+    // guessed -- e.g. text-xs is a 12px font but a 16px line-height, so its
+    // placeholder is h-4, not h-3. This is what prevents layout shift (CLS)
+    // when real data replaces the skeleton.
     return (
       <div className="mx-auto w-full min-w-0 max-w-6xl px-6 py-12 md:px-8 space-y-6">
         <div className="flex items-center justify-between">
@@ -349,10 +341,8 @@ export function InvoiceReview({ id }: { id: string }) {
             </div>
             <div>
               <div className="h-4 w-20 animate-pulse bg-neutral-800" />
-              {/* Column proportions (52/12/18/18) match the real table's table-fixed
-                  widths exactly, so nothing drifts between skeleton and real content
-                  at any viewport width -- a plain flex+gap row can't guarantee that,
-                  since its gaps add width the real table-fixed columns don't have. */}
+              {/* Column %s match the real table-fixed widths exactly, so nothing
+                  drifts between skeleton and real content at any viewport width. */}
               <div className="mt-3 grid grid-cols-[52%_12%_18%_18%] border-b border-neutral-800 py-2 pr-0">
                 <div className="h-4 w-3/4 animate-pulse bg-neutral-800" />
                 <div className="ml-auto h-4 w-6 animate-pulse bg-neutral-800" />

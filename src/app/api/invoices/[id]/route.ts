@@ -7,11 +7,9 @@ import { invoices, type ConfidenceMap } from "@/db/schema";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Maps the extraction/confidence field key (snake_case, matches
-// invoice-extraction-schema.ts's EXTRACTION_FIELD_KEYS) to the Drizzle
-// column it corrects. line_items is confirmable but not correctable here —
-// editing individual line items would need a different, more involved UI
-// (add/remove/edit rows) that's deliberately out of scope for now.
+// Maps a confidence field key to the Drizzle column it corrects.
+// line_items is confirmable but not correctable here -- editing individual
+// rows needs a different, more involved UI, out of scope for now.
 const EDITABLE_FIELD_COLUMNS = {
   vendor_name: invoices.vendorName,
   invoice_number: invoices.invoiceNumber,

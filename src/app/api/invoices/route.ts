@@ -90,9 +90,8 @@ async function handlePost(request: Request) {
   } catch (rawError) {
     console.error("Extraction failed", rawError);
 
-    // generateObject retries transient failures internally; once retries are
-    // exhausted it throws a RetryError wrapping the real cause in
-    // `lastError` rather than surfacing that cause directly.
+    // generateObject wraps the real cause in RetryError.lastError once
+    // internal retries are exhausted, rather than throwing it directly.
     const error = RetryError.isInstance(rawError) ? rawError.lastError : rawError;
 
     if (

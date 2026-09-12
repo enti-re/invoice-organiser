@@ -9,9 +9,8 @@ function StackBox({ label, title }: { label: string; title: string }) {
   );
 }
 
-/** A vertical connector with arrowheads at both ends — every link here is a
- * request/response pair, so the label (when given) states what travels each way
- * rather than leaving the double-headed arrow to speak for itself. */
+// Every link is a request/response pair, so the label states what travels
+// each way rather than leaving the double-headed arrow to speak for itself.
 function VLink({ height = 64, down, up }: { height?: number; down?: string; up?: string }) {
   return (
     <div className="relative flex flex-col items-center" style={{ height }}>

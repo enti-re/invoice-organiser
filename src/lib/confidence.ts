@@ -2,20 +2,11 @@ import type { ConfidenceMap } from "@/db/schema";
 import { EXTRACTION_FIELD_KEYS, type InvoiceExtraction } from "@/lib/invoice-extraction-schema";
 
 /**
- * "Confidence" here means internally consistent and self-stable, not
- * verified against ground truth — there's no independent source of what an
- * invoice actually says, only what the model read off it. Three signals,
- * all derived from a single extraction pass (no second API call):
- *
- *  1. Prompted conservatism (extract.ts) — the model is told to return null
- *     rather than guess, and to self-report genuine ambiguity via
- *     `uncertain_fields` instead of silently picking one reading.
- *  2. Deterministic sanity checks (below) — null/placeholder values,
- *     date-format validity, and amount math consistency. These are the only
- *     checks that catch a provably wrong answer.
- *  3. Model self-reported uncertainty (`uncertain_fields`, folded in below)
- *     — catches a wrong-but-internally-consistent value the deterministic
- *     checks can't see, e.g. a plausible but incorrect vendor name.
+ * "Confidence" means internally consistent, not verified against ground
+ * truth — there's no independent source of what an invoice says, only what
+ * the model read off it. Three signals, one extraction pass: prompted
+ * conservatism (extract.ts), deterministic checks (below), and the model's
+ * own self-reported uncertainty (`uncertain_fields`, folded in below).
  */
 
 type FieldKey = (typeof EXTRACTION_FIELD_KEYS)[number];
@@ -24,10 +15,8 @@ const SCALAR_FIELD_KEYS = EXTRACTION_FIELD_KEYS.filter(
   (key): key is Exclude<FieldKey, "line_items"> => key !== "line_items",
 );
 
-// Generic reason for a field flagged only because it's null. If a more
-// specific reason also lands on the same field (a deterministic check, or
-// the model's own uncertain_fields note), the generic one is dropped in
-// favor of it — see FieldIssues.reasonsFor().
+// Dropped in favor of a more specific reason on the same field, if one
+// exists — see FieldIssues.reasonsFor().
 const MISSING_REASON = "Unable to extract — please verify manually";
 
 const AMOUNT_TOLERANCE_ABS = 0.02;
@@ -129,10 +118,8 @@ export function computeConfidence(extraction: InvoiceExtraction): {
       issues.flag("line_items", "No line items were extracted despite a total amount being present");
     }
   } else {
-    // Line items conventionally exclude tax, so they should sum to the
-    // subtotal, not the total — compare against total_amount only as a
-    // fallback for receipts with no separate subtotal/tax breakdown, where
-    // the total effectively *is* the line-item sum.
+    // Line items exclude tax by convention, so compare against subtotal;
+    // fall back to total only for receipts with no separate subtotal/tax.
     const comparisonField: "subtotal_amount" | "total_amount" =
       extraction.subtotal_amount !== null ? "subtotal_amount" : "total_amount";
     const comparisonTarget = extraction[comparisonField];
@@ -166,14 +153,10 @@ export function computeConfidence(extraction: InvoiceExtraction): {
     };
   }
 
-  // Document-level check, not a field-level one: a resume or ID card can
-  // still produce mostly-null (or coincidentally self-consistent) fields
-  // that sail past every check above, so this is the one signal that
-  // catches "wrong domain entirely" rather than "wrong value." Stored under
-  // a synthetic key in the same ConfidenceMap (not one of
-  // EXTRACTION_FIELD_KEYS) so it rides the existing flagged/needsReview/
-  // confirm machinery for free, surfaced separately in the UI as a
-  // document-level banner rather than a per-field control.
+  // Document-level, not field-level: catches "wrong kind of document
+  // entirely" (a resume, an ID card), which per-field checks can't see.
+  // Stored under a synthetic key (not in EXTRACTION_FIELD_KEYS) so it
+  // reuses the existing flagged/needsReview/confirm machinery for free.
   if (!extraction.is_invoice) {
     confidence.document_type = {
       score: 0,
