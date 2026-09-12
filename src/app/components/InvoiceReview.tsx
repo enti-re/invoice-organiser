@@ -50,36 +50,71 @@ function fieldState(confidence: ConfidenceMap | null, key: string, hasValue: boo
   return { flagged, missing: flagged && !hasValue, reason: fc?.reason };
 }
 
-function ReviewControls({
-  fieldKey,
+// Compact flagged-field indicator: a small warning icon that shows the
+// flag reason in a tooltip on hover, and reveals Confirm/Edit actions in a
+// popover on click. Replaces the earlier always-visible reason text +
+// always-visible Confirm/Edit links, which took up a lot of space and (for
+// the amount fields, which are often flagged together) produced repeated
+// near-identical warning paragraphs.
+function FlagIndicator({
+  reason,
+  editable,
+  expanded,
+  onToggle,
   onConfirm,
   onStartEdit,
   saving,
+  align = "left",
 }: {
-  fieldKey: string;
+  reason?: string;
+  editable: boolean;
+  expanded: boolean;
+  onToggle: () => void;
   onConfirm: () => void;
   onStartEdit: () => void;
   saving: boolean;
+  align?: "left" | "right";
 }) {
+  const sideClass = align === "right" ? "right-0" : "left-0";
   return (
-    <span className="inline-flex items-center gap-2 ml-2">
+    <span className="relative inline-block">
       <button
         type="button"
-        onClick={onConfirm}
-        disabled={saving}
-        className="text-xs underline text-neutral-400 hover:text-white disabled:opacity-40"
+        onClick={onToggle}
+        className="group relative inline-flex items-center rounded-full border border-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-red-400 hover:bg-red-500/10"
       >
-        Confirm
+        ⚠
+        {reason && !expanded && (
+          <span
+            className={`pointer-events-none absolute top-full z-20 mt-1 hidden w-56 max-w-[70vw] rounded border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-left text-[11px] font-normal normal-case leading-snug text-neutral-300 shadow-lg group-hover:block ${sideClass}`}
+          >
+            {reason}
+          </span>
+        )}
       </button>
-      {EDITABLE_FIELDS.has(fieldKey) && (
-        <button
-          type="button"
-          onClick={onStartEdit}
-          disabled={saving}
-          className="text-xs underline text-neutral-400 hover:text-white disabled:opacity-40"
+      {expanded && (
+        <div
+          className={`absolute top-full z-20 mt-1 flex items-center gap-2 whitespace-nowrap rounded border border-neutral-700 bg-neutral-950 px-2 py-1.5 ${sideClass}`}
         >
-          Edit
-        </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={saving}
+            className="text-xs underline text-neutral-400 hover:text-white disabled:opacity-40"
+          >
+            Confirm
+          </button>
+          {editable && (
+            <button
+              type="button"
+              onClick={onStartEdit}
+              disabled={saving}
+              className="text-xs underline text-neutral-400 hover:text-white disabled:opacity-40"
+            >
+              Edit
+            </button>
+          )}
+        </div>
       )}
     </span>
   );
@@ -134,6 +169,7 @@ export function InvoiceReview({ id }: { id: string }) {
   const [editValue, setEditValue] = useState("");
   const [savingField, setSavingField] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [expandedField, setExpandedField] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -144,6 +180,7 @@ export function InvoiceReview({ id }: { id: string }) {
       setLoadError(null);
       setShowOriginal(false);
       setEditingField(null);
+      setExpandedField(null);
       try {
         const res = await fetch(`/api/invoices/${id}`);
         if (!res.ok) {
@@ -255,7 +292,6 @@ export function InvoiceReview({ id }: { id: string }) {
     key: string,
     value: string | null,
     mono = false,
-    showReason = true,
     align: "left" | "right" = "left",
   ) {
     const hasValue = value !== null && value !== "";
@@ -276,32 +312,30 @@ export function InvoiceReview({ id }: { id: string }) {
             saving={saving}
           />
         ) : (
-          <>
-            <div className={`mt-0.5 flex items-center gap-1.5 ${align === "right" ? "justify-end" : ""}`}>
-              <span className={`text-sm text-neutral-100 ${mono ? "font-mono" : ""}`}>
-                {hasValue ? value : <span className="text-neutral-500">— not extracted —</span>}
-              </span>
-              {flagged && (
-                <span className="rounded-full border border-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-red-400">
-                  ⚠
-                </span>
-              )}
-            </div>
-            {flagged && showReason && reason && (
-              <div className="mt-0.5 text-xs text-red-400">⚠ {reason}</div>
-            )}
+          <div className={`mt-0.5 flex items-center gap-1.5 ${align === "right" ? "justify-end" : ""}`}>
+            <span className={`text-sm text-neutral-100 ${mono ? "font-mono" : ""}`}>
+              {hasValue ? value : <span className="text-neutral-500">— not extracted —</span>}
+            </span>
             {flagged && (
-              <ReviewControls
-                fieldKey={key}
-                saving={saving}
-                onConfirm={() => submitPatch(key, "confirm")}
+              <FlagIndicator
+                reason={reason}
+                editable={EDITABLE_FIELDS.has(key)}
+                expanded={expandedField === key}
+                onToggle={() => setExpandedField((f) => (f === key ? null : key))}
+                onConfirm={() => {
+                  submitPatch(key, "confirm");
+                  setExpandedField(null);
+                }}
                 onStartEdit={() => {
                   setEditingField(key);
                   setEditValue(value ?? "");
+                  setExpandedField(null);
                 }}
+                saving={saving}
+                align={align}
               />
             )}
-          </>
+          </div>
         )}
       </div>
     );
@@ -309,23 +343,6 @@ export function InvoiceReview({ id }: { id: string }) {
 
   const lineItemsFlag = confidence?.["line_items"];
   const items = invoice.lineItems ?? [];
-
-  // Subtotal/tax/total commonly get flagged together when they don't
-  // reconcile (see confidence.ts) -- but their reasons aren't always
-  // byte-identical (total_amount can carry an extra self-reported clause
-  // on top of the shared math-mismatch sentence, joined with "; "). Union
-  // the unique reason *segments* across all flagged amount fields and show
-  // that once, instead of repeating near-duplicate paragraphs per field.
-  const amountFieldKeys = ["subtotal_amount", "tax_amount", "total_amount"] as const;
-  const flaggedAmountFields = amountFieldKeys.filter((k) => confidence?.[k]?.flagged);
-  const amountReasonSegments = new Set<string>();
-  for (const k of flaggedAmountFields) {
-    confidence?.[k]?.reason?.split("; ").forEach((segment) => {
-      if (segment) amountReasonSegments.add(segment);
-    });
-  }
-  const sharedAmountReason =
-    flaggedAmountFields.length > 1 ? Array.from(amountReasonSegments).join("; ") : null;
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-12 md:px-8 space-y-6">
@@ -352,42 +369,40 @@ export function InvoiceReview({ id }: { id: string }) {
                 <h1 className="text-2xl font-bold text-neutral-100">
                   {invoice.vendorName || "Unknown vendor"}
                 </h1>
-                {fieldState(confidence, "vendor_name", !!invoice.vendorName).flagged && (
-                  <span className="rounded-full border border-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-red-400">
-                    ⚠
-                  </span>
-                )}
+                {(() => {
+                  const { flagged, reason } = fieldState(confidence, "vendor_name", !!invoice.vendorName);
+                  if (!flagged) return null;
+                  return (
+                    <FlagIndicator
+                      reason={reason}
+                      editable={EDITABLE_FIELDS.has("vendor_name")}
+                      expanded={expandedField === "vendor_name"}
+                      onToggle={() => setExpandedField((f) => (f === "vendor_name" ? null : "vendor_name"))}
+                      onConfirm={() => {
+                        submitPatch("vendor_name", "confirm");
+                        setExpandedField(null);
+                      }}
+                      onStartEdit={() => {
+                        setEditingField("vendor_name");
+                        setEditValue(invoice.vendorName ?? "");
+                        setExpandedField(null);
+                      }}
+                      saving={savingField === "vendor_name"}
+                    />
+                  );
+                })()}
               </div>
-              {(() => {
-                const { flagged, reason } = fieldState(confidence, "vendor_name", !!invoice.vendorName);
-                const isEditing = editingField === "vendor_name";
-                const saving = savingField === "vendor_name";
-                if (!flagged) return null;
-                return (
-                  <div className="mt-1">
-                    {reason && <p className="text-xs text-red-400">⚠ {reason}</p>}
-                    {isEditing ? (
-                      <EditRow
-                        value={editValue}
-                        onChange={setEditValue}
-                        onSave={() => submitPatch("vendor_name", "correct", editValue)}
-                        onCancel={() => setEditingField(null)}
-                        saving={saving}
-                      />
-                    ) : (
-                      <ReviewControls
-                        fieldKey="vendor_name"
-                        saving={saving}
-                        onConfirm={() => submitPatch("vendor_name", "confirm")}
-                        onStartEdit={() => {
-                          setEditingField("vendor_name");
-                          setEditValue(invoice.vendorName ?? "");
-                        }}
-                      />
-                    )}
-                  </div>
-                );
-              })()}
+              {editingField === "vendor_name" && (
+                <div className="mt-1">
+                  <EditRow
+                    value={editValue}
+                    onChange={setEditValue}
+                    onSave={() => submitPatch("vendor_name", "correct", editValue)}
+                    onCancel={() => setEditingField(null)}
+                    saving={savingField === "vendor_name"}
+                  />
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-x-6 gap-y-3">
               {renderScalar("Invoice #", "invoice_number", invoice.invoiceNumber, true)}
@@ -398,22 +413,25 @@ export function InvoiceReview({ id }: { id: string }) {
           </div>
 
           <div>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
               <h3 className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                 Line items
               </h3>
               {lineItemsFlag?.flagged && (
-                <ReviewControls
-                  fieldKey="line_items"
-                  saving={savingField === "line_items"}
-                  onConfirm={() => submitPatch("line_items", "confirm")}
+                <FlagIndicator
+                  reason={lineItemsFlag.reason}
+                  editable={false}
+                  expanded={expandedField === "line_items"}
+                  onToggle={() => setExpandedField((f) => (f === "line_items" ? null : "line_items"))}
+                  onConfirm={() => {
+                    submitPatch("line_items", "confirm");
+                    setExpandedField(null);
+                  }}
                   onStartEdit={() => {}}
+                  saving={savingField === "line_items"}
                 />
               )}
             </div>
-            {lineItemsFlag?.flagged && lineItemsFlag.reason && (
-              <div className="mt-1 text-xs text-red-400">⚠ {lineItemsFlag.reason}</div>
-            )}
             <table className="mt-3 w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-neutral-800 text-left text-xs uppercase tracking-wide text-neutral-500">
@@ -449,14 +467,9 @@ export function InvoiceReview({ id }: { id: string }) {
 
           <div className="flex justify-end border-t border-neutral-800 pt-4">
             <div className="w-full max-w-xs space-y-1">
-              {renderScalar("Subtotal", "subtotal_amount", invoice.subtotalAmount, true, !sharedAmountReason, "right")}
-              {renderScalar("Tax", "tax_amount", invoice.taxAmount, true, !sharedAmountReason, "right")}
-              {renderScalar("Total", "total_amount", invoice.totalAmount, true, !sharedAmountReason, "right")}
-              {sharedAmountReason && (
-                <div className="mt-2 border-t border-red-500/30 pt-2 text-xs text-red-400">
-                  ⚠ {sharedAmountReason}
-                </div>
-              )}
+              {renderScalar("Subtotal", "subtotal_amount", invoice.subtotalAmount, true, "right")}
+              {renderScalar("Tax", "tax_amount", invoice.taxAmount, true, "right")}
+              {renderScalar("Total", "total_amount", invoice.totalAmount, true, "right")}
             </div>
           </div>
         </div>
