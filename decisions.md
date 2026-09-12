@@ -429,6 +429,16 @@ A third iteration on the same toggle (see the two entries above: default-open-wh
    - Tried the actually-robust fix: a solid bordered `bg-neutral-950/90` panel directly behind the text, matching the app's existing bordered-card language elsewhere. Explicitly rejected on sight — reads as a different, heavier UI treatment than the rest of this minimal page, not worth it just to solve legibility.
    - Landed on: keep the gradient+radial-darkening approach (no solid panel), just pushed noticeably darker (`black/78`→`black/65`→`black/82`, radial darkening at `0.65`) — the version actually shipped. The lesson worth keeping: text-over-photo legibility isn't a one-shot decision, it's a real trade-off surface (image visibility vs. text contrast) that needs to be tuned against the *specific* image in place, not solved in the abstract.
 
+## A separate, concise `/design` page alongside `decisions.md`
+
+**Why:** `decisions.md` is deliberately exhaustive — every real decision, alternative considered, and the reasoning behind each, including the ones later reversed. That's the right format for someone auditing the actual work, but it's a long read for a first pass, and it's a markdown file on GitHub rather than something that lives in the app itself. Built `/design` as the short, visual version: a 5-step flow diagram (Upload → Extraction → Confidence scoring → Postgres+Blob → Review UI) followed by three sections, ordered deliberately with product/UI thinking first rather than backend — this is a senior *frontend* engineer submission, so leading with architecture diagrams over product judgment would have undersold the actual differentiator. Each section is a handful of bolded-lead-phrase bullets, not prose paragraphs, so the whole page reads in a couple of minutes. It closes with a link back to `decisions.md` for anyone who wants the full reasoning, and the landing page's second button now points here instead of straight to the GitHub file.
+
+**Cut deliberately:** no attempt to duplicate `decisions.md`'s content or its honesty about reversals (the empty-state net-zero change, the link-upload build-then-revert, the hero-image overlay iteration) — that level of detail is exactly what the long-form doc is for. `/design` states the decisions that shipped, not the ones that didn't.
+
+## Landing page copy tightened
+
+The intro paragraph went through one more round after initial ship — from a longer sentence explaining the confidence-scoring pitch in full, to a two-sentence, imperative version ("Upload an invoice. AI extracts the fields and flags only those that need review.") that reads faster on a page whose only job is to get someone to click "Open the app" or "Design overview." The fuller explanation still lives on `/design` and in the README, where more detail is appropriate.
+
 ## Future plans (not attempted in this submission)
 
 Named here rather than left implicit, so it's clear these are deliberate deferrals with a time-boxed submission, not gaps nobody noticed:

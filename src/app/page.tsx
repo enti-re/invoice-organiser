@@ -1,8 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 
-const DECISIONS_DOC_URL = "https://github.com/enti-re/zamp-invoice-extraction/blob/main/decisions.md";
-
 export default function IntroPage() {
   return (
     <div className="relative isolate flex min-h-screen items-center justify-center overflow-hidden px-6 md:px-8">
@@ -31,9 +29,7 @@ export default function IntroPage() {
           Invoice Organiser
         </h1>
         <p className="mt-4 text-base leading-relaxed text-neutral-200 drop-shadow-[0_1px_6px_rgba(0,0,0,0.8)]">
-          Upload an invoice, let the LLM extract the fields, and use confidence scoring to flag only
-          the fields that need review, rather than blindly trusting AI or manually checking
-          everything.
+          Upload an invoice. AI extracts the fields and flags only those that need review.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link
@@ -42,14 +38,12 @@ export default function IntroPage() {
           >
             Open the app
           </Link>
-          <a
-            href={DECISIONS_DOC_URL}
-            target="_blank"
-            rel="noreferrer"
+          <Link
+            href="/design"
             className="cursor-pointer border border-neutral-700 px-5 py-2.5 text-sm font-medium text-neutral-100 hover:border-white"
           >
-            Read the design doc
-          </a>
+            Design overview
+          </Link>
         </div>
       </div>
     </div>
