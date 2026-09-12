@@ -362,8 +362,8 @@ export default function Home() {
       <header className="space-y-3">
         <h1 className="text-3xl font-semibold text-neutral-100 tracking-tight">Invoice Extraction</h1>
         <p className="text-base text-neutral-400 max-w-2xl leading-relaxed">
-          Upload an invoice, fields extract automatically. Only{" "}
-          <span className="text-red-400 font-medium">Needs review</span> rows need a second look.
+          Upload an invoice and let the fields extract automatically. Only rows marked{" "}
+          <span className="text-red-400 font-medium">Needs review</span> require a second look.
         </p>
       </header>
 
