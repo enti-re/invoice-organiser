@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
-const DECISIONS_DOC_URL = "https://github.com/enti-re/zamp-invoice-extraction/blob/main/decisions.md";
-
 function StackBox({ label, title, detail }: { label: string; title: string; detail: ReactNode }) {
   return (
     <div className="min-w-[210px] border border-neutral-800 bg-neutral-900 px-5 py-3.5 text-center">
@@ -43,7 +41,7 @@ function HLink({ width = 150, left, right }: { width?: number; left: string; rig
       <div className="h-px flex-1 bg-neutral-600" />
       <div className="h-0 w-0 border-y-4 border-y-transparent border-l-[6px] border-l-neutral-600" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-neutral-950 px-2 text-center text-[0.65rem] text-neutral-500">
-        <span className="text-neutral-300">→</span> {left} &nbsp;&nbsp; <span className="text-neutral-300">←</span> {right}
+        {left} / {right}
       </div>
     </div>
   );
@@ -51,12 +49,12 @@ function HLink({ width = 150, left, right }: { width?: number; left: string; rig
 
 export default function DesignPage() {
   return (
-    <div className="mx-auto max-w-4xl space-y-14 px-6 py-16 md:px-8">
-      <header className="space-y-3">
-        <Link href="/" className="text-sm text-neutral-100 underline hover:text-white">
-          ← Back
-        </Link>
+    <div className="mx-auto max-w-4xl space-y-8 px-6 py-16 md:px-8">
+      <header className="flex items-start justify-between gap-4">
         <h1 className="text-3xl font-semibold text-neutral-100 tracking-tight">Design overview</h1>
+        <Link href="/" className="shrink-0 text-sm text-neutral-400 hover:text-white">
+          Home
+        </Link>
       </header>
 
       <section className="space-y-3">
@@ -65,116 +63,86 @@ export default function DesignPage() {
           Accounts Payable teams manually enter invoice data, which is slow and error-prone.
           Artificial intelligence can automate extraction, but incorrect data creates financial
           risk. The product must reduce manual work{" "}
-          <span className="text-neutral-100">without compromising trust.</span>
+          <span className="font-semibold text-neutral-100">without compromising trust.</span>
         </p>
       </section>
 
-      <section className="space-y-3 border-t border-neutral-800 pt-10">
+      <section className="space-y-3">
         <h2 className="text-xl font-semibold text-neutral-100">Product scope</h2>
         <ul className="space-y-2 text-sm text-neutral-300">
           <li>
-            <span className="text-neutral-100">Invoice uploads</span> — PDF and image files.
+            <span className="font-semibold text-neutral-100">Invoice uploads</span> — PDF and image files.
           </li>
           <li>
-            <span className="text-neutral-100">Automatic extraction</span> — extract key invoice
+            <span className="font-semibold text-neutral-100">Automatic extraction</span> — extract key invoice
             fields using artificial intelligence.
           </li>
           <li>
-            <span className="text-neutral-100">Confidence scoring</span> — flag fields that may
+            <span className="font-semibold text-neutral-100">Confidence scoring</span> — flag fields that may
             need review.
           </li>
           <li>
-            <span className="text-neutral-100">Inline correction</span> — review and correct
+            <span className="font-semibold text-neutral-100">Inline correction</span> — review and correct
             flagged fields.
           </li>
         </ul>
       </section>
 
-      <section className="space-y-3 border-t border-neutral-800 pt-10">
+      <section className="space-y-3">
         <h2 className="text-xl font-semibold text-neutral-100">Product decisions &amp; rationale</h2>
         <ul className="space-y-2 text-sm text-neutral-300">
           <li>
-            <span className="text-neutral-100">Upload-only:</span> invoices usually arrive as
+            <span className="font-semibold text-neutral-100">Upload-only:</span> invoices usually arrive as
             documents, so manual entry is unnecessary for day-to-day use. Backlog migration is a
             future consideration.
           </li>
           <li>
-            <span className="text-neutral-100">Confidence model:</span> combines model
+            <span className="font-semibold text-neutral-100">Confidence model:</span> combines model
             uncertainty, deterministic format/math checks, and model-reported ambiguity. Each
-            field is scored <span className="text-neutral-100">1, 0.5, or 0</span>.
+            field is scored <span className="font-semibold text-neutral-100">1, 0.5, or 0</span>.
           </li>
           <li>
-            <span className="text-neutral-100">Document-type check:</span> prevents incorrect
+            <span className="font-semibold text-neutral-100">Document-type check:</span> prevents incorrect
             documents from being treated as valid invoices.
           </li>
           <li>
-            <span className="text-neutral-100">Flagged-field correction:</span> lets users fix
+            <span className="font-semibold text-neutral-100">Flagged-field correction:</span> lets users fix
             uncertain data without leaving the workflow.
           </li>
         </ul>
       </section>
 
-      <section className="space-y-3 border-t border-neutral-800 pt-10">
+      <section className="space-y-3">
         <h2 className="text-xl font-semibold text-neutral-100">Confidence model</h2>
         <ul className="space-y-2 text-sm text-neutral-300">
           <li>
-            <span className="text-neutral-100">Document-level confidence:</span> first checks
+            <span className="font-semibold text-neutral-100">Document-level confidence:</span> first checks
             whether the uploaded file is actually an invoice.
           </li>
           <li>
-            <span className="text-neutral-100">Field-level confidence:</span> each extracted
-            field receives a score of <span className="text-neutral-100">1, 0.5, or 0</span>.
+            <span className="font-semibold text-neutral-100">Field-level confidence:</span> each extracted
+            field receives a score of <span className="font-semibold text-neutral-100">1, 0.5, or 0</span>.
           </li>
           <li>
-            <span className="text-neutral-100">Multiple signals:</span> scores combine model
+            <span className="font-semibold text-neutral-100">Multiple signals:</span> scores combine model
             uncertainty, deterministic format/math checks, and model-reported ambiguity.
           </li>
           <li>
-            <span className="text-neutral-100">Needs review:</span> low-confidence fields are
+            <span className="font-semibold text-neutral-100">Needs review:</span> low-confidence fields are
             flagged for user verification instead of requiring users to re-check everything.
           </li>
         </ul>
       </section>
 
-      <section className="space-y-3 border-t border-neutral-800 pt-10">
-        <h2 className="text-xl font-semibold text-neutral-100">Product thinking &amp; UX decisions</h2>
-        <ul className="space-y-2 text-sm text-neutral-300">
-          <li>
-            <span className="text-neutral-100">Confidence is honest, not decorative</span> — a
-            document-level check flags things that aren&apos;t invoices at all. Caught a resume and a
-            wedding invite during testing.
-          </li>
-          <li>
-            <span className="text-neutral-100">Flagged fields open inline,</span> right next to the
-            number. Tried a tooltip, then a modal — both got in the way; inline won.
-          </li>
-          <li>
-            <span className="text-neutral-100">Loading skeletons match the real layout,</span> so
-            nothing shifts once data loads.
-          </li>
-          <li>
-            <span className="text-neutral-100">Mobile has its own layout,</span> not a squeezed-down
-            table.
-          </li>
-        </ul>
-      </section>
 
-      <section className="space-y-8 border-t border-neutral-800 pt-10">
-        <h2 className="text-xl font-semibold text-neutral-100">Solution &amp; architecture</h2>
+      <section className="space-y-8">
+        <h2 className="text-xl font-semibold text-neutral-100">Architecture &amp; technical design</h2>
 
         <div className="space-y-2">
-          <h3 className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-            How a request moves through the stack
-          </h3>
-          <p className="text-xs text-neutral-600">
-            Every arrow runs both ways — a call down, its data back up. Everything inside the
-            dashed boundary is one deployment on Vercel.
-          </p>
-
           <div className="overflow-x-auto pt-4">
             <div className="flex min-w-[720px] flex-col items-center pb-2">
               <StackBox label="Client" title="Browser" detail="React 19 · TypeScript · Tailwind CSS" />
-              <VLink height={60} down="page load / fetch()" up="HTML, JSON" />
+              <VLink height={32} />
 
               <div className="relative w-full max-w-3xl border border-dashed border-neutral-700 px-6 pt-7 pb-6">
                 <span className="absolute -top-[0.6rem] left-6 bg-neutral-950 px-2 text-[0.65rem] font-semibold uppercase tracking-wide text-neutral-500">
@@ -303,94 +271,95 @@ export default function DesignPage() {
 
         <ul className="space-y-2 text-sm text-neutral-300">
           <li>
-            <span className="text-neutral-100">Frontend:</span> Next.js, React, TypeScript, and
-            Tailwind CSS.
+            <span className="font-semibold text-neutral-100">Frontend:</span> Next.js 16 App Router, React,
+            TypeScript, and Tailwind CSS.
           </li>
           <li>
-            <span className="text-neutral-100">Backend:</span> Next.js API routes handle invoice
-            processing and data operations.
+            <span className="font-semibold text-neutral-100">API:</span> Next.js API routes handle uploads,
+            extraction, confidence scoring, and data operations.
           </li>
           <li>
-            <span className="text-neutral-100">AI extraction:</span> Gemini extracts invoice
-            fields using a shared Zod schema.
+            <span className="font-semibold text-neutral-100">AI:</span> Vercel AI SDK with Gemini extracts
+            structured invoice data using a shared Zod schema.
           </li>
           <li>
-            <span className="text-neutral-100">Database:</span> Neon PostgreSQL stores structured
-            invoice data through Drizzle ORM.
+            <span className="font-semibold text-neutral-100">Database:</span> Neon PostgreSQL stores invoice
+            fields, line items, and confidence data through Drizzle ORM.
           </li>
           <li>
-            <span className="text-neutral-100">File storage:</span> Vercel Blob stores the
-            original invoice files.
+            <span className="font-semibold text-neutral-100">Storage:</span> Vercel Blob stores the original
+            invoice PDFs and images.
           </li>
           <li>
-            <span className="text-neutral-100">Deployment:</span> the complete application runs
-            as a single deployment on Vercel.
+            <span className="font-semibold text-neutral-100">Validation:</span> Zod validates the structured AI
+            output before it is stored.
+          </li>
+          <li>
+            <span className="font-semibold text-neutral-100">Deployment:</span> the entire application runs on
+            Vercel, keeping the initial architecture simple.
           </li>
         </ul>
       </section>
 
-      <section className="space-y-3 border-t border-neutral-800 pt-10">
-        <h2 className="text-xl font-semibold text-neutral-100">Experimentation</h2>
-        <p className="text-sm text-neutral-400">What was actually tried and tested, not just planned.</p>
+      <section className="space-y-3">
+        <h2 className="text-xl font-semibold text-neutral-100">Alternative approaches considered</h2>
         <ul className="space-y-2 text-sm text-neutral-300">
           <li>
-            Tried three patterns for the flagged-field control — a tooltip, then a modal, then
-            inline — clicking through each before deciding inline was the one that held up.
+            <span className="font-semibold text-neutral-100">MongoDB → PostgreSQL:</span> typed columns and
+            indexes are a better fit for structured invoice data.
           </li>
           <li>
-            Ran the document-type check against real non-invoice files (a resume, a wedding
-            invite) to confirm it actually catches the wrong kind of document, not just clean
-            invoices.
+            <span className="font-semibold text-neutral-100">React + Express → Next.js:</span> one application
+            avoids unnecessary service and deployment overhead.
           </li>
           <li>
-            Measured the real rendered layout to size loading skeletons, instead of guessing
-            dimensions.
+            <span className="font-semibold text-neutral-100">Gemini SDK → Vercel AI SDK:</span> structured
+            output and shared schemas make extraction safer and provider changes easier.
+          </li>
+          <li>
+            <span className="font-semibold text-neutral-100">Second extraction pass → Single pass:</span> avoids
+            doubling cost and latency for limited additional value.
+          </li>
+          <li>
+            <span className="font-semibold text-neutral-100">Separate OCR → Direct Gemini:</span> removes an
+            unnecessary processing step.
+          </li>
+          <li>
+            <span className="font-semibold text-neutral-100">Manual entry → Upload-only:</span> keeps the
+            product focused on eliminating manual invoice entry.
           </li>
         </ul>
       </section>
 
-      <section className="space-y-3 border-t border-neutral-800 pt-10">
+      <section className="space-y-3">
         <h2 className="text-xl font-semibold text-neutral-100">Scale, rollout &amp; future decisions</h2>
         <ol className="list-decimal space-y-2 pl-5 text-sm text-neutral-300 marker:text-neutral-600">
           <li>
-            <span className="text-neutral-100">Authentication:</span> required before handling
+            <span className="font-semibold text-neutral-100">Authentication:</span> required before handling
             real company data.
           </li>
           <li>
-            <span className="text-neutral-100">Tracking:</span> measure flags, corrections, and
+            <span className="font-semibold text-neutral-100">Tracking:</span> measure flags, corrections, and
             confidence to improve the product.
           </li>
           <li>
-            <span className="text-neutral-100">Async processing:</span> move extraction to a
+            <span className="font-semibold text-neutral-100">Async processing:</span> move extraction to a
             queue as usage grows.
           </li>
           <li>
-            <span className="text-neutral-100">Duplicate detection:</span> prevent duplicate
+            <span className="font-semibold text-neutral-100">Duplicate detection:</span> prevent duplicate
             invoice uploads.
           </li>
           <li>
-            <span className="text-neutral-100">Batch uploads:</span> support multiple invoices at
+            <span className="font-semibold text-neutral-100">Batch uploads:</span> support multiple invoices at
             once.
           </li>
           <li>
-            <span className="text-neutral-100">Initial rollout:</span> start with one Accounts
+            <span className="font-semibold text-neutral-100">Initial rollout:</span> start with one Accounts
             Payable team and validate before expanding.
           </li>
         </ol>
       </section>
-
-      <div className="border-t border-neutral-800 pt-8 text-sm text-neutral-500">
-        Every decision above — including the ones later reversed — is reasoned through in full in{" "}
-        <a
-          href={DECISIONS_DOC_URL}
-          target="_blank"
-          rel="noreferrer"
-          className="text-neutral-100 underline hover:text-white"
-        >
-          decisions.md
-        </a>
-        .
-      </div>
     </div>
   );
 }
