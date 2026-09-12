@@ -47,7 +47,7 @@ function HLink({ width = 150, label }: { width?: number; label: string }) {
 
 export default function DesignPage() {
   return (
-    <div className="mx-auto max-w-4xl space-y-8 px-6 py-16 md:px-8">
+    <div className="mx-auto w-full min-w-0 max-w-4xl space-y-8 px-6 py-16 md:px-8">
       <header className="flex items-start justify-between gap-4">
         <h1 className="text-3xl font-semibold text-neutral-100 tracking-tight">Design overview</h1>
         <Link href="/" className="shrink-0 text-sm text-neutral-400 hover:text-white">

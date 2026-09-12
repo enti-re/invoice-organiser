@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function IntroPage() {
   return (
-    <div className="relative isolate flex min-h-screen items-center justify-center overflow-hidden px-6 md:px-8">
+    <div className="relative isolate flex min-h-dvh w-full items-center justify-center overflow-hidden px-6 md:px-8">
       {/* A 17th-century Dutch still life of scattered papers/ledgers on a desk --
           the actual literal subject matter this product is for (messy documents,
           organized). A grayscale version was tried first for strict consistency

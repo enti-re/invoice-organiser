@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -387,9 +388,14 @@ export default function Home() {
   const hasActiveFilters = Object.values(filters).some(Boolean);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12 md:px-8 md:py-16 space-y-14">
+    <div className="mx-auto w-full min-w-0 max-w-5xl px-6 py-12 md:px-8 md:py-16 space-y-14">
       <header className="space-y-3">
-        <h1 className="text-3xl font-semibold text-neutral-100 tracking-tight">Invoice Organiser</h1>
+        <div className="flex items-start justify-between gap-4">
+          <h1 className="text-3xl font-semibold text-neutral-100 tracking-tight">Invoice Organiser</h1>
+          <Link href="/" className="shrink-0 cursor-pointer text-sm text-neutral-400 hover:text-white">
+            Home
+          </Link>
+        </div>
         <p className="text-base text-neutral-400 max-w-2xl leading-relaxed">
           Upload an invoice and let the fields extract automatically. Only rows marked{" "}
           <span className="text-red-400 font-medium">Needs review</span> require a second look.

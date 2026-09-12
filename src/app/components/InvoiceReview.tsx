@@ -324,7 +324,7 @@ export function InvoiceReview({ id }: { id: string }) {
     // what keeps this loading state from shifting the layout (CLS) once
     // real data replaces it.
     return (
-      <div className="mx-auto max-w-6xl px-6 py-12 md:px-8 space-y-6">
+      <div className="mx-auto w-full min-w-0 max-w-6xl px-6 py-12 md:px-8 space-y-6">
         <div className="flex items-center justify-between">
           <div className="h-5 w-24 animate-pulse bg-neutral-800" />
           <div className="h-[30px] w-28 animate-pulse bg-neutral-800" />
@@ -349,18 +349,22 @@ export function InvoiceReview({ id }: { id: string }) {
             </div>
             <div>
               <div className="h-4 w-20 animate-pulse bg-neutral-800" />
-              <div className="mt-3 flex gap-4 border-b border-neutral-800 py-2">
-                <div className="h-4 flex-1 animate-pulse bg-neutral-800" />
-                <div className="h-4 w-10 animate-pulse bg-neutral-800" />
-                <div className="h-4 w-16 animate-pulse bg-neutral-800" />
-                <div className="h-4 w-16 animate-pulse bg-neutral-800" />
+              {/* Column proportions (52/12/18/18) match the real table's table-fixed
+                  widths exactly, so nothing drifts between skeleton and real content
+                  at any viewport width -- a plain flex+gap row can't guarantee that,
+                  since its gaps add width the real table-fixed columns don't have. */}
+              <div className="mt-3 grid grid-cols-[52%_12%_18%_18%] border-b border-neutral-800 py-2 pr-0">
+                <div className="h-4 w-3/4 animate-pulse bg-neutral-800" />
+                <div className="ml-auto h-4 w-6 animate-pulse bg-neutral-800" />
+                <div className="ml-auto h-4 w-10 animate-pulse bg-neutral-800" />
+                <div className="ml-auto h-4 w-10 animate-pulse bg-neutral-800" />
               </div>
               {Array.from({ length: 2 }).map((_, i) => (
-                <div key={i} className="flex gap-4 border-b border-neutral-800 py-2.5">
-                  <div className="h-4 flex-1 animate-pulse bg-neutral-800" />
-                  <div className="h-4 w-10 animate-pulse bg-neutral-800" />
-                  <div className="h-4 w-16 animate-pulse bg-neutral-800" />
-                  <div className="h-4 w-16 animate-pulse bg-neutral-800" />
+                <div key={i} className="grid grid-cols-[52%_12%_18%_18%] border-b border-neutral-800 py-2.5 pr-0">
+                  <div className="h-4 w-full max-w-[85%] animate-pulse bg-neutral-800" />
+                  <div className="ml-auto h-4 w-6 animate-pulse bg-neutral-800" />
+                  <div className="ml-auto h-4 w-10 animate-pulse bg-neutral-800" />
+                  <div className="ml-auto h-4 w-12 animate-pulse bg-neutral-800" />
                 </div>
               ))}
             </div>
@@ -389,7 +393,7 @@ export function InvoiceReview({ id }: { id: string }) {
 
   if (loadError || !invoice) {
     return (
-      <div className="mx-auto max-w-4xl px-6 py-16 md:px-8 space-y-4">
+      <div className="mx-auto w-full min-w-0 max-w-4xl px-6 py-16 md:px-8 space-y-4">
         <p className="text-red-400">{loadError ?? "Invoice not found"}</p>
         <Link href="/app" className="text-neutral-100 underline hover:text-white">
           Back to list
@@ -450,7 +454,7 @@ export function InvoiceReview({ id }: { id: string }) {
   const items = invoice.lineItems ?? [];
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-12 md:px-8 space-y-6">
+    <div className="mx-auto w-full min-w-0 max-w-6xl px-6 py-12 md:px-8 space-y-6">
       <div className="flex items-center justify-between">
         <Link href="/app" className="text-sm text-neutral-100 underline hover:text-white">
           ← Back to list
@@ -547,19 +551,19 @@ export function InvoiceReview({ id }: { id: string }) {
                 error={actionError}
               />
             )}
-            <table className="mt-3 w-full border-collapse text-sm">
+            <table className="mt-3 w-full table-fixed border-collapse text-sm">
               <thead>
                 <tr className="border-b border-neutral-800 text-left text-xs uppercase tracking-wide text-neutral-500">
-                  <th className="py-2 pr-4 font-medium">Description</th>
-                  <th className="py-2 pr-4 text-right font-medium">Qty</th>
-                  <th className="py-2 pr-4 text-right font-medium">Unit price</th>
-                  <th className="py-2 pr-0 text-right font-medium">Amount</th>
+                  <th className="w-[52%] py-2 pr-4 font-medium">Description</th>
+                  <th className="w-[12%] py-2 pr-4 text-right font-medium">Qty</th>
+                  <th className="w-[18%] py-2 pr-4 text-right font-medium">Unit price</th>
+                  <th className="w-[18%] py-2 pr-0 text-right font-medium">Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((item, i) => (
                   <tr key={i} className="border-b border-neutral-800">
-                    <td className="py-2 pr-4 text-neutral-100">{item.description}</td>
+                    <td className="py-2 pr-4 text-neutral-100 break-words">{item.description}</td>
                     <td className="py-2 pr-4 text-right font-mono text-neutral-300">
                       {item.quantity ?? "—"}
                     </td>
