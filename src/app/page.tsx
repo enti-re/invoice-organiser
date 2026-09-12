@@ -400,7 +400,7 @@ export default function Home() {
                 <Spinner className="h-6 w-6 text-neutral-400" />
                 <p className="font-medium text-neutral-100">Extracting fields…</p>
                 <p className="text-sm text-neutral-400">
-                  Gemini is reading the document — this can take up to a minute
+                  Our AI agent is reading the document. This may take up to a minute.
                 </p>
               </>
             ) : selectedFile ? (
