@@ -313,6 +313,10 @@ Iterated once more — the accent went from amber → violet → teal → red �
 
 **Reverted the "auto-open original when flagged" decision.** Session 2 had deliberately made the original-document comparison default to open when `needsReview` was true (see the earlier "Detail view: side-by-side comparison auto-opens for flagged invoices" entry, itself inspired by a Dribbble reference). On reflection this was reversed — the panel now always starts hidden (`View original`), regardless of flag status, and only opens on an explicit click. Simpler, more predictable default; the comparison is still one click away exactly when it's needed.
 
+## `showOriginal` flipped to default **on**, for every invoice
+
+A third iteration on the same toggle (see the two entries above: default-open-when-flagged → default-hidden-always). Now defaults to **shown** unconditionally — every invoice opens with the original document already visible side-by-side, flagged or not, and both the initial mount and the reset-on-navigate-between-invoices effect were updated to match, so it stays consistent when clicking through several invoices in a row rather than only applying on first load.
+
 ## Subtotal/Tax/Total alignment fixed to match the line-items table
 
 **Problem:** the totals block's container was correctly pushed to the right edge (`flex justify-end`), but the label/value text inside it stayed left-aligned by default — so short numbers like `32500` ended well before the container's actual right edge, visibly failing to line up under the "Amount" column above them. Real invoices/financial documents conventionally right-align totals under the amount column they summarize; this one didn't.

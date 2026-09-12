@@ -199,7 +199,7 @@ export function InvoiceReview({ id }: { id: string }) {
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [showOriginal, setShowOriginal] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(true);
   const [expandedField, setExpandedField] = useState<string | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -236,7 +236,7 @@ export function InvoiceReview({ id }: { id: string }) {
       setLoading(true);
       setInvoice(null);
       setLoadError(null);
-      setShowOriginal(false);
+      setShowOriginal(true);
       setExpandedField(null);
       setEditingField(null);
       try {
