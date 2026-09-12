@@ -69,75 +69,80 @@ class FieldIssues {
   }
 }
 
-export function computeConfidence(extraction: InvoiceExtraction): {
-  confidence: ConfidenceMap;
-  needsReview: boolean;
-} {
-  const issues = new FieldIssues();
-
+function flagNullFields(extraction: InvoiceExtraction, issues: FieldIssues): void {
   for (const field of SCALAR_FIELD_KEYS) {
     if (extraction[field] === null) {
       issues.flag(field, MISSING_REASON);
     }
   }
+}
 
+function flagBlankPlaceholders(extraction: InvoiceExtraction, issues: FieldIssues): void {
+  const reason = "Looks like a blank or placeholder value — please verify manually";
   if (extraction.vendor_name !== null && isBlankOrPlaceholder(extraction.vendor_name)) {
-    issues.flag("vendor_name", "Looks like a blank or placeholder value — please verify manually");
+    issues.flag("vendor_name", reason);
   }
   if (extraction.invoice_number !== null && isBlankOrPlaceholder(extraction.invoice_number)) {
-    issues.flag("invoice_number", "Looks like a blank or placeholder value — please verify manually");
+    issues.flag("invoice_number", reason);
   }
+}
 
-  if (extraction.invoice_date !== null && !isValidIsoDate(extraction.invoice_date)) {
-    issues.flag(
-      "invoice_date",
-      `Invalid or unparseable date format (expected YYYY-MM-DD): "${extraction.invoice_date}"`,
-    );
+function flagInvalidDates(extraction: InvoiceExtraction, issues: FieldIssues): void {
+  for (const field of ["invoice_date", "due_date"] as const) {
+    const value = extraction[field];
+    if (value !== null && !isValidIsoDate(value)) {
+      issues.flag(field, `Invalid or unparseable date format (expected YYYY-MM-DD): "${value}"`);
+    }
   }
-  if (extraction.due_date !== null && !isValidIsoDate(extraction.due_date)) {
-    issues.flag(
-      "due_date",
-      `Invalid or unparseable date format (expected YYYY-MM-DD): "${extraction.due_date}"`,
-    );
-  }
+}
 
+function flagAmountMismatch(extraction: InvoiceExtraction, issues: FieldIssues): void {
+  const { subtotal_amount, tax_amount, total_amount } = extraction;
   if (
-    extraction.subtotal_amount !== null &&
-    extraction.tax_amount !== null &&
-    extraction.total_amount !== null &&
-    !amountsMatch(extraction.subtotal_amount + extraction.tax_amount, extraction.total_amount)
+    subtotal_amount === null ||
+    tax_amount === null ||
+    total_amount === null ||
+    amountsMatch(subtotal_amount + tax_amount, total_amount)
   ) {
-    const reason = `Subtotal (${extraction.subtotal_amount}) + tax (${extraction.tax_amount}) does not add up to total (${extraction.total_amount})`;
-    issues.flag("subtotal_amount", reason);
-    issues.flag("tax_amount", reason);
-    issues.flag("total_amount", reason);
+    return;
   }
+  const reason = `Subtotal (${subtotal_amount}) + tax (${tax_amount}) does not add up to total (${total_amount})`;
+  issues.flag("subtotal_amount", reason);
+  issues.flag("tax_amount", reason);
+  issues.flag("total_amount", reason);
+}
 
+function flagLineItemMismatch(extraction: InvoiceExtraction, issues: FieldIssues): void {
   if (extraction.line_items.length === 0) {
     if (extraction.total_amount !== null) {
       issues.flag("line_items", "No line items were extracted despite a total amount being present");
     }
-  } else {
-    // Line items exclude tax by convention, so compare against subtotal;
-    // fall back to total only for receipts with no separate subtotal/tax.
-    const comparisonField: "subtotal_amount" | "total_amount" =
-      extraction.subtotal_amount !== null ? "subtotal_amount" : "total_amount";
-    const comparisonTarget = extraction[comparisonField];
-    if (comparisonTarget !== null) {
-      const lineItemSum = extraction.line_items.reduce((sum, item) => sum + item.amount, 0);
-      if (!amountsMatch(lineItemSum, comparisonTarget)) {
-        const label = comparisonField === "subtotal_amount" ? "subtotal" : "total";
-        const reason = `Line items sum to ${lineItemSum.toFixed(2)}, which does not match the ${label} (${comparisonTarget})`;
-        issues.flag("line_items", reason);
-        issues.flag(comparisonField, reason);
-      }
-    }
+    return;
   }
 
+  // Line items exclude tax by convention, so compare against subtotal;
+  // fall back to total only for receipts with no separate subtotal/tax.
+  const comparisonField: "subtotal_amount" | "total_amount" =
+    extraction.subtotal_amount !== null ? "subtotal_amount" : "total_amount";
+  const comparisonTarget = extraction[comparisonField];
+  if (comparisonTarget === null) return;
+
+  const lineItemSum = extraction.line_items.reduce((sum, item) => sum + item.amount, 0);
+  if (!amountsMatch(lineItemSum, comparisonTarget)) {
+    const label = comparisonField === "subtotal_amount" ? "subtotal" : "total";
+    const reason = `Line items sum to ${lineItemSum.toFixed(2)}, which does not match the ${label} (${comparisonTarget})`;
+    issues.flag("line_items", reason);
+    issues.flag(comparisonField, reason);
+  }
+}
+
+function flagUncertainFields(extraction: InvoiceExtraction, issues: FieldIssues): void {
   for (const entry of extraction.uncertain_fields) {
     issues.flag(entry.field, entry.reason);
   }
+}
 
+function buildConfidenceMap(extraction: InvoiceExtraction, issues: FieldIssues): ConfidenceMap {
   const confidence: ConfidenceMap = {};
   for (const field of EXTRACTION_FIELD_KEYS) {
     const reasons = issues.reasonsFor(field);
@@ -152,18 +157,37 @@ export function computeConfidence(extraction: InvoiceExtraction): {
       reason: Array.from(new Set(reasons)).join("; "),
     };
   }
+  return confidence;
+}
 
-  // Document-level, not field-level: catches "wrong kind of document
-  // entirely" (a resume, an ID card), which per-field checks can't see.
-  // Stored under a synthetic key (not in EXTRACTION_FIELD_KEYS) so it
-  // reuses the existing flagged/needsReview/confirm machinery for free.
-  if (!extraction.is_invoice) {
-    confidence.document_type = {
-      score: 0,
-      flagged: true,
-      reason: extraction.not_invoice_reason ?? "This document doesn't look like an invoice or receipt.",
-    };
-  }
+// Document-level, not field-level: catches "wrong kind of document
+// entirely" (a resume, an ID card), which per-field checks can't see.
+// Stored under a synthetic key (not in EXTRACTION_FIELD_KEYS) so it
+// reuses the existing flagged/needsReview/confirm machinery for free.
+function flagDocumentType(extraction: InvoiceExtraction, confidence: ConfidenceMap): void {
+  if (extraction.is_invoice) return;
+  confidence.document_type = {
+    score: 0,
+    flagged: true,
+    reason: extraction.not_invoice_reason ?? "This document doesn't look like an invoice or receipt.",
+  };
+}
+
+export function computeConfidence(extraction: InvoiceExtraction): {
+  confidence: ConfidenceMap;
+  needsReview: boolean;
+} {
+  const issues = new FieldIssues();
+
+  flagNullFields(extraction, issues);
+  flagBlankPlaceholders(extraction, issues);
+  flagInvalidDates(extraction, issues);
+  flagAmountMismatch(extraction, issues);
+  flagLineItemMismatch(extraction, issues);
+  flagUncertainFields(extraction, issues);
+
+  const confidence = buildConfidenceMap(extraction, issues);
+  flagDocumentType(extraction, confidence);
 
   const needsReview = Object.values(confidence).some((field) => field.flagged);
 
