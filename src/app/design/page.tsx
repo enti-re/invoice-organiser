@@ -77,11 +77,10 @@ export default function DesignPage() {
       <section className="space-y-3">
         <h2 className="text-xl font-semibold text-neutral-100">Problem statement</h2>
         <p className="text-sm leading-relaxed text-neutral-300">
-          Businesses get invoices from many vendors, each in its own format — a clean PDF, a
-          scanned receipt, a photo of a paper bill. This app is one portal to organize all of
-          them: upload any format, let an LLM pull out the fields, and store it in one place. But
-          the AI can misread a field, and re-checking everything by hand defeats the point — so it
-          scores each field&apos;s confidence and flags only what actually looks wrong.
+          Accounts Payable teams manually enter invoice data, which is slow and error-prone.
+          Artificial intelligence can automate extraction, but incorrect data creates financial
+          risk. The product must reduce manual work{" "}
+          <span className="text-neutral-100">without compromising trust.</span>
         </p>
       </section>
 
