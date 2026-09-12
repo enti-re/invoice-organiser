@@ -215,6 +215,19 @@ function FileIcon({ className }: { className?: string }) {
   );
 }
 
+function Spinner({ className = "" }: { className?: string }) {
+  return (
+    <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z"
+      />
+    </svg>
+  );
+}
+
 export default function Home() {
   const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
@@ -321,7 +334,6 @@ export default function Home() {
   }
 
   async function handleDelete(id: string) {
-    setConfirmDeleteId(null);
     setListError(null);
     setDeletingId(id);
     try {
@@ -331,6 +343,7 @@ export default function Home() {
         throw new Error(data.error ?? `Delete failed (${res.status})`);
       }
       setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+      setConfirmDeleteId(null);
     } catch (err) {
       setListError(err instanceof Error ? err.message : "Delete failed");
     } finally {
@@ -358,16 +371,18 @@ export default function Home() {
         <h2 className="font-medium text-neutral-100">Upload an invoice</h2>
         <form onSubmit={handleUpload}>
           <div
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => !uploading && fileInputRef.current?.click()}
             onDragOver={(e) => {
               e.preventDefault();
-              setDragActive(true);
+              if (!uploading) setDragActive(true);
             }}
             onDragLeave={() => setDragActive(false)}
-            onDrop={handleDrop}
-            className={`flex flex-col items-center justify-center gap-3 border p-10 text-center cursor-pointer transition-colors ${
-              dragActive ? "border-white bg-neutral-900" : "border-neutral-800 hover:border-neutral-600"
-            }`}
+            onDrop={(e) => !uploading && handleDrop(e)}
+            className={`flex flex-col items-center justify-center gap-3 border p-10 text-center transition-colors ${
+              uploading
+                ? "cursor-not-allowed border-neutral-800 opacity-60"
+                : "cursor-pointer border-neutral-800 hover:border-neutral-600"
+            } ${dragActive && !uploading ? "border-white bg-neutral-900" : ""}`}
           >
             <input
               ref={fileInputRef}
@@ -375,9 +390,18 @@ export default function Home() {
               name="file"
               accept={ACCEPTED_FILE_TYPES.join(",")}
               onChange={handleFileChange}
+              disabled={uploading}
               className="hidden"
             />
-            {selectedFile ? (
+            {uploading ? (
+              <>
+                <Spinner className="h-6 w-6 text-neutral-400" />
+                <p className="font-medium text-neutral-100">Extracting fields…</p>
+                <p className="text-sm text-neutral-400">
+                  Gemini is reading the document — this can take up to a minute
+                </p>
+              </>
+            ) : selectedFile ? (
               <>
                 <FileIcon className="w-6 h-6 text-neutral-400" />
                 <p className="font-medium text-neutral-100">{selectedFile.name}</p>
@@ -393,12 +417,18 @@ export default function Home() {
               </>
             )}
           </div>
+          {uploading && (
+            <div className="mt-2 h-1 w-full overflow-hidden bg-neutral-800">
+              <div className="h-full w-1/3 animate-indeterminate bg-white" />
+            </div>
+          )}
           <div className="flex items-center gap-3 mt-4">
             <button
               type="submit"
               disabled={uploading || !selectedFile}
-              className="bg-white text-black text-sm px-4 py-2 font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
+              className="flex items-center gap-2 cursor-pointer bg-white text-black text-sm px-4 py-2 font-medium disabled:cursor-not-allowed disabled:opacity-30"
             >
+              {uploading && <Spinner className="h-4 w-4" />}
               {uploading ? "Extracting…" : "Upload & extract"}
             </button>
             {uploadError && <p className="text-sm text-red-400">{uploadError}</p>}
@@ -464,8 +494,6 @@ export default function Home() {
           </button>
         </form>
 
-        {listError && <p className="text-sm text-red-400">{listError}</p>}
-
         {/* Desktop table */}
         <div className="hidden md:block">
           <table className="w-full text-sm border-collapse">
@@ -514,7 +542,8 @@ export default function Home() {
               ) : sortedInvoices.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-10 text-center text-neutral-400">
-                    No invoices yet — upload one above.
+                    <span className="block text-2xl grayscale">📄</span>
+                    <span className="mt-2 block">No invoices yet — upload one above.</span>
                   </td>
                 </tr>
               ) : (
@@ -545,7 +574,11 @@ export default function Home() {
                         onClick={() => setConfirmDeleteId(inv.id)}
                         className="cursor-pointer text-neutral-700 transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
                       >
-                        <TrashIcon className="w-4 h-4" />
+                        {deletingId === inv.id ? (
+                          <Spinner className="w-4 h-4" />
+                        ) : (
+                          <TrashIcon className="w-4 h-4" />
+                        )}
                       </button>
                     </td>
                   </tr>
@@ -561,7 +594,8 @@ export default function Home() {
             Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
           ) : sortedInvoices.length === 0 ? (
             <div className="border border-neutral-800 p-10 text-center text-neutral-400">
-              No invoices yet — upload one above.
+              <span className="block text-2xl grayscale">📄</span>
+              <span className="mt-2 block">No invoices yet — upload one above.</span>
             </div>
           ) : (
             sortedInvoices.map((inv) => (
@@ -573,7 +607,11 @@ export default function Home() {
                   onClick={() => setConfirmDeleteId(inv.id)}
                   className="absolute top-3 right-3 cursor-pointer text-neutral-600 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  <TrashIcon className="w-4 h-4" />
+                  {deletingId === inv.id ? (
+                    <Spinner className="w-4 h-4" />
+                  ) : (
+                    <TrashIcon className="w-4 h-4" />
+                  )}
                 </button>
                 <div className="pr-6">
                   <p className="font-bold text-neutral-100">{inv.vendorName ?? "Unknown vendor"}</p>
@@ -597,41 +635,49 @@ export default function Home() {
         </div>
       </section>
 
-      {confirmDeleteId && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
-          onClick={() => setConfirmDeleteId(null)}
-        >
-          <div
-            className="w-full max-w-sm border border-neutral-800 bg-neutral-900 p-6 space-y-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="space-y-1">
-              <h3 className="font-medium text-neutral-100">Delete this invoice?</h3>
-              <p className="text-sm text-neutral-400">
-                {invoices.find((inv) => inv.id === confirmDeleteId)?.vendorName ?? "This invoice"}{" "}
-                will be permanently removed. This can&apos;t be undone.
-              </p>
-            </div>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setConfirmDeleteId(null)}
-                className="cursor-pointer border border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-100 hover:border-white"
+      {confirmDeleteId &&
+        (() => {
+          const isDeleting = deletingId === confirmDeleteId;
+          return (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+              onClick={() => !isDeleting && setConfirmDeleteId(null)}
+            >
+              <div
+                className="w-full max-w-sm border border-neutral-800 bg-neutral-900 p-6 space-y-4"
+                onClick={(e) => e.stopPropagation()}
               >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDelete(confirmDeleteId)}
-                className="cursor-pointer bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500"
-              >
-                Delete
-              </button>
+                <div className="space-y-1">
+                  <h3 className="font-medium text-neutral-100">Delete this invoice?</h3>
+                  <p className="text-sm text-neutral-400">
+                    {invoices.find((inv) => inv.id === confirmDeleteId)?.vendorName ?? "This invoice"}{" "}
+                    will be permanently removed. This can&apos;t be undone.
+                  </p>
+                  {listError && <p className="text-sm text-red-400">{listError}</p>}
+                </div>
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDeleteId(null)}
+                    disabled={isDeleting}
+                    className="cursor-pointer border border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-100 hover:border-white disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(confirmDeleteId)}
+                    disabled={isDeleting}
+                    className="flex cursor-pointer items-center gap-2 bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {isDeleting && <Spinner className="h-4 w-4" />}
+                    {isDeleting ? "Deleting…" : "Delete"}
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          );
+        })()}
     </div>
   );
 }
