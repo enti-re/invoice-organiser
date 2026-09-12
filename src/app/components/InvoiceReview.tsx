@@ -63,7 +63,7 @@ function FlagIcon({ onClick }: { onClick: () => void }) {
       type="button"
       onClick={onClick}
       aria-label="Needs review"
-      className="inline-flex items-center rounded-full border border-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-red-400 transition-colors hover:border-red-400 hover:bg-red-500/20 hover:text-red-300"
+      className="inline-flex cursor-pointer items-center rounded-full border border-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-red-400 transition-colors hover:border-red-400 hover:bg-red-500/20 hover:text-red-300"
     >
       ⚠
     </button>
@@ -109,7 +109,7 @@ function InlineReviewPanel({
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-1.5 top-1.5 text-neutral-500 hover:text-white"
+          className="absolute right-1.5 top-1.5 cursor-pointer text-neutral-500 hover:text-white"
         >
           ✕
         </button>
@@ -131,7 +131,7 @@ function InlineReviewPanel({
               type="button"
               onClick={onConfirm}
               disabled={saving}
-              className="border border-neutral-700 px-3 py-1 text-xs font-medium text-neutral-100 hover:border-white disabled:opacity-40"
+              className="cursor-pointer border border-neutral-700 px-3 py-1 text-xs font-medium text-neutral-100 hover:border-white disabled:cursor-not-allowed disabled:opacity-40"
             >
               {saving ? "Saving…" : "Confirm"}
             </button>
@@ -139,7 +139,7 @@ function InlineReviewPanel({
               <button
                 type="button"
                 onClick={onStartEdit}
-                className="bg-white px-3 py-1 text-xs font-medium text-black"
+                className="cursor-pointer bg-white px-3 py-1 text-xs font-medium text-black"
               >
                 Edit
               </button>
@@ -180,14 +180,14 @@ function EditRow({
         type="button"
         onClick={onSave}
         disabled={saving}
-        className="shrink-0 bg-white px-2 py-1 text-xs font-medium text-black disabled:opacity-40"
+        className="shrink-0 cursor-pointer bg-white px-2 py-1 text-xs font-medium text-black disabled:cursor-not-allowed disabled:opacity-40"
       >
         {saving ? "Saving…" : "Save"}
       </button>
       <button
         type="button"
         onClick={onCancel}
-        className="shrink-0 text-xs text-neutral-400 hover:text-white"
+        className="shrink-0 cursor-pointer text-xs text-neutral-400 hover:text-white"
       >
         Cancel
       </button>
@@ -441,7 +441,7 @@ export function InvoiceReview({ id }: { id: string }) {
         <button
           type="button"
           onClick={() => setShowOriginal((v) => !v)}
-          className="border border-neutral-700 px-3 py-1.5 text-xs font-medium text-neutral-100 underline hover:border-white"
+          className="cursor-pointer border border-neutral-700 px-3 py-1.5 text-xs font-medium text-neutral-100 underline hover:border-white"
         >
           {showOriginal ? "Hide original" : "View original"}
         </button>

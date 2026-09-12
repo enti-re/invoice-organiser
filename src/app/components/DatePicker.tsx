@@ -83,7 +83,7 @@ export function DatePicker({ value, onChange, placeholder = "Select date", class
           if (!open) setViewDate(selected ?? new Date());
           setOpen(!open);
         }}
-        className="border border-neutral-700 px-3 py-2 font-mono text-sm text-left text-neutral-100 focus:outline-none focus:border-white w-full"
+        className="w-full cursor-pointer border border-neutral-700 px-3 py-2 text-left font-mono text-sm text-neutral-100 focus:outline-none focus:border-white"
       >
         {value ? formatDisplay(value) : <span className="text-neutral-500">{placeholder}</span>}
       </button>
@@ -94,7 +94,7 @@ export function DatePicker({ value, onChange, placeholder = "Select date", class
             <button
               type="button"
               onClick={() => setViewDate(new Date(year, month - 1, 1))}
-              className="px-2 py-1 text-neutral-400 hover:text-white"
+              className="cursor-pointer px-2 py-1 text-neutral-400 hover:text-white"
               aria-label="Previous month"
             >
               ‹
@@ -105,7 +105,7 @@ export function DatePicker({ value, onChange, placeholder = "Select date", class
             <button
               type="button"
               onClick={() => setViewDate(new Date(year, month + 1, 1))}
-              className="px-2 py-1 text-neutral-400 hover:text-white"
+              className="cursor-pointer px-2 py-1 text-neutral-400 hover:text-white"
               aria-label="Next month"
             >
               ›
@@ -129,7 +129,7 @@ export function DatePicker({ value, onChange, placeholder = "Select date", class
                     onChange(toISODate(day));
                     setOpen(false);
                   }}
-                  className={`aspect-square text-xs font-mono ${
+                  className={`aspect-square cursor-pointer text-xs font-mono ${
                     isSelected
                       ? "bg-white text-black"
                       : isToday
@@ -149,7 +149,7 @@ export function DatePicker({ value, onChange, placeholder = "Select date", class
                 onChange("");
                 setOpen(false);
               }}
-              className="mt-2 text-xs text-neutral-500 underline hover:text-neutral-300"
+              className="mt-2 cursor-pointer text-xs text-neutral-500 underline hover:text-neutral-300"
             >
               Clear
             </button>

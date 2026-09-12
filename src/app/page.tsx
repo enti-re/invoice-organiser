@@ -398,7 +398,7 @@ export default function Home() {
             <button
               type="submit"
               disabled={uploading || !selectedFile}
-              className="bg-white text-black text-sm px-4 py-2 font-medium disabled:opacity-30 disabled:cursor-not-allowed"
+              className="bg-white text-black text-sm px-4 py-2 font-medium cursor-pointer disabled:cursor-not-allowed disabled:opacity-30"
             >
               {uploading ? "Extracting…" : "Upload & extract"}
             </button>
@@ -447,7 +447,10 @@ export default function Home() {
             onChange={(e) => setFilters({ ...filters, maxAmount: e.target.value })}
             className="border border-neutral-700 px-3 py-2 w-24 font-mono focus:outline-none focus:border-white"
           />
-          <button type="submit" className="border border-neutral-700 px-4 py-2 font-medium text-neutral-100 hover:border-white">
+          <button
+            type="submit"
+            className="cursor-pointer border border-neutral-700 px-4 py-2 font-medium text-neutral-100 hover:border-white"
+          >
             Filter
           </button>
           <button
@@ -456,7 +459,7 @@ export default function Home() {
               setFilters(EMPTY_FILTERS);
               fetchInvoices(EMPTY_FILTERS);
             }}
-            className="text-neutral-400 px-3 py-2 underline hover:text-neutral-100"
+            className="cursor-pointer text-neutral-400 px-3 py-2 underline hover:text-neutral-100"
           >
             Clear
           </button>
@@ -473,7 +476,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => handleSort("vendorName")}
-                    className="flex items-center gap-1 font-medium text-neutral-400 hover:text-neutral-100"
+                    className="flex items-center gap-1 cursor-pointer font-medium text-neutral-400 hover:text-neutral-100"
                   >
                     Vendor
                     {sortKey === "vendorName" && <SortIndicator direction={sortDirection} />}
@@ -483,7 +486,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => handleSort("invoiceDate")}
-                    className="flex items-center gap-1 font-medium text-neutral-400 hover:text-neutral-100"
+                    className="flex items-center gap-1 cursor-pointer font-medium text-neutral-400 hover:text-neutral-100"
                   >
                     Invoice date
                     {sortKey === "invoiceDate" && <SortIndicator direction={sortDirection} />}
@@ -493,7 +496,7 @@ export default function Home() {
                   <button
                     type="button"
                     onClick={() => handleSort("totalAmount")}
-                    className="flex items-center gap-1 font-medium text-neutral-400 hover:text-neutral-100"
+                    className="flex items-center gap-1 cursor-pointer font-medium text-neutral-400 hover:text-neutral-100"
                   >
                     Total
                     {sortKey === "totalAmount" && <SortIndicator direction={sortDirection} />}
@@ -530,7 +533,7 @@ export default function Home() {
                       <button
                         type="button"
                         onClick={() => router.push(`/invoices/${inv.id}`)}
-                        className="border border-neutral-700 px-3 py-1 text-xs font-medium text-neutral-100 hover:border-white"
+                        className="cursor-pointer border border-neutral-700 px-3 py-1 text-xs font-medium text-neutral-100 hover:border-white"
                       >
                         Review
                       </button>
@@ -541,7 +544,7 @@ export default function Home() {
                         aria-label="Delete invoice"
                         disabled={deletingId === inv.id}
                         onClick={() => setConfirmDeleteId(inv.id)}
-                        className="text-neutral-700 hover:text-red-500 disabled:opacity-40 transition-colors"
+                        className="cursor-pointer text-neutral-700 transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         <TrashIcon className="w-4 h-4" />
                       </button>
@@ -569,7 +572,7 @@ export default function Home() {
                   aria-label="Delete invoice"
                   disabled={deletingId === inv.id}
                   onClick={() => setConfirmDeleteId(inv.id)}
-                  className="absolute top-3 right-3 text-neutral-600 hover:text-red-500 disabled:opacity-40"
+                  className="absolute top-3 right-3 cursor-pointer text-neutral-600 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <TrashIcon className="w-4 h-4" />
                 </button>
@@ -585,7 +588,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => router.push(`/invoices/${inv.id}`)}
-                  className="w-full border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-100 hover:border-white"
+                  className="w-full cursor-pointer border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-100 hover:border-white"
                 >
                   Review
                 </button>
@@ -615,14 +618,14 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setConfirmDeleteId(null)}
-                className="border border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-100 hover:border-white"
+                className="cursor-pointer border border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-100 hover:border-white"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={() => handleDelete(confirmDeleteId)}
-                className="bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500"
+                className="cursor-pointer bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500"
               >
                 Delete
               </button>
