@@ -1,6 +1,6 @@
-import type { InvoiceListController } from "@/app/components/useInvoiceList";
-import { InvoiceTableRow } from "@/app/components/InvoiceTableRow";
-import { SkeletonRow, SortIndicator } from "@/app/components/InvoiceListUI";
+import type { InvoiceListController } from "@/app/components/invoice-list/useInvoiceList";
+import { InvoiceTableRow } from "@/app/components/invoice-list/InvoiceTableRow";
+import { SkeletonRow, SortIndicator } from "@/app/components/invoice-list/InvoiceListUI";
 
 export function InvoiceTable({ list }: { list: InvoiceListController }) {
   return (

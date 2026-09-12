@@ -1,4 +1,4 @@
-import type { LineItem } from "@/app/components/InvoiceReview.types";
+import type { LineItem } from "@/app/components/invoice-review/InvoiceReview.types";
 
 export function LineItemRow({ item }: { item: LineItem }) {
   return (

@@ -30,7 +30,7 @@ export default function IntroPage() {
             Open the app
           </Link>
           <Link
-            href="/design"
+            href="/design-doc"
             className="cursor-pointer border border-neutral-700 px-5 py-2.5 text-sm font-medium text-neutral-100 hover:border-white"
           >
             Design overview

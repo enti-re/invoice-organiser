@@ -4,17 +4,17 @@ import { NextResponse } from "next/server";
 
 import { db } from "@/db";
 import { invoices } from "@/db/schema";
-import { COMMON_ERRORS, LIST_ERRORS, UPLOAD_ERRORS } from "@/lib/api-messages";
-import { fail, type StepFailure } from "@/lib/api-step";
-import { computeConfidence } from "@/lib/confidence";
-import { extractInvoice, type SupportedMediaType } from "@/lib/extract";
-import { mapExtractionErrorToResponse } from "@/lib/extraction-error-response";
-import type { InvoiceExtraction } from "@/lib/invoice-extraction-schema";
+import { COMMON_ERRORS, LIST_ERRORS, UPLOAD_ERRORS } from "@/lib/api/api-messages";
+import { fail, type StepFailure } from "@/lib/api/api-step";
 import {
   buildInvoiceListConditions,
   parseInvoiceListParams,
   validateInvoiceListParams,
-} from "@/lib/invoice-filters";
+} from "@/lib/api/invoice-filters";
+import { computeConfidence } from "@/lib/extraction/confidence";
+import { extractInvoice, type SupportedMediaType } from "@/lib/extraction/extract";
+import { mapExtractionErrorToResponse } from "@/lib/extraction/extraction-error-response";
+import type { InvoiceExtraction } from "@/lib/extraction/invoice-extraction-schema";
 
 const SUPPORTED_MEDIA_TYPES: SupportedMediaType[] = [
   "application/pdf",

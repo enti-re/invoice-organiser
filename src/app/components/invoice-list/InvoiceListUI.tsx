@@ -1,4 +1,4 @@
-import type { SortDirection } from "@/app/components/InvoiceList.types";
+import type { SortDirection } from "@/app/components/invoice-list/InvoiceList.types";
 
 export function StatusBadge({ needsReview }: { needsReview: boolean }) {
   // Both states share the same pill shape; only color signals the difference.

@@ -1,8 +1,8 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { EMPTY_FILTERS, type Filters, type InvoiceRow, type SortDirection, type SortKey } from "@/app/components/InvoiceList.types";
-import { deleteInvoice, listInvoices, uploadInvoice } from "@/lib/api-client";
+import { EMPTY_FILTERS, type Filters, type InvoiceRow, type SortDirection, type SortKey } from "@/app/components/invoice-list/InvoiceList.types";
+import { deleteInvoice, listInvoices, uploadInvoice } from "@/lib/api/api-client";
 import { compareInvoices, validateFile } from "@/lib/invoice-list";
 
 export function useInvoiceList() {

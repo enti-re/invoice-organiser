@@ -1,5 +1,5 @@
-import type { Filters, InvoiceRow } from "@/app/components/InvoiceList.types";
-import type { InvoiceData } from "@/app/components/InvoiceReview.types";
+import type { Filters, InvoiceRow } from "@/app/components/invoice-list/InvoiceList.types";
+import type { InvoiceData } from "@/app/components/invoice-review/InvoiceReview.types";
 
 async function parseJsonOrThrow<T>(res: Response, fallbackMessage: string): Promise<T> {
   if (!res.ok) {

@@ -1,6 +1,6 @@
 import type { ConfidenceMap } from "@/db/schema";
 import { isValidIsoDate } from "@/lib/date";
-import { EXTRACTION_FIELD_KEYS, type InvoiceExtraction } from "@/lib/invoice-extraction-schema";
+import { EXTRACTION_FIELD_KEYS, type InvoiceExtraction } from "@/lib/extraction/invoice-extraction-schema";
 
 /**
  * "Confidence" means internally consistent, not verified against ground

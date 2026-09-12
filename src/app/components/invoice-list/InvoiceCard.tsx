@@ -1,5 +1,5 @@
-import type { InvoiceRow } from "@/app/components/InvoiceList.types";
-import { StatusBadge } from "@/app/components/InvoiceListUI";
+import type { InvoiceRow } from "@/app/components/invoice-list/InvoiceList.types";
+import { StatusBadge } from "@/app/components/invoice-list/InvoiceListUI";
 import { Spinner, TrashIcon } from "@/app/components/icons";
 import { formatINR } from "@/lib/invoice-list";
 

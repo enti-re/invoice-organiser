@@ -1,4 +1,4 @@
-import type { InvoiceListController } from "@/app/components/useInvoiceList";
+import type { InvoiceListController } from "@/app/components/invoice-list/useInvoiceList";
 import { FileIcon, Spinner, UploadIcon } from "@/app/components/icons";
 import { ACCEPTED_FILE_TYPES } from "@/lib/invoice-list";
 

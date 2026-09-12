@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 
-import type { InvoiceData } from "@/app/components/InvoiceReview.types";
-import { InvoiceReviewSkeleton } from "@/app/components/InvoiceReviewSkeleton";
-import { FlagIcon, InlineReviewPanel } from "@/app/components/InlineReviewPanel";
-import { LineItemRow } from "@/app/components/LineItemRow";
-import { OriginalFilePanel } from "@/app/components/OriginalFilePanel";
-import { ScalarField } from "@/app/components/ScalarField";
-import { useInvoiceReview } from "@/app/components/useInvoiceReview";
-import { EDITABLE_FIELDS, fieldState } from "@/lib/field-review";
+import type { InvoiceData } from "@/app/components/invoice-review/InvoiceReview.types";
+import { InvoiceReviewSkeleton } from "@/app/components/invoice-review/InvoiceReviewSkeleton";
+import { FlagIcon, InlineReviewPanel } from "@/app/components/invoice-review/InlineReviewPanel";
+import { LineItemRow } from "@/app/components/invoice-review/LineItemRow";
+import { OriginalFilePanel } from "@/app/components/invoice-review/OriginalFilePanel";
+import { ScalarField } from "@/app/components/invoice-review/ScalarField";
+import { useInvoiceReview } from "@/app/components/invoice-review/useInvoiceReview";
+import { EDITABLE_FIELDS, fieldState } from "@/lib/extraction/field-review";
 
 export type { InvoiceData };
 

@@ -1,7 +1,7 @@
 import { generateObject, type FilePart } from "ai";
 
-import { EXTRACTION_MODEL_ID, extractionModel } from "@/lib/model";
-import { invoiceExtractionSchema, type InvoiceExtraction } from "@/lib/invoice-extraction-schema";
+import { EXTRACTION_MODEL_ID, extractionModel } from "@/lib/extraction/model";
+import { invoiceExtractionSchema, type InvoiceExtraction } from "@/lib/extraction/invoice-extraction-schema";
 
 export type SupportedMediaType =
   | "application/pdf"

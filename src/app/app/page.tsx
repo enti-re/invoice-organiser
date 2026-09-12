@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 
-import { DeleteConfirmDialog } from "@/app/components/DeleteConfirmDialog";
-import { InvoiceCards } from "@/app/components/InvoiceCards";
-import { InvoiceTable } from "@/app/components/InvoiceTable";
+import { DeleteConfirmDialog } from "@/app/components/invoice-list/DeleteConfirmDialog";
+import { InvoiceCards } from "@/app/components/invoice-list/InvoiceCards";
+import { InvoiceTable } from "@/app/components/invoice-list/InvoiceTable";
 import { SearchIcon } from "@/app/components/icons";
-import { UploadInvoiceForm } from "@/app/components/UploadInvoiceForm";
-import { useInvoiceList } from "@/app/components/useInvoiceList";
+import { UploadInvoiceForm } from "@/app/components/invoice-list/UploadInvoiceForm";
+import { useInvoiceList } from "@/app/components/invoice-list/useInvoiceList";
 
 export default function Home() {
   const list = useInvoiceList();

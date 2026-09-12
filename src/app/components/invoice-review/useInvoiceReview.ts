@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
-import type { InvoiceData } from "@/app/components/InvoiceReview.types";
-import { getInvoice, updateInvoiceField } from "@/lib/api-client";
+import type { InvoiceData } from "@/app/components/invoice-review/InvoiceReview.types";
+import { getInvoice, updateInvoiceField } from "@/lib/api/api-client";
 
 export function useInvoiceReview(id: string) {
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);

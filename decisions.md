@@ -577,6 +577,23 @@ Verified with `tsc --noEmit`, `pnpm lint`, `pnpm test`, and live `curl` against 
 
 Verified with `tsc --noEmit`, `pnpm lint`, `pnpm test`, and live `curl`: `GET` (valid id, invalid id, nonexistent id) and `DELETE` on a nonexistent id (the 404 branch through the new `findInvoiceOrFail`). Didn't exercise a real successful delete against the dev DB — only two seed invoices exist there and deleting one would remove demo data; the success path is a direct, type-checked extraction of code already covered by the `PATCH` update test above.
 
+## Renamed `/design` to `/design-doc`
+
+The route's own content is a written design document (problem framing, decisions, confidence model, architecture, alternatives, rollout plan) — "design" alone reads like a Figma/visual-design page, which this isn't. Renamed the folder (`src/app/design/` → `src/app/design-doc/`) and the one link to it on the landing page.
+
+## Split `components/` and `lib/` into feature subfolders
+
+19 files in `src/app/components/` and 16 in `src/lib/`, flat, had grown past the point of being skimmable — two unrelated features (the invoice list page and the invoice review page) and two unrelated concerns (API-support code and the Gemini extraction/confidence pipeline) were interleaved alphabetically instead of grouped.
+
+- `src/app/components/invoice-list/` — everything only the list page (`/app`) uses: `InvoiceCard(s)`, `InvoiceTable(Row)`, `InvoiceListUI`, `InvoiceList.types`, `useInvoiceList`, `UploadInvoiceForm`, `DeleteConfirmDialog`.
+- `src/app/components/invoice-review/` — everything only the review page (`/invoices/[id]`) uses: `InvoiceReview`, `InvoiceReview.types`, `InvoiceReviewSkeleton`, `InlineReviewPanel`, `OriginalFilePanel`, `ScalarField`, `LineItemRow`, `useInvoiceReview`.
+- `icons.tsx` and `ArchitectureDiagram.tsx` stayed at `components/` root — genuinely cross-feature (icons) or single-use-but-unrelated-to-either-feature (the design-doc diagram).
+- `src/lib/api/` — `api-client`, `api-messages`, `api-step`, `invoice-filters`, `invoice-fields`, `uuid`: request/response plumbing shared by the two route files and the frontend hooks.
+- `src/lib/extraction/` — `extract`, `extraction-error-response`, `invoice-extraction-schema` (+ its test), `model`, `confidence` (+ its test), `field-review`: the Gemini call and everything scoring its output.
+- `date.ts` and `invoice-list.ts` stayed at `lib/` root — `date.ts` is used by both new subfolders (`confidence.ts` in extraction/, `invoice-filters.ts` in api/) so it can't live inside either without an awkward cross-import; `invoice-list.ts` is list-page-specific but is pure/non-JSX so it belongs in `lib/` per the AGENTS.md rule, not co-located with the components that use it.
+
+Purely a file move — every import path updated, no logic touched. Verified with `tsc --noEmit`, `pnpm lint`, `pnpm test`, and a live check of all four pages (`/`, `/app`, `/design-doc`, `/invoices/[id]`) plus the API endpoints, confirming nothing broke.
+
 ## Future plans (not attempted in this submission)
 
 Named here rather than left implicit, so it's clear these are deliberate deferrals with a time-boxed submission, not gaps nobody noticed:

@@ -1,6 +1,6 @@
-import type { InvoiceReviewController } from "@/app/components/useInvoiceReview";
-import { FlagIcon, InlineReviewPanel } from "@/app/components/InlineReviewPanel";
-import { EDITABLE_FIELDS, fieldState } from "@/lib/field-review";
+import type { InvoiceReviewController } from "@/app/components/invoice-review/useInvoiceReview";
+import { FlagIcon, InlineReviewPanel } from "@/app/components/invoice-review/InlineReviewPanel";
+import { EDITABLE_FIELDS, fieldState } from "@/lib/extraction/field-review";
 
 export function ScalarField({
   label,

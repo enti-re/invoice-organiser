@@ -1,4 +1,4 @@
-import type { InvoiceListController } from "@/app/components/useInvoiceList";
+import type { InvoiceListController } from "@/app/components/invoice-list/useInvoiceList";
 import { Spinner } from "@/app/components/icons";
 
 export function DeleteConfirmDialog({ list }: { list: InvoiceListController }) {

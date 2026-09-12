@@ -4,10 +4,10 @@ import { NextResponse } from "next/server";
 
 import { db } from "@/db";
 import { invoices, type ConfidenceMap } from "@/db/schema";
-import { COMMON_ERRORS, INVOICE_ERRORS, REVIEW_REASONS } from "@/lib/api-messages";
-import { fail, type StepFailure } from "@/lib/api-step";
-import { buildFieldUpdate, isEditableField } from "@/lib/invoice-fields";
-import { invalidUuidResponse } from "@/lib/uuid";
+import { COMMON_ERRORS, INVOICE_ERRORS, REVIEW_REASONS } from "@/lib/api/api-messages";
+import { fail, type StepFailure } from "@/lib/api/api-step";
+import { buildFieldUpdate, isEditableField } from "@/lib/api/invoice-fields";
+import { invalidUuidResponse } from "@/lib/api/uuid";
 
 type PatchAction = "confirm" | "correct";
 type PatchRequest =

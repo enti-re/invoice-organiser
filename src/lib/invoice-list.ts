@@ -1,4 +1,4 @@
-import type { InvoiceRow, SortKey } from "@/app/components/InvoiceList.types";
+import type { InvoiceRow, SortKey } from "@/app/components/invoice-list/InvoiceList.types";
 
 export const ACCEPTED_FILE_TYPES = ["application/pdf", "image/png", "image/jpeg", "image/webp"];
 export const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024;

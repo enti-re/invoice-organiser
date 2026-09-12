@@ -1,6 +1,6 @@
-import type { InvoiceListController } from "@/app/components/useInvoiceList";
-import { InvoiceCard } from "@/app/components/InvoiceCard";
-import { SkeletonCard } from "@/app/components/InvoiceListUI";
+import type { InvoiceListController } from "@/app/components/invoice-list/useInvoiceList";
+import { InvoiceCard } from "@/app/components/invoice-list/InvoiceCard";
+import { SkeletonCard } from "@/app/components/invoice-list/InvoiceListUI";
 
 export function InvoiceCards({ list }: { list: InvoiceListController }) {
   return (
