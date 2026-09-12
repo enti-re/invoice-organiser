@@ -630,6 +630,14 @@ Chose real-upload-and-extract over mocking or seeding the DB directly, on the re
 
 Ran the suite twice in a row to confirm it's not flaky (both green, 17s and 36s respectively — the extraction latency varies noticeably run to run) and confirmed via a direct API check that the DB returns to its pre-run state after each pass (the delete step actually cleans up, not just visually).
 
+## Found and fixed a real production bug: the 15MB upload limit was never actually deliverable
+
+A user report ("I uploaded this image, why does it say the file is empty?") turned out to be two separate things layered on top of each other. First, replaying their exact reported request showed it was a red herring: Chrome DevTools' "Copy as cURL" doesn't serialize a request's binary multipart body, so the copied command legitimately had zero file bytes in it — the app correctly rejected that empty reproduction, but that wasn't what their browser actually sent.
+
+Testing the real file for real (`curl -F "file=@..."` with actual bytes) surfaced the real bug underneath: a ~7.5MB JPEG failed in production with a raw `413 FUNCTION_PAYLOAD_TOO_LARGE` — a Vercel platform-level limit on Serverless Function request bodies, enforced by Vercel's own routing layer *before* this app's code runs at all. The app's own validation (`MAX_FILE_BYTES`, `MAX_FILE_SIZE_BYTES`) allowed up to 15MB, a number that was simply never true in production — any file between roughly 4.5MB and 15MB would sail past our own check and then get rejected by the platform with an error our own error-handling code never even gets a chance to shape.
+
+Binary-searched the actual threshold against production (`4MB → 201 success`, `4.5MB → 413`), then dropped both the client-side (`validateFile` in `src/lib/invoice-list.ts`) and server-side (`route.ts`) limits to **4MB**, comfortably under the observed failure point. This means the app's own friendly `"File is too large. Maximum allowed size is 4MB."` fires first, every time, instead of users occasionally hitting a raw platform error with no useful message. Also updated the upload form's "up to 15MB" copy to match.
+
 ## Future plans (not attempted in this submission)
 
 Named here rather than left implicit, so it's clear these are deliberate deferrals with a time-boxed submission, not gaps nobody noticed:

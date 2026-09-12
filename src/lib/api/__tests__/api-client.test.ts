@@ -59,10 +59,10 @@ describe("api-client", () => {
     });
 
     it("throws the server's error message on a non-ok response", async () => {
-      fetchMock.mockResolvedValue(jsonResponse({ error: "File too large (max 15MB)" }, { ok: false, status: 400 }));
+      fetchMock.mockResolvedValue(jsonResponse({ error: "File is too large. Maximum allowed size is 4MB." }, { ok: false, status: 400 }));
       const file = new File(["content"], "invoice.pdf", { type: "application/pdf" });
 
-      await expect(uploadInvoice(file)).rejects.toThrow("File too large (max 15MB)");
+      await expect(uploadInvoice(file)).rejects.toThrow("File is too large. Maximum allowed size is 4MB.");
     });
 
     it("falls back to a generic message when the error body can't be read", async () => {

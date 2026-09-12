@@ -9,7 +9,7 @@ export const UPLOAD_ERRORS = {
   unsupportedFileType: (type: string) =>
     `Unsupported file type: ${type}. Expected PDF, PNG, JPEG, or WEBP.`,
   emptyFile: "Uploaded file is empty",
-  fileTooLarge: "File too large (max 15MB)",
+  fileTooLarge: "File is too large. Maximum allowed size is 4MB.",
   blobRateLimited: "File storage is temporarily rate limited. Please try again shortly.",
   blobUploadFailed: "Failed to store uploaded file",
   saveFailed: "Extraction succeeded but saving the invoice failed",

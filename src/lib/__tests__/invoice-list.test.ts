@@ -85,6 +85,6 @@ describe("validateFile", () => {
   it("rejects a file over the size limit", () => {
     const file = new File(["content"], "invoice.pdf", { type: "application/pdf" });
     Object.defineProperty(file, "size", { value: 20 * 1024 * 1024 });
-    expect(validateFile(file)).toBe("File is too large — max size is 15MB.");
+    expect(validateFile(file)).toBe("File is too large. Maximum allowed size is 4MB.");
   });
 });

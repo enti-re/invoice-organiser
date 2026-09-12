@@ -23,7 +23,11 @@ const SUPPORTED_MEDIA_TYPES: SupportedMediaType[] = [
   "image/webp",
 ];
 
-const MAX_FILE_BYTES = 15 * 1024 * 1024; // 15MB — comfortably above any real single-page invoice
+// Vercel's serverless function request body limit sits around 4.5MB in
+// production, hit before this code even runs — confirmed by testing real
+// uploads against it. Capped below that so we reject with our own message
+// instead of a raw platform 413 the client never sees a clean error for.
+const MAX_FILE_BYTES = 4 * 1024 * 1024;
 
 type FileValidation = { ok: true; file: File } | StepFailure;
 type BlobUpload = { ok: true; blobUrl: string } | StepFailure;

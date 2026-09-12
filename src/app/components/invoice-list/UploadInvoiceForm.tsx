@@ -51,7 +51,7 @@ export const UploadInvoiceForm = ({ list }: { list: InvoiceListController }) => 
             <>
               <UploadIcon className="w-6 h-6 text-neutral-400" />
               <p className="font-medium text-neutral-100">Drop an invoice here, or click to browse</p>
-              <p className="text-sm text-neutral-400">PDF, PNG, JPEG, or WEBP — up to 15MB</p>
+              <p className="text-sm text-neutral-400">PDF, PNG, JPEG, or WEBP — up to 4MB</p>
             </>
           )}
         </div>
