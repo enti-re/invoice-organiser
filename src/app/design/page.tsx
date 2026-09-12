@@ -350,22 +350,33 @@ export default function DesignPage() {
       </section>
 
       <section className="space-y-3 border-t border-neutral-800 pt-10">
-        <h2 className="text-xl font-semibold text-neutral-100">Decisions to take at scale</h2>
-        <ul className="space-y-2 text-sm text-neutral-300">
-          <li>Move extraction off the upload request, into a queue.</li>
-          <li>Add login — right now everyone shares one workspace.</li>
-          <li>Detect duplicate uploads.</li>
-          <li>Support uploading more than one invoice at a time.</li>
-        </ul>
-      </section>
-
-      <section className="space-y-3 border-t border-neutral-800 pt-10">
-        <h2 className="text-xl font-semibold text-neutral-100">Rollout &amp; experimentation</h2>
-        <p className="text-sm leading-relaxed text-neutral-300">
-          No real customers yet, so this stays light: start with one AP team as a pilot, track how
-          often a flag was actually right versus over- or under-flagging, and tune the confidence
-          thresholds from that real feedback before opening it up further.
-        </p>
+        <h2 className="text-xl font-semibold text-neutral-100">Scale, rollout &amp; future decisions</h2>
+        <ol className="list-decimal space-y-2 pl-5 text-sm text-neutral-300 marker:text-neutral-600">
+          <li>
+            <span className="text-neutral-100">Authentication:</span> required before handling
+            real company data.
+          </li>
+          <li>
+            <span className="text-neutral-100">Tracking:</span> measure flags, corrections, and
+            confidence to improve the product.
+          </li>
+          <li>
+            <span className="text-neutral-100">Async processing:</span> move extraction to a
+            queue as usage grows.
+          </li>
+          <li>
+            <span className="text-neutral-100">Duplicate detection:</span> prevent duplicate
+            invoice uploads.
+          </li>
+          <li>
+            <span className="text-neutral-100">Batch uploads:</span> support multiple invoices at
+            once.
+          </li>
+          <li>
+            <span className="text-neutral-100">Initial rollout:</span> start with one Accounts
+            Payable team and validate before expanding.
+          </li>
+        </ol>
       </section>
 
       <div className="border-t border-neutral-800 pt-8 text-sm text-neutral-500">
