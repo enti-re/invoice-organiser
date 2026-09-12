@@ -391,7 +391,7 @@ export function InvoiceReview({ id }: { id: string }) {
     return (
       <div className="mx-auto max-w-4xl px-6 py-16 md:px-8 space-y-4">
         <p className="text-red-400">{loadError ?? "Invoice not found"}</p>
-        <Link href="/" className="text-neutral-100 underline hover:text-white">
+        <Link href="/app" className="text-neutral-100 underline hover:text-white">
           Back to list
         </Link>
       </div>
@@ -452,7 +452,7 @@ export function InvoiceReview({ id }: { id: string }) {
   return (
     <div className="mx-auto max-w-6xl px-6 py-12 md:px-8 space-y-6">
       <div className="flex items-center justify-between">
-        <Link href="/" className="text-sm text-neutral-100 underline hover:text-white">
+        <Link href="/app" className="text-sm text-neutral-100 underline hover:text-white">
           ← Back to list
         </Link>
         <button

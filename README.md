@@ -1,4 +1,4 @@
-# Invoice Extraction with Honest Confidence Scoring
+# Invoice Organiser — with Honest Confidence Scoring
 
 An invoice/receipt extraction tool for accounts-payable/finance-ops workflows: upload a PDF or image invoice, an LLM (Gemini) extracts the structured fields, and — the actual point of this project — a confidence-scoring layer flags exactly which fields might be wrong instead of silently trusting whatever the model returns. A reviewer only needs to check the flagged fields, not re-verify everything from scratch.
 
@@ -65,7 +65,7 @@ This applies the schema in `src/db/schema.ts` directly to your Neon database (no
 pnpm dev
 ```
 
-Open http://localhost:3000.
+Open http://localhost:3000 — a short intro page with a link into the app (`/app`) and this design doc. Or go straight to http://localhost:3000/app.
 
 ## Testing
 
