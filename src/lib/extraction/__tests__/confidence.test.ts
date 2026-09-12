@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { computeConfidence } from "./confidence";
-import { EXTRACTION_FIELD_KEYS, type InvoiceExtraction } from "./invoice-extraction-schema";
+import { computeConfidence } from "../confidence";
+import { EXTRACTION_FIELD_KEYS, type InvoiceExtraction } from "../invoice-extraction-schema";
 
 const cleanInvoice: InvoiceExtraction = {
   is_invoice: true,

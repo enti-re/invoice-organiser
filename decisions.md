@@ -608,6 +608,18 @@ Purely syntactic — no behavior changed. The one thing that mattered mechanical
 
 Verified with `tsc --noEmit`, `pnpm lint`, `pnpm test` (all pass), and a live check against the running dev server: all four pages (`/`, `/app`, `/design-doc`, `/invoices/[id]`) return 200, and the API's GET list, GET-by-id, and invalid-UUID branches all behave identically to before.
 
+## Added a real unit test suite, in `__tests__` directories
+
+The existing two test files (`confidence.test.ts`, `invoice-extraction-schema.test.ts`) sat directly next to their source. Adopted a `__tests__/` co-located folder instead (e.g. `src/lib/date.ts` → `src/lib/__tests__/date.test.ts`) going forward, and moved the two existing files into it for consistency rather than leaving one convention for old tests and another for new ones.
+
+**Backend — covered every pure-logic file that had zero tests:** `date.ts` (`isValidIsoDate`, including the leap-year and calendar-invalid-date edge cases already known to matter here), `api/uuid.ts`, `api/invoice-filters.ts`, `api/invoice-fields.ts`, `extraction/field-review.ts`, `extraction/extraction-error-response.ts`, and `invoice-list.ts`'s pure helpers. `extraction-error-response.ts` was the one genuinely hard case — it branches on `RetryError`/`APICallError`/`NoObjectGeneratedError` from the `ai` package; rather than mock these, constructed real instances via their actual public constructors (found by reading `node_modules/ai`'s and `@ai-sdk/provider`'s type declarations), including unwrapping a real `RetryError.lastError`. `NoObjectGeneratedError`'s constructor type requires `response`/`usage`/`finishReason` fields the code under test never reads, so those are a loosely-cast stub with a comment explaining why, rather than fully modeling AI SDK response metadata just for a fixture.
+
+**Frontend — added `@testing-library/react` and `jsdom` as devDependencies** (React 19-compatible versions). Tests for `api-client.ts` (mocking `global.fetch`, asserting each function builds the right request and handles both success and error responses), `useInvoiceList` and `useInvoiceReview` (via `renderHook`, covering initial load, sort-toggle behavior, filter state, confirm/save success and failure paths), and one small `InvoiceListUI` component-render test (`StatusBadge`, `SortIndicator`) to prove actual component rendering is covered, not just hooks — icons and skeletons stayed out of scope as too low-value to test.
+
+Tried `vitest.config.ts`'s `environmentMatchGlobs` first to keep pure-Node lib tests fast and only give React tests a DOM — that option doesn't exist in Vitest 5 (removed since v3; config silently ignored the unknown key rather than erroring, which is why the first run's `document is not defined` failures were confusing). Switched to the still-supported per-file `// @vitest-environment jsdom` pragma on just the four React-touching test files instead, keeping the global default at `"node"`.
+
+Result: 13 test files, 98 tests, all passing; `tsc --noEmit` and `pnpm lint` both clean.
+
 ## Future plans (not attempted in this submission)
 
 Named here rather than left implicit, so it's clear these are deliberate deferrals with a time-boxed submission, not gaps nobody noticed:

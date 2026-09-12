@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { invoiceExtractionSchema } from "./invoice-extraction-schema";
+import { invoiceExtractionSchema } from "../invoice-extraction-schema";
 
 describe("invoiceExtractionSchema", () => {
   it("accepts a well-formed extraction", () => {
