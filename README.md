@@ -11,8 +11,8 @@ See [`decisions.md`](./decisions.md) for the full reasoning behind every real de
 
 1. Upload a PDF or image invoice (drag-and-drop or file picker).
 2. Gemini reads the document directly (native document/vision understanding — no separate OCR step) and extracts vendor, invoice number, dates, amounts, tax, and line items as structured data.
-3. A confidence layer checks the extraction against itself: the model is prompted to return `null` rather than guess, deterministic rules catch things that are provably inconsistent (bad math, invalid dates, empty required fields), and the model self-reports genuine ambiguity. Any field that fails a check gets flagged.
-4. Everything is stored in Postgres and shown in a searchable, sortable, filterable list (by vendor / date / amount).
+3. A confidence layer checks the extraction against itself: the model is prompted to return `null` rather than guess, deterministic rules catch things that are provably inconsistent (bad math, invalid dates, empty required fields), and the model self-reports genuine ambiguity. Any field that fails a check gets flagged. Separately, the model also judges whether the uploaded document is actually an invoice/receipt at all — a resume or unrelated document is flagged as a whole, not silently extracted as if it were valid.
+4. Everything is stored in Postgres and shown in a searchable, sortable list (live search by vendor).
 5. Click an invoice to see it rendered as an actual document — with flagged fields visually called out — and optionally compare it side by side against the original uploaded file.
 
 **What "confidence" honestly means here:** not "verified against ground truth" (there's no independent source of what an invoice actually says — only what the model read off it), but "internally consistent and self-stable." See the "Confidence scoring" section of `decisions.md` for the full design and its limitations.

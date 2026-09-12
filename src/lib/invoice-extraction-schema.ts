@@ -37,6 +37,17 @@ export const uncertainFieldSchema = z.object({
 });
 
 export const invoiceExtractionSchema = z.object({
+  is_invoice: z
+    .boolean()
+    .describe(
+      "Whether this document actually is an invoice, receipt, bill, or similar billing document. False for anything else (a resume, a letter, an ID, a random photo, etc.) — even if you can still extract some invoice-shaped fields from it.",
+    ),
+  not_invoice_reason: z
+    .string()
+    .nullable()
+    .describe(
+      "If is_invoice is false, briefly say what the document actually appears to be, e.g. \"This looks like a resume, not an invoice.\" Null if is_invoice is true.",
+    ),
   vendor_name: z.string().nullable(),
   invoice_number: z.string().nullable(),
   invoice_date: z.string().nullable().describe("ISO 8601 date, YYYY-MM-DD, if determinable"),

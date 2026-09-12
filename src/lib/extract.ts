@@ -20,7 +20,8 @@ const EXTRACTION_TIMEOUT_MS = 60_000;
 // logic and don't depend on this prompt, but they only work if the model
 // is honest here about what it isn't sure of.
 const EXTRACTION_INSTRUCTIONS = [
-  "Extract the invoice/receipt fields from this document.",
+  "First, decide whether this document actually is an invoice, receipt, or bill. Set is_invoice accordingly, and if it's false, briefly say in not_invoice_reason what the document actually looks like (e.g. a resume, an ID card, a letter).",
+  "Then extract the invoice/receipt fields from this document, even if you set is_invoice to false — extract whatever happens to fit the schema on a best-effort basis, so a human reviewer can still see what the model found.",
   "Only fill a field if you are genuinely confident in the value — if it's not present or not legible at all, return null rather than guessing.",
   "If a field has 2-3 plausible readings (e.g. an ambiguous date format, a smudged digit), pick your best guess for the value, but add an entry to uncertain_fields naming the field and briefly explaining the ambiguity.",
   "You may also use uncertain_fields to explain a null value when that's informative — e.g. a due date that's genuinely absent from the document, versus one that's present but illegible.",

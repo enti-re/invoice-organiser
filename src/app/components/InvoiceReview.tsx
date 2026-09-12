@@ -432,6 +432,7 @@ export function InvoiceReview({ id }: { id: string }) {
 
   const lineItemsFlag = confidence?.["line_items"];
   const vendorFlag = fieldState(confidence, "vendor_name", !!invoice.vendorName);
+  const documentTypeFlag = confidence?.["document_type"];
   const items = invoice.lineItems ?? [];
 
   return (
@@ -448,6 +449,23 @@ export function InvoiceReview({ id }: { id: string }) {
           {showOriginal ? "Hide original" : "View original"}
         </button>
       </div>
+
+      {documentTypeFlag?.flagged && (
+        <div className="flex flex-col gap-3 border border-red-500/40 bg-red-500/10 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-red-400">This doesn&apos;t look like an invoice</p>
+            <p className="mt-0.5 text-sm text-red-300/80">{documentTypeFlag.reason}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => handleConfirm("document_type")}
+            disabled={savingField === "document_type"}
+            className="shrink-0 cursor-pointer border border-red-500/40 px-3 py-1.5 text-xs font-medium text-red-300 hover:border-red-400 hover:text-red-200 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {savingField === "document_type" ? "Saving…" : "This is actually an invoice"}
+          </button>
+        </div>
+      )}
 
       <div className={`grid grid-cols-1 gap-6 ${showOriginal ? "md:grid-cols-2" : ""}`}>
         <div className="space-y-6 border border-neutral-800 bg-neutral-900 p-6 md:p-8">

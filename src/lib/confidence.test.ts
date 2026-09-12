@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { computeConfidence } from "./confidence";
-import type { InvoiceExtraction } from "./invoice-extraction-schema";
+import { EXTRACTION_FIELD_KEYS, type InvoiceExtraction } from "./invoice-extraction-schema";
 
 const cleanInvoice: InvoiceExtraction = {
+  is_invoice: true,
+  not_invoice_reason: null,
   vendor_name: "Acme Corp",
   invoice_number: "INV-1001",
   invoice_date: "2026-01-15",
@@ -24,6 +26,40 @@ describe("computeConfidence", () => {
     for (const field of Object.values(confidence)) {
       expect(field.flagged).toBe(false);
       expect(field.score).toBe(1);
+    }
+  });
+
+  it("flags document_type and forces needsReview when the document isn't an invoice at all", () => {
+    const { confidence, needsReview } = computeConfidence({
+      ...cleanInvoice,
+      is_invoice: false,
+      not_invoice_reason: "This looks like a resume, not an invoice.",
+      vendor_name: null,
+      invoice_number: null,
+      subtotal_amount: null,
+      tax_amount: null,
+      total_amount: null,
+      line_items: [],
+    });
+
+    expect(needsReview).toBe(true);
+    expect(confidence.document_type).toMatchObject({ flagged: true, score: 0 });
+    expect(confidence.document_type.reason).toBe("This looks like a resume, not an invoice.");
+  });
+
+  it("flags document_type even when the model coincidentally produced clean, self-consistent fields", () => {
+    // The scenario the field-level checks alone would miss: a non-invoice
+    // document that happens to yield internally consistent field values.
+    const { confidence, needsReview } = computeConfidence({
+      ...cleanInvoice,
+      is_invoice: false,
+      not_invoice_reason: "This looks like a wedding invitation, not an invoice.",
+    });
+
+    expect(needsReview).toBe(true);
+    expect(confidence.document_type.flagged).toBe(true);
+    for (const field of EXTRACTION_FIELD_KEYS) {
+      expect(confidence[field].flagged).toBe(false);
     }
   });
 
@@ -156,6 +192,8 @@ describe("computeConfidence", () => {
 
   it("handles a deliberately messy, almost-entirely-null invoice without throwing", () => {
     const messyInvoice: InvoiceExtraction = {
+      is_invoice: true,
+      not_invoice_reason: null,
       vendor_name: null,
       invoice_number: null,
       invoice_date: "not a date",

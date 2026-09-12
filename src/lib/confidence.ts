@@ -166,6 +166,22 @@ export function computeConfidence(extraction: InvoiceExtraction): {
     };
   }
 
+  // Document-level check, not a field-level one: a resume or ID card can
+  // still produce mostly-null (or coincidentally self-consistent) fields
+  // that sail past every check above, so this is the one signal that
+  // catches "wrong domain entirely" rather than "wrong value." Stored under
+  // a synthetic key in the same ConfidenceMap (not one of
+  // EXTRACTION_FIELD_KEYS) so it rides the existing flagged/needsReview/
+  // confirm machinery for free, surfaced separately in the UI as a
+  // document-level banner rather than a per-field control.
+  if (!extraction.is_invoice) {
+    confidence.document_type = {
+      score: 0,
+      flagged: true,
+      reason: extraction.not_invoice_reason ?? "This document doesn't look like an invoice or receipt.",
+    };
+  }
+
   const needsReview = Object.values(confidence).some((field) => field.flagged);
 
   return { confidence, needsReview };
