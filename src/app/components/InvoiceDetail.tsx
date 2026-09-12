@@ -42,8 +42,8 @@ function fieldState(confidence: ConfidenceMap, key: string, hasValue: boolean) {
 
 function MissingBadge({ label = "Unable to extract — please verify manually" }: { label?: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded border border-dashed border-amber-500 bg-amber-500/10 px-2 py-1 text-xs text-amber-300">
-      <span className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-semibold text-black">!</span>
+    <span className="inline-flex items-center gap-1.5 rounded border border-dashed border-orange-500 bg-orange-500/10 px-2 py-1 text-xs text-orange-300">
+      <span className="rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] font-semibold text-black">!</span>
       {label}
     </span>
   );
@@ -51,7 +51,7 @@ function MissingBadge({ label = "Unable to extract — please verify manually" }
 
 function FlagBadge() {
   return (
-    <span className="rounded-full border border-amber-500 px-1.5 py-0.5 text-[10px] font-semibold text-amber-400">
+    <span className="rounded-full border border-orange-500 px-1.5 py-0.5 text-[10px] font-semibold text-orange-400">
       ⚠
     </span>
   );
@@ -92,7 +92,7 @@ function FieldValue({
         </div>
       )}
       {flagged && hasValue && reason && (
-        <div className={`mt-0.5 text-xs text-amber-400 ${alignClass}`}>⚠ {reason}</div>
+        <div className={`mt-0.5 text-xs text-orange-400 ${alignClass}`}>⚠ {reason}</div>
       )}
     </div>
   );
@@ -112,7 +112,7 @@ function VendorHeader({ value, confidence }: { value: string | null; confidence:
         <h2 className="text-2xl font-bold text-neutral-100">{hasValue ? value : "Unknown vendor"}</h2>
         {flagged && hasValue && <FlagBadge />}
       </div>
-      {flagged && hasValue && reason && <p className="mt-1 text-xs text-amber-400">⚠ {reason}</p>}
+      {flagged && hasValue && reason && <p className="mt-1 text-xs text-orange-400">⚠ {reason}</p>}
     </div>
   );
 }
@@ -121,7 +121,7 @@ function SectionFlag({ fieldKey, confidence }: { fieldKey: string; confidence: C
   const fc = confidence?.[fieldKey];
   if (!fc?.flagged) return null;
   return (
-    <div className="mt-1 flex items-center gap-1.5 text-xs text-amber-400">
+    <div className="mt-1 flex items-center gap-1.5 text-xs text-orange-400">
       <FlagBadge />
       {fc.reason}
     </div>
@@ -169,7 +169,7 @@ function AmountRow({
             {display ?? "—"}
           </span>
         )}
-        {flagged && hasValue && reason && <div className="mt-0.5 text-xs text-amber-400">⚠ {reason}</div>}
+        {flagged && hasValue && reason && <div className="mt-0.5 text-xs text-orange-400">⚠ {reason}</div>}
       </div>
     </div>
   );
@@ -220,7 +220,7 @@ function LineItemsTable({
   );
 }
 
-function RenderedInvoice({ invoice }: { invoice: InvoiceDetailData }) {
+function RendeorangeInvoice({ invoice }: { invoice: InvoiceDetailData }) {
   const confidence = invoice.confidence;
   return (
     <div className="space-y-6 border border-neutral-800 bg-neutral-900 p-6 md:p-8">
@@ -306,7 +306,7 @@ function OriginalFileViewer({ fileUrl, fileName }: { fileUrl: string; fileName: 
     <div className="flex h-full min-h-[400px] flex-col overflow-hidden border border-neutral-800 bg-neutral-900">
       <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900 px-4 py-2 text-xs text-neutral-400">
         <span>Original file</span>
-        <a href={fileUrl} target="_blank" rel="noreferrer" className="text-neutral-100 underline hover:text-neutral-400">
+        <a href={fileUrl} target="_blank" rel="noreferrer" className="text-neutral-100 underline hover:text-teal-400">
           Open in new tab
         </a>
       </div>
@@ -378,19 +378,19 @@ export function InvoiceDetail({ invoice, onClose }: InvoiceDetailProps) {
         </div>
 
         {!invoice.confidence && invoice.needsReview && (
-          <div className="mb-4 flex items-center gap-2 rounded-lg border border-amber-500 bg-amber-500/10 px-3 py-2 text-sm text-amber-300">
-            <span className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-semibold text-black">!</span>
+          <div className="mb-4 flex items-center gap-2 rounded-lg border border-orange-500 bg-orange-500/10 px-3 py-2 text-sm text-orange-300">
+            <span className="rounded-full bg-orange-500 px-1.5 py-0.5 text-[10px] font-semibold text-black">!</span>
             This invoice has fields that may need review
           </div>
         )}
 
         {showOriginal ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <RenderedInvoice invoice={invoice} />
+            <RendeorangeInvoice invoice={invoice} />
             <OriginalFileViewer fileUrl={invoice.fileUrl} fileName={invoice.fileName} />
           </div>
         ) : (
-          <RenderedInvoice invoice={invoice} />
+          <RendeorangeInvoice invoice={invoice} />
         )}
       </div>
     </div>

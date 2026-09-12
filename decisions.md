@@ -243,3 +243,18 @@ One honest miss in constructing the test: a CSS blur applied to the vendor name 
 **Real bug caught doing this conversion:** the color-token remapping (light→dark) was done as a systematic find-and-replace across `page.tsx` and `InvoiceDetail.tsx` rather than by hand, to avoid missing spots — but the automated mapping initially flipped the modal's backdrop overlay from `bg-black/40` to `bg-white/40`. A backdrop's job is to dim the page behind a modal regardless of the modal's own theme, so this was wrong (it would have washed the page out instead of dimming it) — caught by reviewing every changed class rather than trusting the mechanical mapping blindly, fixed to `bg-black/70`.
 
 **Also added:** `color-scheme: dark` in `globals.css`, so native browser form controls (the date-picker calendar icon, in particular) render in dark-appropriate colors instead of defaulting to a light-mode icon that would be hard to see against the new background.
+
+## Flagging accent color settled on orange; distinct colors given fixed, single meanings
+
+**What happened:** the functional flagging accent went through several quick iterations (amber → violet → teal → red → orange) based on live preference — landed on **orange**. Along the way, two real UI semantics got clarified and fixed:
+
+- **Delete (destructive action) gets its own fixed red**, independent of whatever the flagging accent is. Early in the color iteration, the delete button's hover color had been unintentionally drifting along with each accent swap (it happened to already be a shade of red before the iteration started, so each blanket find-and-replace carried it along by coincidence). Decoupled it — delete is always red, regardless of what color means "needs review."
+- **"View/open file" gets its own distinct hover color** (teal), separate from both the flagging accent and the delete color — three colors, three fixed meanings, never reused for anything else.
+
+**Considered and reverted: a decorative oil-painting-style visual panel** (CSS gradients + grain texture, styled after Cursor's landing-page hero structure) below the header. Built and reviewed live — decided it clashed with the restrained, functional-color-only aesthetic established everywhere else in the app (and matched by the actual portfolio reference), so it was removed rather than kept as "extra polish." Worth naming: not every suggestion needs to survive contact with how it actually looks — trying it and reverting quickly was cheaper than debating it in the abstract.
+
+## Delete: always visible (not hover-only), with a custom confirmation modal
+
+**What changed:** the delete icon was originally hidden until row hover (`opacity-0 group-hover:opacity-100`) and used the browser's native `window.confirm()` dialog. Both changed:
+- The icon is now always present, but styled subtly (a dim neutral gray, only becoming fully red on hover) — visible without demanding attention, rather than either fully hidden or fully prominent.
+- `window.confirm()` replaced with a custom modal matching the app's actual theme (dark, sharp corners, the same overlay pattern as the invoice detail view) — the native browser dialog looked jarring against the rest of the polished UI. The modal names the vendor being deleted and makes clear the action is permanent, before committing to the delete API call.

@@ -102,7 +102,7 @@ function StatusBadge({ needsReview }: { needsReview: boolean }) {
   // specific field is flagged, and why) lives in the InvoiceDetail view.
   if (needsReview) {
     return (
-      <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-medium text-amber-400 border border-amber-500/40">
+      <span className="inline-flex items-center rounded-full bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-400 border border-orange-500/40">
         Needs review
       </span>
     );
@@ -111,7 +111,7 @@ function StatusBadge({ needsReview }: { needsReview: boolean }) {
 }
 
 function SortIndicator({ direction }: { direction: SortDirection }) {
-  return <span className="text-amber-400">{direction === "asc" ? "▲" : "▼"}</span>;
+  return <span className="text-orange-400">{direction === "asc" ? "▲" : "▼"}</span>;
 }
 
 function UploadIcon({ className }: { className?: string }) {
@@ -164,6 +164,7 @@ export default function Home() {
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -256,8 +257,7 @@ export default function Home() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm("Delete this invoice?")) return;
-
+    setConfirmDeleteId(null);
     setListError(null);
     setDeletingId(id);
     try {
@@ -287,7 +287,7 @@ export default function Home() {
         <h1 className="text-3xl font-semibold text-neutral-100 tracking-tight">Invoice Extraction</h1>
         <p className="text-base text-neutral-400 max-w-2xl leading-relaxed">
           Upload a vendor invoice or receipt and the fields are extracted automatically. Rows
-          flagged <span className="text-amber-400 font-medium">Needs review</span> are the ones
+          flagged <span className="text-orange-400 font-medium">Needs review</span> are the ones
           worth a second look — everything else you can trust as-is.
         </p>
       </header>
@@ -339,7 +339,7 @@ export default function Home() {
             >
               {uploading ? "Extracting…" : "Upload & extract"}
             </button>
-            {uploadError && <p className="text-sm text-red-400">{uploadError}</p>}
+            {uploadError && <p className="text-sm text-orange-400">{uploadError}</p>}
           </div>
         </form>
       </section>
@@ -399,7 +399,7 @@ export default function Home() {
           </button>
         </form>
 
-        {listError && <p className="text-sm text-red-400">{listError}</p>}
+        {listError && <p className="text-sm text-orange-400">{listError}</p>}
 
         {/* Desktop table */}
         <div className="hidden md:block">
@@ -464,7 +464,7 @@ export default function Home() {
                       target="_blank"
                       rel="noreferrer"
                       onClick={(e) => e.stopPropagation()}
-                      className="text-neutral-100 underline hover:text-neutral-400"
+                      className="text-neutral-100 underline hover:text-teal-400"
                     >
                       view
                     </a>
@@ -476,9 +476,9 @@ export default function Home() {
                       disabled={deletingId === inv.id}
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDelete(inv.id);
+                        setConfirmDeleteId(inv.id);
                       }}
-                      className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-400 disabled:opacity-40 transition-opacity"
+                      className="text-neutral-700 hover:text-red-500 disabled:opacity-40 transition-colors"
                     >
                       <TrashIcon className="w-4 h-4" />
                     </button>
@@ -517,9 +517,9 @@ export default function Home() {
                 disabled={deletingId === inv.id}
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleDelete(inv.id);
+                  setConfirmDeleteId(inv.id);
                 }}
-                className="absolute top-3 right-3 text-neutral-400 hover:text-red-400 disabled:opacity-40"
+                className="absolute top-3 right-3 text-neutral-600 hover:text-red-500 disabled:opacity-40"
               >
                 <TrashIcon className="w-4 h-4" />
               </button>
@@ -538,7 +538,7 @@ export default function Home() {
                   target="_blank"
                   rel="noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="text-neutral-100 underline hover:text-neutral-400"
+                  className="text-neutral-100 underline hover:text-teal-400"
                 >
                   view file
                 </a>
@@ -559,6 +559,42 @@ export default function Home() {
       </section>
 
       <InvoiceDetail invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />
+
+      {confirmDeleteId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          onClick={() => setConfirmDeleteId(null)}
+        >
+          <div
+            className="w-full max-w-sm border border-neutral-800 bg-neutral-900 p-6 space-y-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="space-y-1">
+              <h3 className="font-medium text-neutral-100">Delete this invoice?</h3>
+              <p className="text-sm text-neutral-400">
+                {invoices.find((inv) => inv.id === confirmDeleteId)?.vendorName ?? "This invoice"}{" "}
+                will be permanently removed. This can&apos;t be undone.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteId(null)}
+                className="border border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-100 hover:border-white"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(confirmDeleteId)}
+                className="bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
