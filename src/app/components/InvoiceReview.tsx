@@ -50,80 +50,89 @@ function fieldState(confidence: ConfidenceMap | null, key: string, hasValue: boo
   return { flagged, missing: flagged && !hasValue, reason: fc?.reason };
 }
 
-// Compact flagged-field indicator: a small warning icon that shows the
-// flag reason in a tooltip on hover, and reveals Confirm/Edit actions in a
-// popover on click. Replaces the earlier always-visible reason text +
-// always-visible Confirm/Edit links, which took up a lot of space and (for
-// the amount fields, which are often flagged together) produced repeated
-// near-identical warning paragraphs.
-function FlagIndicator({
+// Compact flagged-field indicator: a small warning icon. Clicking it
+// expands an inline panel directly below the field (see InlineReviewPanel)
+// with the reason and Confirm/Edit actions. Two earlier approaches were
+// tried and dropped: a hover tooltip (moving the mouse toward it to
+// interact broke the hover state it depended on) and a centered modal
+// (too much ceremony for what's often a one-click "confirm" action, and it
+// dims the document the reviewer is actually trying to compare against).
+// An inline accordion keeps the action anchored to the exact field it's
+// about, with no overlay and no hover fragility.
+function FlagIcon({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Needs review"
+      className="inline-flex items-center rounded-full border border-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-red-400 transition-colors hover:border-red-400 hover:bg-red-500/20 hover:text-red-300"
+    >
+      ⚠
+    </button>
+  );
+}
+
+function InlineReviewPanel({
   reason,
   editable,
-  expanded,
-  onToggle,
+  editing,
+  editValue,
+  onEditChange,
   onConfirm,
   onStartEdit,
+  onSave,
+  onCancelEdit,
   saving,
-  align = "left",
+  error,
 }: {
   reason?: string;
   editable: boolean;
-  expanded: boolean;
-  onToggle: () => void;
+  editing: boolean;
+  editValue: string;
+  onEditChange: (v: string) => void;
   onConfirm: () => void;
   onStartEdit: () => void;
+  onSave: () => void;
+  onCancelEdit: () => void;
   saving: boolean;
-  align?: "left" | "right";
+  error: string | null;
 }) {
-  const sideClass = align === "right" ? "right-0" : "left-0";
-  const actionHint = editable ? "Click to confirm or edit" : "Click to confirm";
   return (
-    <span className="relative inline-block">
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={expanded}
-        className="group relative inline-flex items-center rounded-full border border-red-500 px-1.5 py-0.5 text-[10px] font-semibold text-red-400 transition-colors hover:border-red-400 hover:bg-red-500/20 hover:text-red-300"
-      >
-        ⚠
-        {!expanded && (
-          <span
-            className={`pointer-events-none absolute top-full z-20 mt-1 hidden w-56 max-w-[70vw] rounded border border-neutral-700 bg-neutral-950 text-left text-[11px] font-normal normal-case leading-snug shadow-lg group-hover:block ${sideClass}`}
-          >
-            {reason && <div className="px-2 py-1.5 text-neutral-300">{reason}</div>}
-            <div
-              className={`px-2 py-1 text-[10px] text-neutral-500 ${reason ? "border-t border-neutral-800" : ""}`}
-            >
-              {actionHint}
-            </div>
-          </span>
-        )}
-      </button>
-      {expanded && (
-        <div
-          className={`absolute top-full z-20 mt-1 flex items-center gap-2 whitespace-nowrap rounded border border-neutral-700 bg-neutral-950 px-2 py-1.5 ${sideClass}`}
-        >
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={saving}
-            className="text-xs underline text-neutral-400 hover:text-white disabled:opacity-40"
-          >
-            Confirm
-          </button>
-          {editable && (
+    <div className="mt-1.5 border border-neutral-700 bg-neutral-950 p-3 text-left text-sm">
+      {editing ? (
+        <EditRow
+          value={editValue}
+          onChange={onEditChange}
+          onSave={onSave}
+          onCancel={onCancelEdit}
+          saving={saving}
+        />
+      ) : (
+        <>
+          {reason && <p className="text-xs text-red-400">⚠ {reason}</p>}
+          {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
+          <div className="mt-2 flex items-center gap-2">
             <button
               type="button"
-              onClick={onStartEdit}
+              onClick={onConfirm}
               disabled={saving}
-              className="text-xs underline text-neutral-400 hover:text-white disabled:opacity-40"
+              className="border border-neutral-700 px-3 py-1 text-xs font-medium text-neutral-100 hover:border-white disabled:opacity-40"
             >
-              Edit
+              {saving ? "Saving…" : "Confirm"}
             </button>
-          )}
-        </div>
+            {editable && (
+              <button
+                type="button"
+                onClick={onStartEdit}
+                className="bg-white px-3 py-1 text-xs font-medium text-black"
+              >
+                Edit
+              </button>
+            )}
+          </div>
+        </>
       )}
-    </span>
+    </div>
   );
 }
 
@@ -172,11 +181,11 @@ export function InvoiceReview({ id }: { id: string }) {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showOriginal, setShowOriginal] = useState(false);
+  const [expandedField, setExpandedField] = useState<string | null>(null);
   const [editingField, setEditingField] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [savingField, setSavingField] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [expandedField, setExpandedField] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -186,8 +195,8 @@ export function InvoiceReview({ id }: { id: string }) {
       setInvoice(null);
       setLoadError(null);
       setShowOriginal(false);
-      setEditingField(null);
       setExpandedField(null);
+      setEditingField(null);
       try {
         const res = await fetch(`/api/invoices/${id}`);
         if (!res.ok) {
@@ -210,7 +219,11 @@ export function InvoiceReview({ id }: { id: string }) {
     };
   }, [id]);
 
-  async function submitPatch(field: string, action: "confirm" | "correct", value?: string) {
+  async function submitPatch(
+    field: string,
+    action: "confirm" | "correct",
+    value?: string,
+  ): Promise<boolean> {
     setActionError(null);
     setSavingField(field);
     try {
@@ -225,11 +238,36 @@ export function InvoiceReview({ id }: { id: string }) {
       }
       const updated: InvoiceData = await res.json();
       setInvoice(updated);
-      setEditingField(null);
+      return true;
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Update failed");
+      return false;
     } finally {
       setSavingField(null);
+    }
+  }
+
+  function toggleExpand(key: string) {
+    setExpandedField((f) => (f === key ? null : key));
+    setEditingField(null);
+    setActionError(null);
+  }
+
+  function startEdit(key: string, value: string | null) {
+    setEditingField(key);
+    setEditValue(value ?? "");
+  }
+
+  async function handleConfirm(key: string) {
+    const ok = await submitPatch(key, "confirm");
+    if (ok) setExpandedField(null);
+  }
+
+  async function handleSave(key: string) {
+    const ok = await submitPatch(key, "correct", editValue);
+    if (ok) {
+      setExpandedField(null);
+      setEditingField(null);
     }
   }
 
@@ -303,52 +341,38 @@ export function InvoiceReview({ id }: { id: string }) {
   ) {
     const hasValue = value !== null && value !== "";
     const { flagged, reason } = fieldState(confidence, key, hasValue);
-    const isEditing = editingField === key;
-    const saving = savingField === key;
     const alignClass = align === "right" ? "text-right" : "";
 
     return (
       <div className={alignClass}>
         <div className="text-xs uppercase tracking-wide text-neutral-500">{label}</div>
-        {isEditing ? (
-          <EditRow
-            value={editValue}
-            onChange={setEditValue}
-            onSave={() => submitPatch(key, "correct", editValue)}
-            onCancel={() => setEditingField(null)}
-            saving={saving}
+        <div className={`mt-0.5 flex items-center gap-1.5 ${align === "right" ? "justify-end" : ""}`}>
+          <span className={`text-sm text-neutral-100 ${mono ? "font-mono" : ""}`}>
+            {hasValue ? value : <span className="text-neutral-500">— not extracted —</span>}
+          </span>
+          {flagged && <FlagIcon onClick={() => toggleExpand(key)} />}
+        </div>
+        {flagged && expandedField === key && (
+          <InlineReviewPanel
+            reason={reason}
+            editable={EDITABLE_FIELDS.has(key)}
+            editing={editingField === key}
+            editValue={editValue}
+            onEditChange={setEditValue}
+            onConfirm={() => handleConfirm(key)}
+            onStartEdit={() => startEdit(key, value)}
+            onSave={() => handleSave(key)}
+            onCancelEdit={() => setEditingField(null)}
+            saving={savingField === key}
+            error={actionError}
           />
-        ) : (
-          <div className={`mt-0.5 flex items-center gap-1.5 ${align === "right" ? "justify-end" : ""}`}>
-            <span className={`text-sm text-neutral-100 ${mono ? "font-mono" : ""}`}>
-              {hasValue ? value : <span className="text-neutral-500">— not extracted —</span>}
-            </span>
-            {flagged && (
-              <FlagIndicator
-                reason={reason}
-                editable={EDITABLE_FIELDS.has(key)}
-                expanded={expandedField === key}
-                onToggle={() => setExpandedField((f) => (f === key ? null : key))}
-                onConfirm={() => {
-                  submitPatch(key, "confirm");
-                  setExpandedField(null);
-                }}
-                onStartEdit={() => {
-                  setEditingField(key);
-                  setEditValue(value ?? "");
-                  setExpandedField(null);
-                }}
-                saving={saving}
-                align={align}
-              />
-            )}
-          </div>
         )}
       </div>
     );
   }
 
   const lineItemsFlag = confidence?.["line_items"];
+  const vendorFlag = fieldState(confidence, "vendor_name", !!invoice.vendorName);
   const items = invoice.lineItems ?? [];
 
   return (
@@ -366,8 +390,6 @@ export function InvoiceReview({ id }: { id: string }) {
         </button>
       </div>
 
-      {actionError && <p className="text-sm text-red-400">{actionError}</p>}
-
       <div className={`grid grid-cols-1 gap-6 ${showOriginal ? "md:grid-cols-2" : ""}`}>
         <div className="space-y-6 border border-neutral-800 bg-neutral-900 p-6 md:p-8">
           <div className="flex flex-col gap-4 border-b border-neutral-800 pb-6 sm:flex-row sm:items-start sm:justify-between">
@@ -376,39 +398,22 @@ export function InvoiceReview({ id }: { id: string }) {
                 <h1 className="text-2xl font-bold text-neutral-100">
                   {invoice.vendorName || "Unknown vendor"}
                 </h1>
-                {(() => {
-                  const { flagged, reason } = fieldState(confidence, "vendor_name", !!invoice.vendorName);
-                  if (!flagged) return null;
-                  return (
-                    <FlagIndicator
-                      reason={reason}
-                      editable={EDITABLE_FIELDS.has("vendor_name")}
-                      expanded={expandedField === "vendor_name"}
-                      onToggle={() => setExpandedField((f) => (f === "vendor_name" ? null : "vendor_name"))}
-                      onConfirm={() => {
-                        submitPatch("vendor_name", "confirm");
-                        setExpandedField(null);
-                      }}
-                      onStartEdit={() => {
-                        setEditingField("vendor_name");
-                        setEditValue(invoice.vendorName ?? "");
-                        setExpandedField(null);
-                      }}
-                      saving={savingField === "vendor_name"}
-                    />
-                  );
-                })()}
+                {vendorFlag.flagged && <FlagIcon onClick={() => toggleExpand("vendor_name")} />}
               </div>
-              {editingField === "vendor_name" && (
-                <div className="mt-1">
-                  <EditRow
-                    value={editValue}
-                    onChange={setEditValue}
-                    onSave={() => submitPatch("vendor_name", "correct", editValue)}
-                    onCancel={() => setEditingField(null)}
-                    saving={savingField === "vendor_name"}
-                  />
-                </div>
+              {vendorFlag.flagged && expandedField === "vendor_name" && (
+                <InlineReviewPanel
+                  reason={vendorFlag.reason}
+                  editable={EDITABLE_FIELDS.has("vendor_name")}
+                  editing={editingField === "vendor_name"}
+                  editValue={editValue}
+                  onEditChange={setEditValue}
+                  onConfirm={() => handleConfirm("vendor_name")}
+                  onStartEdit={() => startEdit("vendor_name", invoice.vendorName)}
+                  onSave={() => handleSave("vendor_name")}
+                  onCancelEdit={() => setEditingField(null)}
+                  saving={savingField === "vendor_name"}
+                  error={actionError}
+                />
               )}
             </div>
             <div className="grid grid-cols-2 gap-x-6 gap-y-3">
@@ -425,20 +430,24 @@ export function InvoiceReview({ id }: { id: string }) {
                 Line items
               </h3>
               {lineItemsFlag?.flagged && (
-                <FlagIndicator
-                  reason={lineItemsFlag.reason}
-                  editable={false}
-                  expanded={expandedField === "line_items"}
-                  onToggle={() => setExpandedField((f) => (f === "line_items" ? null : "line_items"))}
-                  onConfirm={() => {
-                    submitPatch("line_items", "confirm");
-                    setExpandedField(null);
-                  }}
-                  onStartEdit={() => {}}
-                  saving={savingField === "line_items"}
-                />
+                <FlagIcon onClick={() => toggleExpand("line_items")} />
               )}
             </div>
+            {lineItemsFlag?.flagged && expandedField === "line_items" && (
+              <InlineReviewPanel
+                reason={lineItemsFlag.reason}
+                editable={false}
+                editing={false}
+                editValue=""
+                onEditChange={() => {}}
+                onConfirm={() => handleConfirm("line_items")}
+                onStartEdit={() => {}}
+                onSave={() => {}}
+                onCancelEdit={() => {}}
+                saving={savingField === "line_items"}
+                error={actionError}
+              />
+            )}
             <table className="mt-3 w-full border-collapse text-sm">
               <thead>
                 <tr className="border-b border-neutral-800 text-left text-xs uppercase tracking-wide text-neutral-500">
