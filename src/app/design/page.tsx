@@ -229,10 +229,11 @@ export default function DesignPage() {
       <section className="space-y-3 border-t border-neutral-800 pt-10">
         <h2 className="text-xl font-semibold text-neutral-100">Problem statement</h2>
         <p className="text-sm leading-relaxed text-neutral-300">
-          An LLM can read an invoice and pull out the fields, but a reviewer still can&apos;t just
-          trust it — and re-checking every field by hand defeats the point of automating it. This
-          app scores each field&apos;s confidence and flags only what actually looks wrong,
-          including documents that aren&apos;t invoices at all.
+          Businesses get invoices from many vendors, each in its own format — a clean PDF, a
+          scanned receipt, a photo of a paper bill. This app is one portal to organize all of
+          them: upload any format, let an LLM pull out the fields, and store it in one place. But
+          the AI can misread a field, and re-checking everything by hand defeats the point — so it
+          scores each field&apos;s confidence and flags only what actually looks wrong.
         </p>
       </section>
 
