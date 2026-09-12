@@ -559,6 +559,16 @@ Two more readability passes on the same files right after the extraction above, 
 
 **`handlePost` was one function doing four sequential things (validate the file, upload to blob, run extraction, save to the DB), each with its own error handling inlined.** Split into `validateUploadedFile`, `uploadFileToBlob`, and `saveExtractedInvoice` — each returns either its success value or a `{ ok: false, response }` failure (a small shared `StepFailure` type + `fail()` helper), so `handlePost` itself is now five lines per step: call it, check `.ok`, use the value. Kept these three as local functions in `route.ts` rather than moving them to `src/lib/` — unlike `uuid.ts` or `invoice-fields.ts`, they return `NextResponse` and only make sense wired to this one route, so there's nothing else that would import them.
 
+## API routes, third pass: file organization and one more oversized handler
+
+**`route.ts` reordered so the two exported entry points (`POST`, `GET`) sit together at the bottom of the file, not interleaved with their own helpers.** Previously it read POST → its helpers → GET → its helper; now it's types → all POST-side helpers (`validateUploadedFile`, `uploadFileToBlob`, `saveExtractedInvoice`, `handlePost`) → the GET-side helper (`handleGet`) → a "Route entry points" section with just `POST` and `GET`, each a thin try/catch around its handler. A reader opening the file sees the actual route surface last, after the pieces it's built from — same reasoning as skimming a file's exports before its implementation, just inverted to match how this file already read (thin wrapper calling a `handleX`).
+
+**`PATCH` in `[id]/route.ts` was ~55 lines doing three different things: parse-and-validate the request body, build the confidence-map + column update, then run the DB update.** Split into `parsePatchRequest` (returns `{ ok: true, field, action, value }` or a `StepFailure`) and `buildPatchValues` (turns `{ existing row, field, action, value }` into the Drizzle `set()` payload). `PATCH` itself is now ~20 lines: guard the id, parse the request, look up the row, build the values, update, return.
+
+**`StepFailure`/`fail()` (the `{ ok: false, response }` pattern from the `route.ts` split) moved to `src/lib/api-step.ts`** once `[id]/route.ts` needed the identical shape for `parsePatchRequest` — same rule as everything else this session: the second real usage is what justifies pulling something into `src/lib/`, not the first.
+
+Verified with `tsc --noEmit`, `pnpm lint`, `pnpm test`, and live `curl` against the running dev server for every branch: malformed JSON body, invalid `action`, missing `field`, a non-editable field, and a valid confirm — all unchanged from before the split.
+
 ## Future plans (not attempted in this submission)
 
 Named here rather than left implicit, so it's clear these are deliberate deferrals with a time-boxed submission, not gaps nobody noticed:

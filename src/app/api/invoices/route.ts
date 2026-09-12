@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { invoices } from "@/db/schema";
 import { COMMON_ERRORS, LIST_ERRORS, UPLOAD_ERRORS } from "@/lib/api-messages";
+import { fail, type StepFailure } from "@/lib/api-step";
 import { computeConfidence } from "@/lib/confidence";
 import { extractInvoice, type SupportedMediaType } from "@/lib/extract";
 import { mapExtractionErrorToResponse } from "@/lib/extraction-error-response";
@@ -24,56 +25,10 @@ const SUPPORTED_MEDIA_TYPES: SupportedMediaType[] = [
 
 const MAX_FILE_BYTES = 15 * 1024 * 1024; // 15MB — comfortably above any real single-page invoice
 
-type StepFailure = { ok: false; response: NextResponse };
-
-function fail(message: string, status: number): StepFailure {
-  return { ok: false, response: NextResponse.json({ error: message }, { status }) };
-}
-
-export async function POST(request: Request) {
-  try {
-    return await handlePost(request);
-  } catch (error) {
-    console.error("Unexpected error handling invoice upload", error);
-    return NextResponse.json({ error: COMMON_ERRORS.unexpectedServer }, { status: 500 });
-  }
-}
-
-async function handlePost(request: Request) {
-  let formData: FormData;
-  try {
-    formData = await request.formData();
-  } catch (error) {
-    console.error("Failed to parse multipart form data", error);
-    return NextResponse.json({ error: UPLOAD_ERRORS.malformedRequest }, { status: 400 });
-  }
-
-  const validated = validateUploadedFile(formData.get("file"));
-  if (!validated.ok) return validated.response;
-  const { file } = validated;
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const mediaType = file.type as SupportedMediaType;
-
-  const uploaded = await uploadFileToBlob(file, buffer, mediaType);
-  if (!uploaded.ok) return uploaded.response;
-  const { blobUrl } = uploaded;
-
-  let extraction, rawResponse, model;
-  try {
-    ({ extraction, rawResponse, model } = await extractInvoice({
-      base64Data: buffer.toString("base64"),
-      mediaType,
-    }));
-  } catch (rawError) {
-    console.error("Extraction failed", rawError);
-    return mapExtractionErrorToResponse(rawError, blobUrl);
-  }
-
-  return saveExtractedInvoice({ file, blobUrl, extraction, rawResponse, model });
-}
-
 type FileValidation = { ok: true; file: File } | StepFailure;
+type BlobUpload = { ok: true; blobUrl: string } | StepFailure;
+
+// ---- POST /api/invoices — upload, extract, save ----
 
 function validateUploadedFile(entry: FormDataEntryValue | null): FileValidation {
   if (!(entry instanceof File)) {
@@ -90,8 +45,6 @@ function validateUploadedFile(entry: FormDataEntryValue | null): FileValidation 
   }
   return { ok: true, file: entry };
 }
-
-type BlobUpload = { ok: true; blobUrl: string } | StepFailure;
 
 async function uploadFileToBlob(
   file: File,
@@ -163,14 +116,41 @@ async function saveExtractedInvoice({
   }
 }
 
-export async function GET(request: Request) {
+async function handlePost(request: Request) {
+  let formData: FormData;
   try {
-    return await handleGet(request);
+    formData = await request.formData();
   } catch (error) {
-    console.error("Unexpected error handling invoice list request", error);
-    return NextResponse.json({ error: COMMON_ERRORS.unexpectedServer }, { status: 500 });
+    console.error("Failed to parse multipart form data", error);
+    return NextResponse.json({ error: UPLOAD_ERRORS.malformedRequest }, { status: 400 });
   }
+
+  const validated = validateUploadedFile(formData.get("file"));
+  if (!validated.ok) return validated.response;
+  const { file } = validated;
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const mediaType = file.type as SupportedMediaType;
+
+  const uploaded = await uploadFileToBlob(file, buffer, mediaType);
+  if (!uploaded.ok) return uploaded.response;
+  const { blobUrl } = uploaded;
+
+  let extraction, rawResponse, model;
+  try {
+    ({ extraction, rawResponse, model } = await extractInvoice({
+      base64Data: buffer.toString("base64"),
+      mediaType,
+    }));
+  } catch (rawError) {
+    console.error("Extraction failed", rawError);
+    return mapExtractionErrorToResponse(rawError, blobUrl);
+  }
+
+  return saveExtractedInvoice({ file, blobUrl, extraction, rawResponse, model });
 }
+
+// ---- GET /api/invoices — filtered list ----
 
 async function handleGet(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -194,5 +174,25 @@ async function handleGet(request: Request) {
   } catch (error) {
     console.error("Failed to query invoices", error);
     return NextResponse.json({ error: LIST_ERRORS.loadFailed }, { status: 500 });
+  }
+}
+
+// ---- Route entry points ----
+
+export async function POST(request: Request) {
+  try {
+    return await handlePost(request);
+  } catch (error) {
+    console.error("Unexpected error handling invoice upload", error);
+    return NextResponse.json({ error: COMMON_ERRORS.unexpectedServer }, { status: 500 });
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    return await handleGet(request);
+  } catch (error) {
+    console.error("Unexpected error handling invoice list request", error);
+    return NextResponse.json({ error: COMMON_ERRORS.unexpectedServer }, { status: 500 });
   }
 }
