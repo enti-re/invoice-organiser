@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { ArchitectureDiagram } from "@/app/components/ArchitectureDiagram";
 
-export default function DesignPage() {
+const DesignPage = () => {
   return (
     <div className="mx-auto w-full min-w-0 max-w-4xl space-y-8 px-6 py-16 md:px-8">
       <header className="flex items-start justify-between gap-4">
@@ -124,6 +124,12 @@ export default function DesignPage() {
             <span className="font-semibold text-neutral-100">Deployment:</span> the entire application runs on
             Vercel, keeping the initial architecture simple.
           </li>
+          <li>
+            <span className="font-semibold text-neutral-100">Development workflow:</span> built with Claude
+            Code using two custom skills — a monochrome dark design-language skill for the UI, and a
+            systematic-refactoring skill (file-size limits, extracting types/hooks/helpers, deduplicating
+            repeated logic) applied throughout to keep the codebase readable as it grew.
+          </li>
         </ul>
       </section>
 
@@ -188,4 +194,6 @@ export default function DesignPage() {
       </section>
     </div>
   );
-}
+};
+
+export default DesignPage;

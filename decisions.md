@@ -594,6 +594,12 @@ The route's own content is a written design document (problem framing, decisions
 
 Purely a file move — every import path updated, no logic touched. Verified with `tsc --noEmit`, `pnpm lint`, `pnpm test`, and a live check of all four pages (`/`, `/app`, `/design-doc`, `/invoices/[id]`) plus the API endpoints, confirming nothing broke.
 
+## Checked in the two Claude Code skills actually used, under `.claude/skills/`
+
+Two Claude Code skills guided this build: `nikhilchandna-design` (the monochrome dark design language — one functional accent color, sharp corners, hairline dividers — that this app's UI and `CLAUDE.md` conventions are drawn from) and `systematic-refactoring` (a new skill, written this session, capturing the actual rules applied across the refactoring passes: the 250-line trigger, extract-on-second-use, splitting long functions into named steps with a shared success/failure shape, types/helpers out of components, the custom-hook-controller pattern, grouped error-message constants, and file organization by import graph).
+
+Both started as global skills (`~/.claude/skills/`), invisible to anyone browsing this repo. Copied them into `.claude/skills/` inside the project instead, and narrowed `.gitignore`'s blanket `.claude/` ignore to `.claude/*` + `!.claude/skills/` — worktrees and other Claude Code local state stay ignored, but the skills (authored, durable content, not session state) are tracked and reviewable alongside the code they shaped. Referenced both by name in the "Architecture & technical design" section of `/design-doc`.
+
 ## Future plans (not attempted in this submission)
 
 Named here rather than left implicit, so it's clear these are deliberate deferrals with a time-boxed submission, not gaps nobody noticed:

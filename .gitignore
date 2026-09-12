@@ -36,8 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
-# Claude Code local state (agent worktrees, etc.)
-.claude/
+# Claude Code local state (agent worktrees, etc.) — skills are authored
+# content, not local state, so they're tracked
+.claude/*
+!.claude/skills/
 
 # typescript
 *.tsbuildinfo
