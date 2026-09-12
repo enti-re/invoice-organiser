@@ -544,9 +544,8 @@ export default function Home() {
               ) : sortedInvoices.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-10 text-center text-neutral-400">
-                    <FileIcon className="mx-auto h-8 w-8 text-neutral-700" />
                     {hasActiveFilters ? (
-                      <span className="mt-3 block">
+                      <>
                         No invoices match your filters.{" "}
                         <button
                           type="button"
@@ -558,9 +557,9 @@ export default function Home() {
                         >
                           Clear filters
                         </button>
-                      </span>
+                      </>
                     ) : (
-                      <span className="mt-3 block">No invoices yet — upload one above.</span>
+                      "No invoices yet — upload one above."
                     )}
                   </td>
                 </tr>
@@ -612,9 +611,8 @@ export default function Home() {
             Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
           ) : sortedInvoices.length === 0 ? (
             <div className="border border-neutral-800 p-10 text-center text-neutral-400">
-              <FileIcon className="mx-auto h-8 w-8 text-neutral-700" />
               {hasActiveFilters ? (
-                <span className="mt-3 block">
+                <>
                   No invoices match your filters.{" "}
                   <button
                     type="button"
@@ -626,9 +624,9 @@ export default function Home() {
                   >
                     Clear filters
                   </button>
-                </span>
+                </>
               ) : (
-                <span className="mt-3 block">No invoices yet — upload one above.</span>
+                "No invoices yet — upload one above."
               )}
             </div>
           ) : (
