@@ -542,7 +542,7 @@ export default function Home() {
               ) : sortedInvoices.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="py-10 text-center text-neutral-400">
-                    <span className="block text-2xl grayscale">📄</span>
+                    <span className="block text-2xl grayscale">📥</span>
                     <span className="mt-2 block">No invoices yet — upload one above.</span>
                   </td>
                 </tr>
@@ -594,7 +594,7 @@ export default function Home() {
             Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
           ) : sortedInvoices.length === 0 ? (
             <div className="border border-neutral-800 p-10 text-center text-neutral-400">
-              <span className="block text-2xl grayscale">📄</span>
+              <span className="block text-2xl grayscale">📥</span>
               <span className="mt-2 block">No invoices yet — upload one above.</span>
             </div>
           ) : (
