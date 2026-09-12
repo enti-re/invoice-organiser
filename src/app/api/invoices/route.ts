@@ -4,9 +4,11 @@ import { NextResponse } from "next/server";
 
 import { db } from "@/db";
 import { invoices } from "@/db/schema";
+import { COMMON_ERRORS, LIST_ERRORS, UPLOAD_ERRORS } from "@/lib/api-messages";
 import { computeConfidence } from "@/lib/confidence";
 import { extractInvoice, type SupportedMediaType } from "@/lib/extract";
 import { mapExtractionErrorToResponse } from "@/lib/extraction-error-response";
+import type { InvoiceExtraction } from "@/lib/invoice-extraction-schema";
 import {
   buildInvoiceListConditions,
   parseInvoiceListParams,
@@ -22,12 +24,18 @@ const SUPPORTED_MEDIA_TYPES: SupportedMediaType[] = [
 
 const MAX_FILE_BYTES = 15 * 1024 * 1024; // 15MB — comfortably above any real single-page invoice
 
+type StepFailure = { ok: false; response: NextResponse };
+
+function fail(message: string, status: number): StepFailure {
+  return { ok: false, response: NextResponse.json({ error: message }, { status }) };
+}
+
 export async function POST(request: Request) {
   try {
     return await handlePost(request);
   } catch (error) {
     console.error("Unexpected error handling invoice upload", error);
-    return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });
+    return NextResponse.json({ error: COMMON_ERRORS.unexpectedServer }, { status: 500 });
   }
 }
 
@@ -37,54 +45,19 @@ async function handlePost(request: Request) {
     formData = await request.formData();
   } catch (error) {
     console.error("Failed to parse multipart form data", error);
-    return NextResponse.json({ error: "Malformed upload request" }, { status: 400 });
+    return NextResponse.json({ error: UPLOAD_ERRORS.malformedRequest }, { status: 400 });
   }
 
-  const file = formData.get("file");
+  const validated = validateUploadedFile(formData.get("file"));
+  if (!validated.ok) return validated.response;
+  const { file } = validated;
 
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "Missing file" }, { status: 400 });
-  }
-
-  if (!SUPPORTED_MEDIA_TYPES.includes(file.type as SupportedMediaType)) {
-    return NextResponse.json(
-      { error: `Unsupported file type: ${file.type}. Expected PDF, PNG, JPEG, or WEBP.` },
-      { status: 400 },
-    );
-  }
-
-  if (file.size === 0) {
-    return NextResponse.json({ error: "Uploaded file is empty" }, { status: 400 });
-  }
-
-  if (file.size > MAX_FILE_BYTES) {
-    return NextResponse.json({ error: "File too large (max 15MB)" }, { status: 400 });
-  }
-
-  const arrayBuffer = await file.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
+  const buffer = Buffer.from(await file.arrayBuffer());
   const mediaType = file.type as SupportedMediaType;
 
-  let blobUrl: string;
-  try {
-    const blob = await put(`invoices/${Date.now()}-${file.name}`, buffer, {
-      access: "public",
-      contentType: mediaType,
-    });
-    blobUrl = blob.url;
-  } catch (error) {
-    console.error("Blob upload failed", error);
-    if (error instanceof BlobServiceRateLimited) {
-      return NextResponse.json(
-        { error: "File storage is temporarily rate limited. Please try again shortly." },
-        { status: 502 },
-      );
-    }
-    if (error instanceof BlobError) {
-      return NextResponse.json({ error: error.message }, { status: 502 });
-    }
-    return NextResponse.json({ error: "Failed to store uploaded file" }, { status: 502 });
-  }
+  const uploaded = await uploadFileToBlob(file, buffer, mediaType);
+  if (!uploaded.ok) return uploaded.response;
+  const { blobUrl } = uploaded;
 
   let extraction, rawResponse, model;
   try {
@@ -97,6 +70,65 @@ async function handlePost(request: Request) {
     return mapExtractionErrorToResponse(rawError, blobUrl);
   }
 
+  return saveExtractedInvoice({ file, blobUrl, extraction, rawResponse, model });
+}
+
+type FileValidation = { ok: true; file: File } | StepFailure;
+
+function validateUploadedFile(entry: FormDataEntryValue | null): FileValidation {
+  if (!(entry instanceof File)) {
+    return fail(UPLOAD_ERRORS.missingFile, 400);
+  }
+  if (!SUPPORTED_MEDIA_TYPES.includes(entry.type as SupportedMediaType)) {
+    return fail(UPLOAD_ERRORS.unsupportedFileType(entry.type), 400);
+  }
+  if (entry.size === 0) {
+    return fail(UPLOAD_ERRORS.emptyFile, 400);
+  }
+  if (entry.size > MAX_FILE_BYTES) {
+    return fail(UPLOAD_ERRORS.fileTooLarge, 400);
+  }
+  return { ok: true, file: entry };
+}
+
+type BlobUpload = { ok: true; blobUrl: string } | StepFailure;
+
+async function uploadFileToBlob(
+  file: File,
+  buffer: Buffer,
+  mediaType: SupportedMediaType,
+): Promise<BlobUpload> {
+  try {
+    const blob = await put(`invoices/${Date.now()}-${file.name}`, buffer, {
+      access: "public",
+      contentType: mediaType,
+    });
+    return { ok: true, blobUrl: blob.url };
+  } catch (error) {
+    console.error("Blob upload failed", error);
+    if (error instanceof BlobServiceRateLimited) {
+      return fail(UPLOAD_ERRORS.blobRateLimited, 502);
+    }
+    if (error instanceof BlobError) {
+      return fail(error.message, 502);
+    }
+    return fail(UPLOAD_ERRORS.blobUploadFailed, 502);
+  }
+}
+
+async function saveExtractedInvoice({
+  file,
+  blobUrl,
+  extraction,
+  rawResponse,
+  model,
+}: {
+  file: File;
+  blobUrl: string;
+  extraction: InvoiceExtraction;
+  rawResponse: unknown;
+  model: string;
+}) {
   const { confidence, needsReview } = computeConfidence(extraction);
 
   try {
@@ -125,7 +157,7 @@ async function handlePost(request: Request) {
   } catch (error) {
     console.error("Failed to save extracted invoice to the database", error);
     return NextResponse.json(
-      { error: "Extraction succeeded but saving the invoice failed", fileUrl: blobUrl },
+      { error: UPLOAD_ERRORS.saveFailed, fileUrl: blobUrl },
       { status: 500 },
     );
   }
@@ -136,7 +168,7 @@ export async function GET(request: Request) {
     return await handleGet(request);
   } catch (error) {
     console.error("Unexpected error handling invoice list request", error);
-    return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });
+    return NextResponse.json({ error: COMMON_ERRORS.unexpectedServer }, { status: 500 });
   }
 }
 
@@ -161,6 +193,6 @@ async function handleGet(request: Request) {
     return NextResponse.json(rows);
   } catch (error) {
     console.error("Failed to query invoices", error);
-    return NextResponse.json({ error: "Failed to load invoices" }, { status: 500 });
+    return NextResponse.json({ error: LIST_ERRORS.loadFailed }, { status: 500 });
   }
 }

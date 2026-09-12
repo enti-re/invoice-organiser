@@ -551,6 +551,14 @@ Net effect: `route.ts` went from 228 to 166 lines, `[id]/route.ts` from 185 to 1
 
 Verified with `tsc --noEmit`, `pnpm lint`, `pnpm test` (all pass), and live against the running dev server and real DB: `GET /api/invoices`, `GET /api/invoices/:id`, an invalid UUID on all three id-scoped routes (400), an invalid `minAmount` query param (400), and a full browser click-through of the review page's "Confirm" action (PATCH) — all behave identically to before the refactor.
 
+## API routes, second pass: named error-message constants and one function per upload step
+
+Two more readability passes on the same files right after the extraction above, from spotting the leftover mess while reviewing it:
+
+**Every user-facing `{ error: "..." }` string was an inline literal, several repeated verbatim** — `"Unexpected server error"` appeared 5 times across both route files, `"Invoice not found"` 3 times, `"Malformed request body"` twice. Moved them all to `src/lib/api-messages.ts`, grouped by the concern they belong to (`COMMON_ERRORS`, `UPLOAD_ERRORS`, `LIST_ERRORS`, `INVOICE_ERRORS`, `REVIEW_REASONS`) rather than one flat list, so a route file reads `COMMON_ERRORS.invoiceNotFound` instead of retyping the string, and the two dynamic messages (`unsupportedFileType`, `fieldNotEditable`) are functions in the same object rather than inline template literals. Did the same inside `extraction-error-response.ts` for its own six messages, kept local to that file since they're not used anywhere else.
+
+**`handlePost` was one function doing four sequential things (validate the file, upload to blob, run extraction, save to the DB), each with its own error handling inlined.** Split into `validateUploadedFile`, `uploadFileToBlob`, and `saveExtractedInvoice` — each returns either its success value or a `{ ok: false, response }` failure (a small shared `StepFailure` type + `fail()` helper), so `handlePost` itself is now five lines per step: call it, check `.ok`, use the value. Kept these three as local functions in `route.ts` rather than moving them to `src/lib/` — unlike `uuid.ts` or `invoice-fields.ts`, they return `NextResponse` and only make sense wired to this one route, so there's nothing else that would import them.
+
 ## Future plans (not attempted in this submission)
 
 Named here rather than left implicit, so it's clear these are deliberate deferrals with a time-boxed submission, not gaps nobody noticed:
