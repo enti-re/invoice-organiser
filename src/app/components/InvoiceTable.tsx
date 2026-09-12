@@ -1,7 +1,6 @@
 import type { InvoiceListController } from "@/app/components/useInvoiceList";
-import { SkeletonRow, SortIndicator, StatusBadge } from "@/app/components/InvoiceListUI";
-import { Spinner, TrashIcon } from "@/app/components/icons";
-import { formatINR } from "@/lib/invoice-list";
+import { InvoiceTableRow } from "@/app/components/InvoiceTableRow";
+import { SkeletonRow, SortIndicator } from "@/app/components/InvoiceListUI";
 
 export function InvoiceTable({ list }: { list: InvoiceListController }) {
   return (
@@ -70,42 +69,13 @@ export function InvoiceTable({ list }: { list: InvoiceListController }) {
             </tr>
           ) : (
             list.sortedInvoices.map((inv) => (
-              <tr key={inv.id} className="group border-b border-neutral-800 last:border-0 hover:bg-neutral-900">
-                <td className="truncate py-3 pr-4 text-neutral-100" title={inv.vendorName ?? undefined}>
-                  {inv.vendorName ?? "—"}
-                </td>
-                <td className="py-3 pr-4 font-mono text-neutral-300">{inv.invoiceDate ?? "—"}</td>
-                <td className="py-3 pr-4 font-mono text-neutral-100">{formatINR(inv.totalAmount)}</td>
-                <td className="py-3 pr-4 font-mono text-neutral-300">{formatINR(inv.taxAmount)}</td>
-                <td className="py-3 pr-4 text-neutral-300">{inv.lineItems?.length ?? 0}</td>
-                <td className="py-3 pr-4">
-                  <StatusBadge needsReview={inv.needsReview} />
-                </td>
-                <td className="py-3 pr-4">
-                  <button
-                    type="button"
-                    onClick={() => list.router.push(`/invoices/${inv.id}`)}
-                    className="cursor-pointer border border-neutral-700 px-3 py-1 text-xs font-medium text-neutral-100 hover:border-white"
-                  >
-                    Review
-                  </button>
-                </td>
-                <td className="py-3 pr-4">
-                  <button
-                    type="button"
-                    aria-label="Delete invoice"
-                    disabled={list.deletingId === inv.id}
-                    onClick={() => list.setConfirmDeleteId(inv.id)}
-                    className="cursor-pointer text-neutral-700 transition-colors hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {list.deletingId === inv.id ? (
-                      <Spinner className="w-4 h-4" />
-                    ) : (
-                      <TrashIcon className="w-4 h-4" />
-                    )}
-                  </button>
-                </td>
-              </tr>
+              <InvoiceTableRow
+                key={inv.id}
+                invoice={inv}
+                isDeleting={list.deletingId === inv.id}
+                onDeleteRequest={() => list.setConfirmDeleteId(inv.id)}
+                onReview={() => list.router.push(`/invoices/${inv.id}`)}
+              />
             ))
           )}
         </tbody>
