@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { InvoiceData } from "@/app/components/InvoiceReview.types";
 import { InvoiceReviewSkeleton } from "@/app/components/InvoiceReviewSkeleton";
 import { FlagIcon, InlineReviewPanel } from "@/app/components/InlineReviewPanel";
+import { LineItemRow } from "@/app/components/LineItemRow";
 import { OriginalFilePanel } from "@/app/components/OriginalFilePanel";
 import { ScalarField } from "@/app/components/ScalarField";
 import { useInvoiceReview } from "@/app/components/useInvoiceReview";
@@ -146,16 +147,7 @@ export function InvoiceReview({ id }: { id: string }) {
               </thead>
               <tbody>
                 {items.map((item, i) => (
-                  <tr key={i} className="border-b border-neutral-800">
-                    <td className="py-2 pr-4 text-neutral-100 break-words">{item.description}</td>
-                    <td className="py-2 pr-4 text-right font-mono text-neutral-300">
-                      {item.quantity ?? "—"}
-                    </td>
-                    <td className="py-2 pr-4 text-right font-mono text-neutral-300">
-                      {item.unit_price ?? "—"}
-                    </td>
-                    <td className="py-2 pr-0 text-right font-mono text-neutral-100">{item.amount}</td>
-                  </tr>
+                  <LineItemRow key={i} item={item} />
                 ))}
                 {items.length === 0 && (
                   <tr>

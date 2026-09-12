@@ -1,13 +1,17 @@
-import { APICallError, NoObjectGeneratedError, RetryError } from "ai";
 import { BlobError, BlobServiceRateLimited, put } from "@vercel/blob";
-import { and, desc, gte, ilike, lte, SQL } from "drizzle-orm";
+import { and, desc } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 import { db } from "@/db";
 import { invoices } from "@/db/schema";
 import { computeConfidence } from "@/lib/confidence";
-import { isValidIsoDate } from "@/lib/date";
 import { extractInvoice, type SupportedMediaType } from "@/lib/extract";
+import { mapExtractionErrorToResponse } from "@/lib/extraction-error-response";
+import {
+  buildInvoiceListConditions,
+  parseInvoiceListParams,
+  validateInvoiceListParams,
+} from "@/lib/invoice-filters";
 
 const SUPPORTED_MEDIA_TYPES: SupportedMediaType[] = [
   "application/pdf",
@@ -90,54 +94,7 @@ async function handlePost(request: Request) {
     }));
   } catch (rawError) {
     console.error("Extraction failed", rawError);
-
-    // generateObject wraps the real cause in RetryError.lastError once
-    // internal retries are exhausted, rather than throwing it directly.
-    const error = RetryError.isInstance(rawError) ? rawError.lastError : rawError;
-
-    if (
-      (error instanceof Error && error.name === "TimeoutError") ||
-      (error instanceof Error && /timeout|timed out/i.test(error.message))
-    ) {
-      return NextResponse.json(
-        { error: "Extraction timed out. Please try again.", fileUrl: blobUrl },
-        { status: 502 },
-      );
-    }
-
-    if (APICallError.isInstance(error)) {
-      if (error.statusCode === 429) {
-        return NextResponse.json(
-          {
-            error: "Extraction service is rate limited right now. Please try again shortly.",
-            fileUrl: blobUrl,
-          },
-          { status: 502 },
-        );
-      }
-      if (error.statusCode === 503) {
-        return NextResponse.json(
-          {
-            error: "Extraction service is temporarily overloaded. Please try again shortly.",
-            fileUrl: blobUrl,
-          },
-          { status: 502 },
-        );
-      }
-      return NextResponse.json(
-        { error: "Extraction service is unavailable right now. Please try again.", fileUrl: blobUrl },
-        { status: 502 },
-      );
-    }
-
-    if (NoObjectGeneratedError.isInstance(error)) {
-      return NextResponse.json(
-        { error: "Extraction did not return usable data for this document.", fileUrl: blobUrl },
-        { status: 502 },
-      );
-    }
-
-    return NextResponse.json({ error: "Extraction failed", fileUrl: blobUrl }, { status: 502 });
+    return mapExtractionErrorToResponse(rawError, blobUrl);
   }
 
   const { confidence, needsReview } = computeConfidence(extraction);
@@ -185,33 +142,14 @@ export async function GET(request: Request) {
 
 async function handleGet(request: Request) {
   const { searchParams } = new URL(request.url);
-  const vendor = searchParams.get("vendor");
-  const dateFrom = searchParams.get("dateFrom");
-  const dateTo = searchParams.get("dateTo");
-  const minAmount = searchParams.get("minAmount");
-  const maxAmount = searchParams.get("maxAmount");
+  const params = parseInvoiceListParams(searchParams);
 
-  if (minAmount !== null && (minAmount.trim() === "" || Number.isNaN(Number(minAmount)))) {
-    return NextResponse.json({ error: "minAmount must be a number" }, { status: 400 });
+  const validationError = validateInvoiceListParams(params);
+  if (validationError) {
+    return NextResponse.json({ error: validationError }, { status: 400 });
   }
 
-  if (maxAmount !== null && (maxAmount.trim() === "" || Number.isNaN(Number(maxAmount)))) {
-    return NextResponse.json({ error: "maxAmount must be a number" }, { status: 400 });
-  }
-
-  if (dateFrom !== null && !isValidIsoDate(dateFrom)) {
-    return NextResponse.json({ error: "dateFrom must be an ISO date (YYYY-MM-DD)" }, { status: 400 });
-  }
-  if (dateTo !== null && !isValidIsoDate(dateTo)) {
-    return NextResponse.json({ error: "dateTo must be an ISO date (YYYY-MM-DD)" }, { status: 400 });
-  }
-
-  const conditions: SQL[] = [];
-  if (vendor) conditions.push(ilike(invoices.vendorName, `%${vendor}%`));
-  if (dateFrom) conditions.push(gte(invoices.invoiceDate, dateFrom));
-  if (dateTo) conditions.push(lte(invoices.invoiceDate, dateTo));
-  if (minAmount) conditions.push(gte(invoices.totalAmount, minAmount));
-  if (maxAmount) conditions.push(lte(invoices.totalAmount, maxAmount));
+  const conditions = buildInvoiceListConditions(params);
 
   try {
     const rows = await db

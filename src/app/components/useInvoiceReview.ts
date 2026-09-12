@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import type { InvoiceData } from "@/app/components/InvoiceReview.types";
+import { getInvoice, updateInvoiceField } from "@/lib/api-client";
 
 export function useInvoiceReview(id: string) {
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
@@ -47,12 +48,7 @@ export function useInvoiceReview(id: string) {
       setExpandedField(null);
       setEditingField(null);
       try {
-        const res = await fetch(`/api/invoices/${id}`);
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error ?? `Failed to load invoice (${res.status})`);
-        }
-        const data: InvoiceData = await res.json();
+        const data = await getInvoice(id);
         if (cancelled) return;
         setInvoice(data);
       } catch (err) {
@@ -76,16 +72,7 @@ export function useInvoiceReview(id: string) {
     setActionError(null);
     setSavingField(field);
     try {
-      const res = await fetch(`/api/invoices/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ field, action, value }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? `Update failed (${res.status})`);
-      }
-      const updated: InvoiceData = await res.json();
+      const updated = await updateInvoiceField(id, field, action, value);
       setInvoice(updated);
       return true;
     } catch (err) {

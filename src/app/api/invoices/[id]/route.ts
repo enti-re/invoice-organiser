@@ -4,36 +4,15 @@ import { NextResponse } from "next/server";
 
 import { db } from "@/db";
 import { invoices, type ConfidenceMap } from "@/db/schema";
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-// Maps a confidence field key to the Drizzle column it corrects.
-// line_items is confirmable but not correctable here -- editing individual
-// rows needs a different, more involved UI, out of scope for now.
-const EDITABLE_FIELD_COLUMNS = {
-  vendor_name: invoices.vendorName,
-  invoice_number: invoices.invoiceNumber,
-  invoice_date: invoices.invoiceDate,
-  due_date: invoices.dueDate,
-  currency: invoices.currency,
-  subtotal_amount: invoices.subtotalAmount,
-  tax_amount: invoices.taxAmount,
-  total_amount: invoices.totalAmount,
-} as const;
-
-type EditableField = keyof typeof EDITABLE_FIELD_COLUMNS;
-
-function isEditableField(field: unknown): field is EditableField {
-  return typeof field === "string" && field in EDITABLE_FIELD_COLUMNS;
-}
+import { buildFieldUpdate, isEditableField } from "@/lib/invoice-fields";
+import { invalidUuidResponse } from "@/lib/uuid";
 
 export async function GET(request: Request, ctx: RouteContext<"/api/invoices/[id]">) {
   try {
     const { id } = await ctx.params;
 
-    if (!UUID_RE.test(id)) {
-      return NextResponse.json({ error: "Invalid invoice id" }, { status: 400 });
-    }
+    const badId = invalidUuidResponse(id);
+    if (badId) return badId;
 
     const [row] = await db.select().from(invoices).where(eq(invoices.id, id)).limit(1);
 
@@ -52,9 +31,8 @@ export async function PATCH(request: Request, ctx: RouteContext<"/api/invoices/[
   try {
     const { id } = await ctx.params;
 
-    if (!UUID_RE.test(id)) {
-      return NextResponse.json({ error: "Invalid invoice id" }, { status: 400 });
-    }
+    const badId = invalidUuidResponse(id);
+    if (badId) return badId;
 
     let body: unknown;
     try {
@@ -96,33 +74,7 @@ export async function PATCH(request: Request, ctx: RouteContext<"/api/invoices/[
 
     const setValues: Partial<typeof invoices.$inferInsert> = { confidence, needsReview };
     if (action === "correct" && isEditableField(field)) {
-      const stringValue = value === null || value === undefined ? null : String(value);
-      switch (field) {
-        case "vendor_name":
-          setValues.vendorName = stringValue;
-          break;
-        case "invoice_number":
-          setValues.invoiceNumber = stringValue;
-          break;
-        case "invoice_date":
-          setValues.invoiceDate = stringValue;
-          break;
-        case "due_date":
-          setValues.dueDate = stringValue;
-          break;
-        case "currency":
-          setValues.currency = stringValue;
-          break;
-        case "subtotal_amount":
-          setValues.subtotalAmount = stringValue;
-          break;
-        case "tax_amount":
-          setValues.taxAmount = stringValue;
-          break;
-        case "total_amount":
-          setValues.totalAmount = stringValue;
-          break;
-      }
+      Object.assign(setValues, buildFieldUpdate(field, value));
     }
 
     const [updated] = await db
@@ -142,9 +94,8 @@ export async function DELETE(request: Request, ctx: RouteContext<"/api/invoices/
   try {
     const { id } = await ctx.params;
 
-    if (!UUID_RE.test(id)) {
-      return NextResponse.json({ error: "Invalid invoice id" }, { status: 400 });
-    }
+    const badId = invalidUuidResponse(id);
+    if (badId) return badId;
 
     let existing;
     try {

@@ -2,6 +2,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { EMPTY_FILTERS, type Filters, type InvoiceRow, type SortDirection, type SortKey } from "@/app/components/InvoiceList.types";
+import { deleteInvoice, listInvoices, uploadInvoice } from "@/lib/api-client";
 import { compareInvoices, validateFile } from "@/lib/invoice-list";
 
 export function useInvoiceList() {
@@ -23,16 +24,8 @@ export function useInvoiceList() {
   const router = useRouter();
 
   const fetchInvoices = useCallback(async (f: Filters) => {
-    const params = new URLSearchParams();
-    if (f.vendor) params.set("vendor", f.vendor);
-    if (f.dateFrom) params.set("dateFrom", f.dateFrom);
-    if (f.dateTo) params.set("dateTo", f.dateTo);
-    if (f.minAmount) params.set("minAmount", f.minAmount);
-    if (f.maxAmount) params.set("maxAmount", f.maxAmount);
-
     try {
-      const res = await fetch(`/api/invoices?${params.toString()}`);
-      const data = await res.json();
+      const data = await listInvoices(f);
       setInvoices(data);
     } finally {
       setLoadingList(false);
@@ -97,13 +90,7 @@ export function useInvoiceList() {
     setUploadError(null);
     setUploading(true);
     try {
-      const body = new FormData();
-      body.set("file", selectedFile);
-      const res = await fetch("/api/invoices", { method: "POST", body });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? `Upload failed (${res.status})`);
-      }
+      await uploadInvoice(selectedFile);
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       setLoadingList(true);
@@ -128,11 +115,7 @@ export function useInvoiceList() {
     setListError(null);
     setDeletingId(id);
     try {
-      const res = await fetch(`/api/invoices/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? `Delete failed (${res.status})`);
-      }
+      await deleteInvoice(id);
       setInvoices((prev) => prev.filter((inv) => inv.id !== id));
       setConfirmDeleteId(null);
     } catch (err) {
