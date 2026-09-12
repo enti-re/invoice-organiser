@@ -4,12 +4,12 @@ An invoice/receipt extraction tool for accounts-payable/finance-ops workflows: u
 
 See [`decisions.md`](./decisions.md) for the full reasoning behind every real decision made while building this — what was considered, what was cut, and why.
 
-**Live demo:** _pending deployment_
+**Live demo:** https://zamp-invoice-extraction.vercel.app
 **Repo:** https://github.com/enti-re/zamp-invoice-extraction
 
 ## What it does
 
-1. Upload a PDF or image invoice (drag-and-drop or file picker).
+1. Upload a PDF or image invoice (drag-and-drop or file picker, up to 4MB — capped there because that's the real ceiling Vercel's Serverless Functions enforce on request bodies in production, confirmed by testing; see `decisions.md`).
 2. Gemini reads the document directly (native document/vision understanding — no separate OCR step) and extracts vendor, invoice number, dates, amounts, tax, and line items as structured data.
 3. A confidence layer checks the extraction against itself: the model is prompted to return `null` rather than guess, deterministic rules catch things that are provably inconsistent (bad math, invalid dates, empty required fields), and the model self-reports genuine ambiguity. Any field that fails a check gets flagged. Separately, the model also judges whether the uploaded document is actually an invoice/receipt at all — a resume or unrelated document is flagged as a whole, not silently extracted as if it were valid.
 4. Everything is stored in Postgres and shown in a searchable, sortable list (live search by vendor).
@@ -23,8 +23,9 @@ See [`decisions.md`](./decisions.md) for the full reasoning behind every real de
 - **Google Gemini**, via the **Vercel AI SDK** (`generateObject`) for structured extraction
 - **Postgres (Neon)** via **Drizzle ORM** — typed columns for structured fields, `jsonb` for the naturally variable-shaped ones (`line_items`, `confidence`)
 - **Vercel Blob** for storing the original uploaded files
-- **Tailwind CSS**, styled per the `/nikhilchandna-design` design tokens (monochrome dark theme, one functional accent color, monospace for data)
-- **Vitest** for tests
+- **Tailwind CSS**, styled per the monochrome dark design-language skill in `.claude/skills/nikhilchandna-design/`
+- **Vitest** for unit tests, **Playwright** for the end-to-end suite
+- Built with **Claude Code**, guided by two checked-in skills (`.claude/skills/`) — the design-language one above, and `systematic-refactoring/`, which documents the actual rules applied across this codebase's refactoring passes
 - Deployed on **Vercel**
 
 ## Local setup
@@ -65,37 +66,46 @@ This applies the schema in `src/db/schema.ts` directly to your Neon database (no
 pnpm dev
 ```
 
-Open http://localhost:3000 — a short intro page with a link into the app (`/app`) and this design doc. Or go straight to http://localhost:3000/app.
+Open http://localhost:3000 — a short intro page with a link into the app (`/app`) and the design doc (`/design-doc`). Or go straight to http://localhost:3000/app.
 
 ## Testing
 
 ```bash
-pnpm test          # run the test suite (confidence-scoring logic + extraction schema validation)
+pnpm test          # unit tests (Vitest) — fast, no external calls
 pnpm lint          # ESLint
 pnpm exec tsc --noEmit   # type-check
+pnpm test:e2e      # end-to-end happy-flow suite (Playwright)
 ```
 
-Tests focus on the confidence-scoring logic (`src/lib/confidence.test.ts`) — clean invoices, individually-flagged fields (missing/placeholder values, bad date formats, math inconsistencies, self-reported ambiguity), and a deliberately messy near-all-null invoice that must be handled gracefully rather than throwing.
+**Unit tests** (98 tests across 13 files, each colocated in a `__tests__/` directory next to what it covers) cover the confidence-scoring logic (clean invoices, every individual flag type, a deliberately messy near-all-null invoice), extraction schema validation, every other pure-logic file under `src/lib/` (date validation, UUID guards, query-param parsing, editable-field mapping, extraction error mapping), and the frontend — the API client and both `useInvoiceList`/`useInvoiceReview` hooks with `fetch` mocked, plus a component-render test.
+
+**The E2E suite** (`e2e/happy-flow.spec.ts`) is a different kind of test: it drives a real browser against a real running dev server, uploads a real synthetic invoice image, and waits on an actual Gemini extraction call — no mocking. It needs real `DATABASE_URL`/`GOOGLE_GENERATIVE_AI_API_KEY`/`BLOB_READ_WRITE_TOKEN` env vars and costs a small amount each run, so it's meant to be run deliberately, not on every save. All five steps (land on `/app` → upload → open the review page → resolve a flag if the extraction produced one → delete) run against a single uploaded invoice to keep it to one real Gemini call per run.
 
 ## Project structure
 
 ```
 src/
   app/
-    page.tsx                       # list/search UI (desktop table, mobile cards)
-    invoices/[id]/page.tsx         # invoice review page (route wrapper)
-    components/InvoiceReview.tsx   # document-style review UI, field-level flagging + correction
-    components/DatePicker.tsx      # custom themed date picker (filter inputs)
-    api/invoices/route.ts          # upload+extract+store (POST), search/filter (GET)
-    api/invoices/[id]/route.ts     # fetch (GET), delete (DELETE), correct/confirm a field (PATCH)
+    page.tsx                            # landing page
+    app/page.tsx                        # invoice list UI (desktop table, mobile cards)
+    invoices/[id]/page.tsx              # invoice review page (route wrapper)
+    design-doc/page.tsx                 # this project's written design doc
+    components/
+      invoice-list/                     # list-page-only components + useInvoiceList hook
+      invoice-review/                   # review-page-only components + useInvoiceReview hook
+      icons.tsx, ArchitectureDiagram.tsx # cross-feature / standalone
+    api/invoices/route.ts               # upload+extract+store (POST), search/filter (GET)
+    api/invoices/[id]/route.ts          # fetch (GET), delete (DELETE), correct/confirm a field (PATCH)
   db/
-    schema.ts                      # Drizzle schema (the `invoices` table)
+    schema.ts                           # Drizzle schema (the `invoices` table)
   lib/
-    extract.ts                     # Gemini extraction call (Vercel AI SDK, generateObject)
-    model.ts                       # AI SDK model provider setup
-    confidence.ts                  # the actual confidence-scoring logic
-    invoice-extraction-schema.ts   # Zod schema shared by extraction + confidence
-decisions.md                       # real decisions, alternatives considered, reasoning, cuts
+    api/                                # request/response plumbing shared by routes + frontend
+    extraction/                         # the Gemini call and everything scoring its output
+    date.ts, invoice-list.ts            # small shared/list-page helpers
+e2e/                                    # Playwright end-to-end suite
+diagrams/                               # reference component/API flow diagrams (not wired into the app)
+.claude/skills/                         # the two Claude Code skills used to build this
+decisions.md                            # real decisions, alternatives considered, reasoning, cuts
 ```
 
 ## Reviewing and correcting a flagged invoice
