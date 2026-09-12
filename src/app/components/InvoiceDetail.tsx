@@ -323,12 +323,16 @@ function OriginalFileViewer({ fileUrl, fileName }: { fileUrl: string; fileName: 
 }
 
 export function InvoiceDetail({ invoice, onClose }: InvoiceDetailProps) {
-  const [showOriginal, setShowOriginal] = useState(false);
+  // Auto-open the side-by-side comparison when there's actually something to
+  // verify (needsReview) -- most invoices are clean and don't need the
+  // original alongside them, but a flagged one benefits from the comparison
+  // being immediately visible rather than requiring an extra click.
+  const [showOriginal, setShowOriginal] = useState(invoice?.needsReview ?? false);
   const [lastInvoiceId, setLastInvoiceId] = useState<string | undefined>(invoice?.id);
 
   if (invoice?.id !== lastInvoiceId) {
     setLastInvoiceId(invoice?.id);
-    setShowOriginal(false);
+    setShowOriginal(invoice?.needsReview ?? false);
   }
 
   useEffect(() => {
