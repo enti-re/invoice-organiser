@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { DatePicker } from "@/app/components/DatePicker";
 
 type LineItem = {
   description: string;
@@ -450,33 +449,6 @@ export default function Home() {
             value={filters.vendor}
             onChange={(e) => setFilters({ ...filters, vendor: e.target.value })}
             className="border border-neutral-700 px-3 py-2 focus:outline-none focus:border-white"
-          />
-          <DatePicker
-            value={filters.dateFrom}
-            onChange={(v) => setFilters({ ...filters, dateFrom: v })}
-            placeholder="From"
-            className="w-36"
-          />
-          <span className="text-neutral-400">to</span>
-          <DatePicker
-            value={filters.dateTo}
-            onChange={(v) => setFilters({ ...filters, dateTo: v })}
-            placeholder="To"
-            className="w-36"
-          />
-          <input
-            type="number"
-            placeholder="Min ₹"
-            value={filters.minAmount}
-            onChange={(e) => setFilters({ ...filters, minAmount: e.target.value })}
-            className="border border-neutral-700 px-3 py-2 w-24 font-mono focus:outline-none focus:border-white"
-          />
-          <input
-            type="number"
-            placeholder="Max ₹"
-            value={filters.maxAmount}
-            onChange={(e) => setFilters({ ...filters, maxAmount: e.target.value })}
-            className="border border-neutral-700 px-3 py-2 w-24 font-mono focus:outline-none focus:border-white"
           />
           <button
             type="submit"
