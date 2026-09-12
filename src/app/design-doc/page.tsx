@@ -125,10 +125,8 @@ const DesignPage = () => {
             Vercel, keeping the initial architecture simple.
           </li>
           <li>
-            <span className="font-semibold text-neutral-100">Development workflow:</span> built with Claude
-            Code using two custom skills — a monochrome dark design-language skill for the UI, and a
-            systematic-refactoring skill (file-size limits, extracting types/hooks/helpers, deduplicating
-            repeated logic) applied throughout to keep the codebase readable as it grew.
+            <span className="font-semibold text-neutral-100">Development:</span> Claude Code, with a
+            design-language skill and a systematic-refactoring skill.
           </li>
         </ul>
       </section>
