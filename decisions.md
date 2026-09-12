@@ -620,6 +620,16 @@ Tried `vitest.config.ts`'s `environmentMatchGlobs` first to keep pure-Node lib t
 
 Result: 13 test files, 98 tests, all passing; `tsc --noEmit` and `pnpm lint` both clean.
 
+## Added a real end-to-end happy-flow suite, hitting the actual Gemini extraction
+
+The unit suite above covers logic in isolation; nothing until now exercised the real pipeline start to finish — a browser genuinely uploading a file, the API genuinely calling Gemini, the row genuinely landing in Postgres. Added `@playwright/test` and one serial spec, `e2e/happy-flow.spec.ts`, run via `pnpm test:e2e` against the dev server (`playwright.config.ts` reuses an already-running server rather than always spawning its own).
+
+**Deliberately one real invoice, one real Gemini call, for the whole suite** — the five steps (`landing → app`, upload, open review, resolve a flag if present, delete) run in `test.describe.serial` so they share that single uploaded row instead of each test re-uploading and paying for its own extraction. A synthetic fixture invoice (`e2e/fixtures/sample-invoice.png`, rendered from `sample-invoice.html` — a plain, correctly-adding invoice with no placeholder values) keeps the run's outcome close to deterministic; in practice, this fixture extracts cleanly with nothing flagged, so the "resolve a flag" step exercises its zero-flags branch rather than the confirm click — that's still treated as a valid pass (a clean extraction needing no review is itself a happy path), not skipped or faked.
+
+Chose real-upload-and-extract over mocking or seeding the DB directly, on the reasoning that a mocked E2E test only proves the UI wiring works, not that the actual product claim — "the model extracts this correctly and flags what it's unsure about" — holds end to end. The cost: a real Gemini call (and real dollars/latency, 5-25s observed) every time the suite runs, and it needs real `DATABASE_URL`/`GOOGLE_GENERATIVE_AI_API_KEY`/blob token env vars to run at all — acceptable for a suite that's run deliberately, not on every save.
+
+Ran the suite twice in a row to confirm it's not flaky (both green, 17s and 36s respectively — the extraction latency varies noticeably run to run) and confirmed via a direct API check that the DB returns to its pre-run state after each pass (the delete step actually cleans up, not just visually).
+
 ## Future plans (not attempted in this submission)
 
 Named here rather than left implicit, so it's clear these are deliberate deferrals with a time-boxed submission, not gaps nobody noticed:

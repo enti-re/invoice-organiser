@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; width: 800px; margin: 0; padding: 40px; color: #111; background: #fff; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #111; padding-bottom: 16px; margin-bottom: 24px; }
+  .vendor { font-size: 22px; font-weight: bold; }
+  .invoice-title { font-size: 28px; font-weight: bold; text-align: right; }
+  .meta { display: flex; justify-content: space-between; margin-bottom: 24px; font-size: 14px; }
+  .meta div { line-height: 1.6; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  th, td { text-align: left; padding: 8px 6px; font-size: 14px; }
+  th { border-bottom: 2px solid #111; }
+  td { border-bottom: 1px solid #ccc; }
+  .amount { text-align: right; }
+  .totals { width: 260px; margin-left: auto; font-size: 14px; }
+  .totals div { display: flex; justify-content: space-between; padding: 4px 0; }
+  .totals .total { font-weight: bold; font-size: 16px; border-top: 2px solid #111; margin-top: 6px; padding-top: 8px; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="vendor">Acme Supplies Inc.</div>
+    <div class="invoice-title">INVOICE</div>
+  </div>
+  <div class="meta">
+    <div>
+      <div><strong>Invoice #:</strong> INV-2024-0042</div>
+      <div><strong>Invoice Date:</strong> 2024-03-15</div>
+      <div><strong>Due Date:</strong> 2024-04-14</div>
+    </div>
+    <div>
+      <div><strong>Currency:</strong> USD</div>
+      <div><strong>Bill To:</strong> Contoso Ltd.</div>
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr><th>Description</th><th>Qty</th><th>Unit Price</th><th class="amount">Amount</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Office chairs (ergonomic)</td><td>4</td><td>150.00</td><td class="amount">600.00</td></tr>
+      <tr><td>Standing desks</td><td>2</td><td>350.00</td><td class="amount">700.00</td></tr>
+    </tbody>
+  </table>
+  <div class="totals">
+    <div><span>Subtotal</span><span>1300.00</span></div>
+    <div><span>Tax (8%)</span><span>104.00</span></div>
+    <div class="total"><span>Total</span><span>1404.00</span></div>
+  </div>
+</body>
+</html>
