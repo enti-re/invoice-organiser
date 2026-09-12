@@ -1,0 +1,48 @@
+import type { InvoiceListController } from "@/app/components/useInvoiceList";
+import { Spinner } from "@/app/components/icons";
+
+export function DeleteConfirmDialog({ list }: { list: InvoiceListController }) {
+  if (!list.confirmDeleteId) return null;
+
+  const isDeleting = list.deletingId === list.confirmDeleteId;
+  const vendorName = list.invoices.find((inv) => inv.id === list.confirmDeleteId)?.vendorName ?? "This invoice";
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      onClick={() => !isDeleting && list.setConfirmDeleteId(null)}
+    >
+      <div
+        className="w-full max-w-sm border border-neutral-800 bg-neutral-900 p-6 space-y-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="space-y-1">
+          <h3 className="font-medium text-neutral-100">Delete this invoice?</h3>
+          <p className="text-sm text-neutral-400">
+            {vendorName} will be permanently removed. This can&apos;t be undone.
+          </p>
+          {list.listError && <p className="text-sm text-red-400">{list.listError}</p>}
+        </div>
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => list.setConfirmDeleteId(null)}
+            disabled={isDeleting}
+            className="cursor-pointer border border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-100 hover:border-white disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => list.handleDelete(list.confirmDeleteId!)}
+            disabled={isDeleting}
+            className="flex cursor-pointer items-center gap-2 bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-500 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            {isDeleting && <Spinner className="h-4 w-4" />}
+            {isDeleting ? "Deleting…" : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -522,6 +522,20 @@ Added to `AGENTS.md` (outside the block `next dev` auto-manages, verified safe b
 
 **`src/app/design/page.tsx`, from ~300 lines to 191, by extracting `ArchitectureDiagram.tsx`** — see its own entry above; same pattern, same rule.
 
+## `app/page.tsx`, from 718 lines to 64, split into ten files
+
+Same 250-line rule applied to the biggest offender in the codebase. Split into:
+- `src/lib/invoice-list.ts` — pure helpers (`formatINR`, `compareInvoices`, `validateFile`) and the two file-upload constants, since none of it is JSX.
+- `InvoiceList.types.ts` — `InvoiceRow`, `Filters`, `SortKey`/`SortDirection`, importing `LineItem`/`ConfidenceMap` from `db/schema.ts` rather than redefining them a third time (same duplicate found and fixed the same way as `InvoiceReview.types.ts`).
+- `icons.tsx` — the five small SVG icon components (`SearchIcon`, `TrashIcon`, `UploadIcon`, `FileIcon`, `Spinner`), genuinely shared/reusable, not list-specific.
+- `InvoiceListUI.tsx` — `StatusBadge`, `SortIndicator`, and the skeleton pieces (`SkeletonRow`, `SkeletonCard`) — small presentational atoms specific to the list view.
+- `useInvoiceList.ts` — a custom hook holding all the fetch/filter/sort/upload/delete state and handlers, same pattern as `useInvoiceReview.ts`.
+- `UploadInvoiceForm.tsx`, `InvoiceTable.tsx` (desktop), `InvoiceCards.tsx` (mobile), `DeleteConfirmDialog.tsx` — the four real JSX sections, each taking the hook's return value as one `list` prop.
+
+`app/page.tsx` itself is now just the header, the search input, and assembling these five pieces.
+
+**A real, non-obvious lint failure surfaced by this split, worth documenting since it'll recur:** after moving state into `useInvoiceList`/`useInvoiceReview` (both return one object bundling refs alongside plain state) and passing that whole object as a single prop into child components, `UploadInvoiceForm.tsx` failed lint with 19 `react-hooks/refs` errors — "Cannot access refs during render" — on completely unrelated properties like `list.uploadError` and `list.uploading`, not the ref itself. Root cause, confirmed by testing rather than guessing: the moment a ref (`list.fileInputRef`) is used directly as a JSX `ref={list.fileInputRef}` attribute, this rule's static analysis treats the *entire* `list` identifier as ref-tainted for the rest of that render scope, and flags every other property access through it too — a real Next.js 16 / React Compiler-era behavior, not a bug in this code. Fix: destructure the ref out to a plain local variable before using it as `ref=` (`const { fileInputRef } = list;` then `ref={fileInputRef}`) — this untaints the rest of the render body. Applied the same defensive fix to `ScalarField.tsx` and `InvoiceReview.tsx`'s two `expandedPanelRef` usages too, even though a ternary (`condition ? review.expandedPanelRef : undefined`) happened to keep the linter quiet there — the underlying pattern is the same, and correctness shouldn't depend on which specific expression shape this one lint rule's heuristic catches.
+
 ## Future plans (not attempted in this submission)
 
 Named here rather than left implicit, so it's clear these are deliberate deferrals with a time-boxed submission, not gaps nobody noticed:

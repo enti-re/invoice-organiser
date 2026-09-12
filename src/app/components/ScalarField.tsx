@@ -17,6 +17,7 @@ export function ScalarField({
   align?: "left" | "right";
   review: InvoiceReviewController;
 }) {
+  const { expandedPanelRef } = review;
   const hasValue = value !== null && value !== "";
   const { flagged, reason } = fieldState(review.invoice?.confidence ?? null, fieldKey, hasValue);
   const isExpanded = review.expandedField === fieldKey;
@@ -24,7 +25,7 @@ export function ScalarField({
   return (
     <div
       className={`relative ${align === "right" ? "text-right" : ""}`}
-      ref={isExpanded ? review.expandedPanelRef : undefined}
+      ref={isExpanded ? expandedPanelRef : undefined}
     >
       <div className="text-xs uppercase tracking-wide text-neutral-500">{label}</div>
       <div className={`mt-0.5 flex items-center gap-1.5 ${align === "right" ? "justify-end" : ""}`}>

@@ -14,7 +14,7 @@ export type { InvoiceData };
 
 export function InvoiceReview({ id }: { id: string }) {
   const review = useInvoiceReview(id);
-  const { invoice, loading, loadError } = review;
+  const { invoice, loading, loadError, expandedPanelRef } = review;
 
   if (loading) {
     return <InvoiceReviewSkeleton />;
@@ -74,7 +74,7 @@ export function InvoiceReview({ id }: { id: string }) {
           <div className="flex flex-col gap-4 border-b border-neutral-800 pb-6 sm:flex-row sm:items-start sm:justify-between">
             <div
               className="relative"
-              ref={review.expandedField === "vendor_name" ? review.expandedPanelRef : undefined}
+              ref={review.expandedField === "vendor_name" ? expandedPanelRef : undefined}
             >
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-neutral-100">
@@ -109,7 +109,7 @@ export function InvoiceReview({ id }: { id: string }) {
 
           <div
             className="relative"
-            ref={review.expandedField === "line_items" ? review.expandedPanelRef : undefined}
+            ref={review.expandedField === "line_items" ? expandedPanelRef : undefined}
           >
             <div className="flex items-center gap-2">
               <h3 className="text-xs font-medium uppercase tracking-wide text-neutral-500">
