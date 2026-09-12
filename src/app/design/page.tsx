@@ -1,12 +1,10 @@
-import type { ReactNode } from "react";
 import Link from "next/link";
 
-function StackBox({ label, title, detail }: { label: string; title: string; detail: ReactNode }) {
+function StackBox({ label, title }: { label: string; title: string }) {
   return (
     <div className="min-w-[210px] border border-neutral-800 bg-neutral-900 px-5 py-3.5 text-center">
       <div className="text-[0.68rem] font-semibold uppercase tracking-wide text-neutral-500">{label}</div>
       <div className="mt-1 text-sm font-semibold text-neutral-100">{title}</div>
-      <div className="mt-1 text-xs leading-relaxed text-neutral-400">{detail}</div>
     </div>
   );
 }
@@ -34,14 +32,14 @@ function VLink({ height = 64, down, up }: { height?: number; down?: string; up?:
   );
 }
 
-function HLink({ width = 150, left, right }: { width?: number; left: string; right: string }) {
+function HLink({ width = 150, label }: { width?: number; label: string }) {
   return (
     <div className="relative flex items-center" style={{ width }}>
       <div className="h-0 w-0 border-y-4 border-y-transparent border-r-[6px] border-r-neutral-600" />
       <div className="h-px flex-1 bg-neutral-600" />
       <div className="h-0 w-0 border-y-4 border-y-transparent border-l-[6px] border-l-neutral-600" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-neutral-950 px-2 text-center text-[0.65rem] text-neutral-500">
-        {left} / {right}
+        {label}
       </div>
     </div>
   );
@@ -141,7 +139,7 @@ export default function DesignPage() {
         <div className="space-y-2">
           <div className="overflow-x-auto pt-4">
             <div className="flex min-w-[720px] flex-col items-center pb-2">
-              <StackBox label="Client" title="Browser" detail="React 19 · TypeScript · Tailwind CSS" />
+              <StackBox label="Client" title="Browser" />
               <VLink height={32} />
 
               <div className="relative w-full max-w-3xl border border-dashed border-neutral-700 px-6 pt-7 pb-6">
@@ -153,37 +151,16 @@ export default function DesignPage() {
                 </div>
 
                 <div className="flex items-center justify-center">
-                  <StackBox
-                    label="Client component"
-                    title="Pages / UI"
-                    detail={
-                      <>
-                        / , /app, /design,
-                        <br />
-                        /invoices/[id]
-                      </>
-                    }
-                  />
-                  <HLink left="fetch()" right="JSON" />
-                  <StackBox
-                    label="Server"
-                    title="API routes"
-                    detail={
-                      <>
-                        <code className="text-[0.7rem]">/api/invoices</code>
-                        <br />
-                        upload · list · get · patch · delete
-                      </>
-                    }
-                  />
+                  <StackBox label="Client component" title="Pages / UI" />
+                  <HLink label="JSON" />
+                  <StackBox label="Server" title="API routes" />
                 </div>
-
-                <div className="mx-auto h-4 w-px bg-neutral-600" />
 
                 <svg viewBox="0 0 760 46" className="mx-auto block h-[46px] w-full max-w-3xl">
                   <defs>
-                    {/* used on the center branch's two ends — reversed at the start so it points
-                        back up toward API routes, forward at the end so it points down into the box */}
+                    {/* points backward along the path, so at a path's start point (with the path
+                        drawn downward) it points up — used only on the API routes stub, to show
+                        responses flowing back up */}
                     <marker
                       id="stackArrowBoth"
                       viewBox="0 0 10 10"
@@ -195,9 +172,7 @@ export default function DesignPage() {
                     >
                       <path d="M0,0 L10,5 L0,10 Z" fill="#525252" />
                     </marker>
-                    {/* used everywhere else — always points forward along the path, so a
-                        leftward segment gets a left-pointing arrow and a downward one gets a
-                        down-pointing arrow, instead of stacking arrows at the branch point */}
+                    {/* points forward along the path — used on each branch's drop into its box */}
                     <marker
                       id="stackArrowFwd"
                       viewBox="0 0 10 10"
@@ -211,59 +186,24 @@ export default function DesignPage() {
                     </marker>
                   </defs>
                   <g fill="none" stroke="#525252" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
-                    {/* center: API routes <-> Postgres, up into the box / down out of it */}
-                    <path d="M380 2 V38" markerStart="url(#stackArrowBoth)" markerEnd="url(#stackArrowBoth)" />
+                    {/* stub down from API routes (not the row's midpoint) to the shared spine */}
+                    <path d="M570 2 V14" markerStart="url(#stackArrowBoth)" />
 
-                    {/* left branch: turns left toward AI, then drops down into the box */}
-                    <path d="M380 14 H127" markerEnd="url(#stackArrowFwd)" />
+                    {/* shared spine — plain wire routing, not a connection of its own */}
+                    <path d="M127 14 H633" />
+
+                    {/* three drops from the spine into each service box */}
                     <path d="M127 14 V38" markerEnd="url(#stackArrowFwd)" />
-
-                    {/* right branch: turns right toward file storage, then drops down */}
-                    <path d="M380 14 H633" markerEnd="url(#stackArrowFwd)" />
+                    <path d="M380 14 V38" markerEnd="url(#stackArrowFwd)" />
                     <path d="M633 14 V38" markerEnd="url(#stackArrowFwd)" />
                   </g>
                 </svg>
 
                 <div className="grid grid-cols-3 gap-4">
-                  <StackBox
-                    label="AI / extraction"
-                    title="Vercel AI SDK"
-                    detail={
-                      <>
-                        <code className="text-[0.7rem]">generateObject()</code>
-                        <br />
-                        Google Gemini · Zod schema
-                      </>
-                    }
-                  />
-                  <StackBox
-                    label="Data"
-                    title="Drizzle ORM"
-                    detail={
-                      <>
-                        Neon Postgres
-                        <br />
-                        typed columns + <code className="text-[0.7rem]">jsonb</code>
-                      </>
-                    }
-                  />
-                  <StackBox
-                    label="File storage"
-                    title="Vercel Blob"
-                    detail={
-                      <>
-                        original invoice
-                        <br />
-                        PDFs &amp; images
-                      </>
-                    }
-                  />
+                  <StackBox label="AI / extraction" title="Vercel AI SDK" />
+                  <StackBox label="Data" title="PostgreSQL (Neon)" />
+                  <StackBox label="File storage" title="Vercel Blob" />
                 </div>
-              </div>
-
-              <div className="mt-6 text-center text-xs text-neutral-500">
-                Tooling: <span className="text-neutral-300">Vitest</span> (tests) ·{" "}
-                <span className="text-neutral-300">ESLint</span> · <span className="text-neutral-300">pnpm</span>
               </div>
             </div>
           </div>
