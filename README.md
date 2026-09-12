@@ -23,7 +23,7 @@ See [`decisions.md`](./decisions.md) for the full reasoning behind every real de
 - **Google Gemini**, via the **Vercel AI SDK** (`generateObject`) for structured extraction
 - **Postgres (Neon)** via **Drizzle ORM** — typed columns for structured fields, `jsonb` for the naturally variable-shaped ones (`line_items`, `confidence`)
 - **Vercel Blob** for storing the original uploaded files
-- **Tailwind CSS**, styled per the `/cursor-design` design tokens (warm off-white, one accent color, monospace for data)
+- **Tailwind CSS**, styled per the `/nikhilchandna-design` design tokens (monochrome dark theme, one functional accent color, monospace for data)
 - **Vitest** for tests
 - Deployed on **Vercel**
 
@@ -82,20 +82,26 @@ Tests focus on the confidence-scoring logic (`src/lib/confidence.test.ts`) — c
 ```
 src/
   app/
-    page.tsx                    # list/search UI (desktop table, mobile cards)
-    components/InvoiceDetail.tsx  # document-style detail view with per-field flagging
-    api/invoices/route.ts       # upload+extract+store (POST), search/filter (GET)
-    api/invoices/[id]/route.ts  # delete
+    page.tsx                       # list/search UI (desktop table, mobile cards)
+    invoices/[id]/page.tsx         # invoice review page (route wrapper)
+    components/InvoiceReview.tsx   # document-style review UI, field-level flagging + correction
+    components/DatePicker.tsx      # custom themed date picker (filter inputs)
+    api/invoices/route.ts          # upload+extract+store (POST), search/filter (GET)
+    api/invoices/[id]/route.ts     # fetch (GET), delete (DELETE), correct/confirm a field (PATCH)
   db/
-    schema.ts                   # Drizzle schema (the `invoices` table)
+    schema.ts                      # Drizzle schema (the `invoices` table)
   lib/
-    extract.ts                  # Gemini extraction call (Vercel AI SDK, generateObject)
-    model.ts                     # AI SDK model provider setup
-    confidence.ts                # the actual confidence-scoring logic
-    invoice-extraction-schema.ts # Zod schema shared by extraction + confidence
-decisions.md                    # real decisions, alternatives considered, reasoning, cuts
+    extract.ts                     # Gemini extraction call (Vercel AI SDK, generateObject)
+    model.ts                       # AI SDK model provider setup
+    confidence.ts                  # the actual confidence-scoring logic
+    invoice-extraction-schema.ts   # Zod schema shared by extraction + confidence
+decisions.md                       # real decisions, alternatives considered, reasoning, cuts
 ```
+
+## Reviewing and correcting a flagged invoice
+
+Click "Review" on any row to open its detail page (`/invoices/[id]`). Flagged fields show why they were flagged, plus two actions: **Confirm** (it's actually correct, dismiss the flag) or **Edit** (correct the value inline — updates the stored data and clears the flag). If anything's flagged, the original document is shown alongside the extracted data automatically, for direct comparison; otherwise it's available on demand via "View original."
 
 ## Explicitly out of scope
 
-Printed/digital invoices only (no handwriting), single currency (INR) for now, no auth/multi-user, no batch/scale processing, no manual correction UI for flagged fields. All named and reasoned through in `decisions.md`, not oversights.
+Printed/digital invoices only (no handwriting), single currency (INR) for now, no auth/multi-user, no batch/scale processing, no inline editing of individual line items (line items can be confirmed as correct, but not corrected field-by-field — that would need a meaningfully different editor UI). All named and reasoned through in `decisions.md`, not oversights.

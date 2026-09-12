@@ -1,9 +1,9 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { DatePicker } from "@/app/components/DatePicker";
-import { InvoiceDetail } from "@/app/components/InvoiceDetail";
 
 type LineItem = {
   description: string;
@@ -100,7 +100,9 @@ function TrashIcon({ className }: { className?: string }) {
 
 function StatusBadge({ needsReview }: { needsReview: boolean }) {
   // Row-level summary badge for the list view — per-field detail (which
-  // specific field is flagged, and why) lives in the InvoiceDetail view.
+  // specific field is flagged, and why) lives on the invoice review page.
+  // Both states use the same pill shape so the column reads consistently;
+  // only the color signals the difference.
   if (needsReview) {
     return (
       <span className="inline-flex items-center rounded-full bg-orange-500/10 px-2.5 py-0.5 text-xs font-medium text-orange-400 border border-orange-500/40">
@@ -108,11 +110,64 @@ function StatusBadge({ needsReview }: { needsReview: boolean }) {
       </span>
     );
   }
-  return <span className="text-xs text-neutral-400">Reviewed</span>;
+  return (
+    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-neutral-500 border border-neutral-800">
+      Reviewed
+    </span>
+  );
 }
 
 function SortIndicator({ direction }: { direction: SortDirection }) {
   return <span className="text-orange-400">{direction === "asc" ? "▲" : "▼"}</span>;
+}
+
+function SkeletonBlock({ className = "" }: { className?: string }) {
+  return <div className={`animate-pulse bg-neutral-800 ${className}`} />;
+}
+
+function SkeletonRow() {
+  return (
+    <tr className="border-b border-neutral-800 last:border-0">
+      <td className="py-3 pr-4">
+        <SkeletonBlock className="h-4 w-32" />
+      </td>
+      <td className="py-3 pr-4">
+        <SkeletonBlock className="h-4 w-20" />
+      </td>
+      <td className="py-3 pr-4">
+        <SkeletonBlock className="h-4 w-24" />
+      </td>
+      <td className="py-3 pr-4">
+        <SkeletonBlock className="h-4 w-16" />
+      </td>
+      <td className="py-3 pr-4">
+        <SkeletonBlock className="h-4 w-6" />
+      </td>
+      <td className="py-3 pr-4">
+        <SkeletonBlock className="h-5 w-24 rounded-full" />
+      </td>
+      <td className="py-3 pr-4">
+        <SkeletonBlock className="h-7 w-20" />
+      </td>
+      <td className="py-3 pr-4">
+        <SkeletonBlock className="h-4 w-4" />
+      </td>
+    </tr>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div className="border border-neutral-800 p-4 space-y-3">
+      <SkeletonBlock className="h-4 w-32" />
+      <SkeletonBlock className="h-6 w-24" />
+      <div className="flex items-center justify-between">
+        <SkeletonBlock className="h-4 w-20" />
+        <SkeletonBlock className="h-5 w-24 rounded-full" />
+      </div>
+      <SkeletonBlock className="h-9 w-full" />
+    </div>
+  );
 }
 
 function UploadIcon({ className }: { className?: string }) {
@@ -163,11 +218,11 @@ export default function Home() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const fetchInvoices = useCallback(async (f: Filters) => {
     const params = new URLSearchParams();
@@ -268,7 +323,6 @@ export default function Home() {
         throw new Error(data.error ?? `Delete failed (${res.status})`);
       }
       setInvoices((prev) => prev.filter((inv) => inv.id !== id));
-      if (selectedInvoice?.id === id) setSelectedInvoice(null);
     } catch (err) {
       setListError(err instanceof Error ? err.message : "Delete failed");
     } finally {
@@ -440,17 +494,13 @@ export default function Home() {
                 <th className="py-3 pr-4 font-medium">Tax</th>
                 <th className="py-3 pr-4 font-medium">Line items</th>
                 <th className="py-3 pr-4 font-medium">Status</th>
-                <th className="py-3 pr-4 font-medium">File</th>
+                <th className="py-3 pr-4 font-medium" />
                 <th className="py-3 pr-4 w-10" />
               </tr>
             </thead>
             <tbody>
               {sortedInvoices.map((inv) => (
-                <tr
-                  key={inv.id}
-                  onClick={() => setSelectedInvoice(inv)}
-                  className="group border-b border-neutral-800 last:border-0 hover:bg-neutral-900 cursor-pointer"
-                >
+                <tr key={inv.id} className="group border-b border-neutral-800 last:border-0 hover:bg-neutral-900">
                   <td className="py-3 pr-4 text-neutral-100">{inv.vendorName ?? "—"}</td>
                   <td className="py-3 pr-4 font-mono text-neutral-300">{inv.invoiceDate ?? "—"}</td>
                   <td className="py-3 pr-4 font-mono text-neutral-100">{formatINR(inv.totalAmount)}</td>
@@ -460,25 +510,20 @@ export default function Home() {
                     <StatusBadge needsReview={inv.needsReview} />
                   </td>
                   <td className="py-3 pr-4">
-                    <a
-                      href={inv.fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-neutral-100 underline hover:text-teal-400"
+                    <button
+                      type="button"
+                      onClick={() => router.push(`/invoices/${inv.id}`)}
+                      className="border border-neutral-700 px-3 py-1 text-xs font-medium text-neutral-100 hover:border-white"
                     >
-                      view
-                    </a>
+                      Review
+                    </button>
                   </td>
                   <td className="py-3 pr-4">
                     <button
                       type="button"
                       aria-label="Delete invoice"
                       disabled={deletingId === inv.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setConfirmDeleteId(inv.id);
-                      }}
+                      onClick={() => setConfirmDeleteId(inv.id)}
                       className="text-neutral-700 hover:text-red-500 disabled:opacity-40 transition-colors"
                     >
                       <TrashIcon className="w-4 h-4" />
@@ -493,13 +538,8 @@ export default function Home() {
                   </td>
                 </tr>
               )}
-              {loadingList && (
-                <tr>
-                  <td colSpan={8} className="py-10 text-center text-neutral-400">
-                    Loading…
-                  </td>
-                </tr>
-              )}
+              {loadingList &&
+                Array.from({ length: 3 }).map((_, i) => <SkeletonRow key={i} />)}
             </tbody>
           </table>
         </div>
@@ -507,19 +547,12 @@ export default function Home() {
         {/* Mobile cards */}
         <div className="md:hidden flex flex-col gap-3">
           {sortedInvoices.map((inv) => (
-            <div
-              key={inv.id}
-              onClick={() => setSelectedInvoice(inv)}
-              className="relative border border-neutral-800 p-4 space-y-2 cursor-pointer"
-            >
+            <div key={inv.id} className="relative border border-neutral-800 p-4 space-y-2">
               <button
                 type="button"
                 aria-label="Delete invoice"
                 disabled={deletingId === inv.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setConfirmDeleteId(inv.id);
-                }}
+                onClick={() => setConfirmDeleteId(inv.id)}
                 className="absolute top-3 right-3 text-neutral-600 hover:text-red-500 disabled:opacity-40"
               >
                 <TrashIcon className="w-4 h-4" />
@@ -532,18 +565,14 @@ export default function Home() {
                 <span className="font-mono text-neutral-400">{inv.invoiceDate ?? "—"}</span>
                 <StatusBadge needsReview={inv.needsReview} />
               </div>
-              <div className="flex items-center justify-between text-sm text-neutral-400">
-                <span>{inv.lineItems?.length ?? 0} line items</span>
-                <a
-                  href={inv.fileUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  className="text-neutral-100 underline hover:text-teal-400"
-                >
-                  view file
-                </a>
-              </div>
+              <div className="text-sm text-neutral-400">{inv.lineItems?.length ?? 0} line items</div>
+              <button
+                type="button"
+                onClick={() => router.push(`/invoices/${inv.id}`)}
+                className="w-full border border-neutral-700 px-3 py-2 text-sm font-medium text-neutral-100 hover:border-white"
+              >
+                Review
+              </button>
             </div>
           ))}
           {!loadingList && sortedInvoices.length === 0 && (
@@ -552,14 +581,14 @@ export default function Home() {
             </div>
           )}
           {loadingList && (
-            <div className="border border-neutral-800 p-10 text-center text-neutral-400">
-              Loading…
+            <div className="flex flex-col gap-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
             </div>
           )}
         </div>
       </section>
-
-      <InvoiceDetail invoice={selectedInvoice} onClose={() => setSelectedInvoice(null)} />
 
       {confirmDeleteId && (
         <div
