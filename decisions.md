@@ -2,18 +2,9 @@
 
 Real decisions made while building this, in roughly the order they came up. Each entry: the decision, the alternative(s) considered, and why. The log below is chronological; this table of contents groups the same entries by theme so you can jump straight to what you care about instead of scrolling.
 
-## Starting fresh on this project?
-
-Four places to look, in the order they're actually useful:
-
-1. **[`README.md`](./README.md)** — what this is, how to run it locally, the tech stack, and the project structure. Start here if you just want it running.
-2. **`/design-doc`** (the app's own `/design-doc` route, source at `src/app/design-doc/page.tsx`) — the product-facing design document: problem statement, scope, the confidence model explained plainly, architecture, alternatives considered, and rollout plan. Start here if you want the *product* thinking, not the code.
-3. **This file** — the actual decisions behind both of the above, with the alternatives rejected and why. Use the table of contents below rather than reading top to bottom.
-4. **[`diagrams/`](./diagrams/)** — two reference screenshots (`invoice-list-flow.png`, `invoice-review-flow.png`) showing which component calls which API, and what each API touches (Postgres / Gemini / Vercel Blob) before responding. Useful once you're actually navigating the code, not before.
-
-**[`CLAUDE.md`](./CLAUDE.md)** (and the `AGENTS.md` it imports) aren't written for a human reader — they're the standing instructions an AI coding agent working in this repo follows automatically (confidence-framing rules, the one-accent-color rule, the flex-body mobile-width gotcha, the 250-line file limit, etc.). Worth skimming if you're curious what guardrails shaped the code, but you don't need them to understand or run the project.
-
 ## Contents
+
+- [Starting fresh on this project?](#starting-fresh-on-this-project) *(at the bottom, since it was the last thing added — see the table of contents you're reading right now for everything else)*
 
 - **Scope & what was cut**
   - [Problem framing](#problem-framing)
@@ -766,3 +757,14 @@ Named here rather than left implicit, so it's clear these are deliberate deferra
 - **Multiple invoice upload at once** (batch upload, one drop/selection with several files, extracted and inserted individually). The current flow is deliberately one-invoice-at-a-time — simpler UI, simpler error handling (one file, one failure mode to show), and enough for the assignment's testing needs. Batch upload would need per-file progress/status in the upload zone and partial-failure handling (some succeed, some don't) that doesn't exist yet.
 - **Duplicate-upload detection** ("is this invoice already in the system?" — e.g. by vendor + invoice number, or a file hash, before or after extraction). Nothing today stops the same file being uploaded and extracted twice, creating two rows. Solving it well needs a decision on what "the same invoice" means (exact file re-upload vs. same vendor+invoice number with a re-scanned copy) that's worth its own design pass rather than a quick bolt-on.
 - **Pagination.** The list endpoint returns every matching row in one response — fine at a handful of invoices, not fine at thousands. Deferred because it's server-side work with no visible payoff at the current data volume (adding `limit`/`offset` or keyset pagination to `buildInvoiceListConditions`'s caller is straightforward given filtering is already a real SQL `WHERE` clause, not a client-side operation — the hard prerequisite for pagination to even be correct is already in place). Worth doing before this ever holds real company data; not worth doing for a handful of demo invoices.
+
+## Starting fresh on this project?
+
+Four places to look, in the order they're actually useful:
+
+1. **[`README.md`](./README.md)** — what this is, how to run it locally, the tech stack, and the project structure. Start here if you just want it running.
+2. **`/design-doc`** (the app's own `/design-doc` route, source at `src/app/design-doc/page.tsx`) — the product-facing design document: problem statement, scope, the confidence model explained plainly, architecture, alternatives considered, and rollout plan. Start here if you want the *product* thinking, not the code.
+3. **This file** — the actual decisions behind both of the above, with the alternatives rejected and why. Use the table of contents above rather than reading top to bottom.
+4. **[`diagrams/`](./diagrams/)** — two reference screenshots (`invoice-list-flow.png`, `invoice-review-flow.png`) showing which component calls which API, and what each API touches (Postgres / Gemini / Vercel Blob) before responding. Useful once you're actually navigating the code, not before.
+
+**[`CLAUDE.md`](./CLAUDE.md)** (and the `AGENTS.md` it imports) aren't written for a human reader — they're the standing instructions an AI coding agent working in this repo follows automatically (confidence-framing rules, the one-accent-color rule, the flex-body mobile-width gotcha, the 250-line file limit, etc.). Worth skimming if you're curious what guardrails shaped the code, but you don't need them to understand or run the project.
