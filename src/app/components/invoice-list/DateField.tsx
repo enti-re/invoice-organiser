@@ -6,13 +6,18 @@ import { formatIsoDate, parseIsoDate } from "@/lib/date";
 const dayPickerClassNames = {
   months: "relative flex",
   month: "space-y-2",
-  month_caption: "flex justify-center py-1 text-sm font-medium text-neutral-100",
+  month_caption: "flex justify-center py-1",
   nav: "flex items-center justify-between absolute inset-x-0 top-0",
   button_previous:
     "cursor-pointer border border-neutral-700 p-1 text-neutral-300 hover:border-white hover:text-white",
   button_next:
     "cursor-pointer border border-neutral-700 p-1 text-neutral-300 hover:border-white hover:text-white",
   chevron: "h-4 w-4 fill-current",
+  dropdowns: "flex items-center gap-2",
+  dropdown_root: "relative inline-flex items-center",
+  dropdown: "absolute inset-0 cursor-pointer opacity-0",
+  caption_label:
+    "flex items-center gap-1 border border-neutral-700 px-2 py-1 text-sm font-medium text-neutral-100",
   month_grid: "border-collapse",
   weekdays: "flex",
   weekday: "w-9 text-xs font-normal text-neutral-500",
@@ -66,9 +71,10 @@ export const DateField = ({
         {value || today}
       </button>
       {open && (
-        <div className="absolute top-full left-0 z-20 mt-1.5 border border-neutral-700 bg-neutral-950 p-3 shadow-lg">
+        <div className="absolute top-full left-0 z-20 mt-1.5 w-max border border-neutral-700 bg-neutral-950 p-3 shadow-lg">
           <DayPicker
             mode="single"
+            captionLayout="dropdown"
             selected={value ? parseIsoDate(value) : undefined}
             onSelect={(date) => {
               onChange(date ? formatIsoDate(date) : "");
