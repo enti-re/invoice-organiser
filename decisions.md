@@ -2,6 +2,17 @@
 
 Real decisions made while building this, in roughly the order they came up. Each entry: the decision, the alternative(s) considered, and why. The log below is chronological; this table of contents groups the same entries by theme so you can jump straight to what you care about instead of scrolling.
 
+## Starting fresh on this project?
+
+Four places to look, in the order they're actually useful:
+
+1. **[`README.md`](./README.md)** — what this is, how to run it locally, the tech stack, and the project structure. Start here if you just want it running.
+2. **`/design-doc`** (the app's own `/design-doc` route, source at `src/app/design-doc/page.tsx`) — the product-facing design document: problem statement, scope, the confidence model explained plainly, architecture, alternatives considered, and rollout plan. Start here if you want the *product* thinking, not the code.
+3. **This file** — the actual decisions behind both of the above, with the alternatives rejected and why. Use the table of contents below rather than reading top to bottom.
+4. **[`diagrams/`](./diagrams/)** — two reference screenshots (`invoice-list-flow.png`, `invoice-review-flow.png`) showing which component calls which API, and what each API touches (Postgres / Gemini / Vercel Blob) before responding. Useful once you're actually navigating the code, not before.
+
+**[`CLAUDE.md`](./CLAUDE.md)** (and the `AGENTS.md` it imports) aren't written for a human reader — they're the standing instructions an AI coding agent working in this repo follows automatically (confidence-framing rules, the one-accent-color rule, the flex-body mobile-width gotcha, the 250-line file limit, etc.). Worth skimming if you're curious what guardrails shaped the code, but you don't need them to understand or run the project.
+
 ## Contents
 
 - **Scope & what was cut**
