@@ -6,6 +6,7 @@ See [`decisions.md`](./decisions.md) for the full reasoning behind every real de
 
 **Live demo:** https://zamp-invoice-extraction.vercel.app
 **Repo:** https://github.com/enti-re/zamp-invoice-extraction
+**Design Doc:** https://zamp-invoice-extraction.vercel.app/design-doc
 
 ## What it does
 
