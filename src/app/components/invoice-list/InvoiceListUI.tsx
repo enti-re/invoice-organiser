@@ -11,7 +11,7 @@ export const StatusBadge = ({ needsReview }: { needsReview: boolean }) => {
     );
   }
   return (
-    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-neutral-500 border border-neutral-800">
+    <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-neutral-400 border border-neutral-800">
       Reviewed
     </span>
   );

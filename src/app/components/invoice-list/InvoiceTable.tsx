@@ -41,8 +41,12 @@ export const InvoiceTable = ({ list }: { list: InvoiceListController }) => {
             <th className="w-[11%] py-3 pr-4 font-medium">Tax</th>
             <th className="w-[9%] py-3 pr-4 font-medium">Line items</th>
             <th className="w-[14%] py-3 pr-4 font-medium">Status</th>
-            <th className="w-[10%] py-3 pr-4 font-medium" />
-            <th className="w-[4%] py-3 pr-4" />
+            <th className="w-[10%] py-3 pr-4 font-medium">
+              <span className="sr-only">Review</span>
+            </th>
+            <th className="w-[4%] py-3 pr-4">
+              <span className="sr-only">Delete</span>
+            </th>
           </tr>
         </thead>
         <tbody>

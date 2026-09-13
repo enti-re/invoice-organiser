@@ -23,12 +23,12 @@ export const InvoiceReview = ({ id }: { id: string }) => {
 
   if (loadError || !invoice) {
     return (
-      <div className="mx-auto w-full min-w-0 max-w-4xl px-6 py-16 md:px-8 space-y-4">
+      <main className="mx-auto w-full min-w-0 max-w-4xl px-6 py-16 md:px-8 space-y-4">
         <p className="text-red-400">{loadError ?? "Invoice not found"}</p>
         <Link href="/app" className="text-neutral-100 underline hover:text-white">
           Back to list
         </Link>
-      </div>
+      </main>
     );
   }
 
@@ -39,7 +39,7 @@ export const InvoiceReview = ({ id }: { id: string }) => {
   const items = invoice.lineItems ?? [];
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-6xl px-6 py-12 md:px-8 space-y-6">
+    <main className="mx-auto w-full min-w-0 max-w-6xl px-6 py-12 md:px-8 space-y-6">
       <div className="flex items-center justify-between">
         <Link href="/app" className="text-sm text-neutral-100 underline hover:text-white">
           ← Back to list
@@ -113,9 +113,9 @@ export const InvoiceReview = ({ id }: { id: string }) => {
             ref={review.expandedField === "line_items" ? expandedPanelRef : undefined}
           >
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+              <h2 className="text-xs font-medium uppercase tracking-wide text-neutral-400">
                 Line items
-              </h3>
+              </h2>
               {lineItemsFlag?.flagged && (
                 <FlagIcon onClick={() => review.toggleExpand("line_items")} />
               )}
@@ -138,7 +138,7 @@ export const InvoiceReview = ({ id }: { id: string }) => {
             )}
             <table className="mt-3 w-full table-fixed border-collapse text-sm">
               <thead>
-                <tr className="border-b border-neutral-800 text-left text-xs uppercase tracking-wide text-neutral-500">
+                <tr className="border-b border-neutral-800 text-left text-xs uppercase tracking-wide text-neutral-400">
                   <th className="w-[52%] py-2 pr-4 font-medium">Description</th>
                   <th className="w-[12%] py-2 pr-4 text-right font-medium">Qty</th>
                   <th className="w-[18%] py-2 pr-4 text-right font-medium">Unit price</th>
@@ -151,7 +151,7 @@ export const InvoiceReview = ({ id }: { id: string }) => {
                 ))}
                 {items.length === 0 && (
                   <tr>
-                    <td colSpan={4} className="py-6 text-center text-neutral-500">
+                    <td colSpan={4} className="py-6 text-center text-neutral-400">
                       No line items extracted
                     </td>
                   </tr>
@@ -173,6 +173,6 @@ export const InvoiceReview = ({ id }: { id: string }) => {
           <OriginalFilePanel key={invoice.id} fileUrl={invoice.fileUrl} fileName={invoice.fileName} />
         )}
       </div>
-    </div>
+    </main>
   );
 };

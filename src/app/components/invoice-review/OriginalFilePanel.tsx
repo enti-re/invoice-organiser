@@ -12,7 +12,7 @@ export const OriginalFilePanel = ({ fileUrl, fileName }: { fileUrl: string; file
 
   return (
     <div className="flex h-full min-h-[400px] flex-col overflow-hidden border border-neutral-800 bg-neutral-900">
-      <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900 px-4 py-2 text-xs text-neutral-500">
+      <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900 px-4 py-2 text-xs text-neutral-400">
         <span>Original file</span>
         <a href={fileUrl} target="_blank" rel="noreferrer" className="text-neutral-100 underline hover:text-white">
           Open in new tab

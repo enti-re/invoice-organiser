@@ -90,14 +90,17 @@ export const InlineReviewPanel = ({
   const sideClass = align === "right" ? "right-0" : "left-0";
   return (
     <div
-      className={`absolute top-full z-20 mt-1.5 w-72 max-w-[90vw] border border-neutral-700 bg-neutral-950 p-3 text-left text-sm shadow-lg ${editing ? "" : "pr-7"} ${sideClass}`}
+      role="dialog"
+      aria-label={editing ? "Edit field value" : "Review flagged field"}
+      tabIndex={-1}
+      className={`absolute top-full z-20 mt-1.5 w-72 max-w-[90vw] border border-neutral-700 bg-neutral-950 p-3 text-left text-sm shadow-lg focus:outline-none ${editing ? "" : "pr-7"} ${sideClass}`}
     >
       {!editing && (
         <button
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-1.5 top-1.5 cursor-pointer text-neutral-500 hover:text-white"
+          className="absolute right-1.5 top-1.5 cursor-pointer text-neutral-400 hover:text-white"
         >
           ✕
         </button>
@@ -113,7 +116,11 @@ export const InlineReviewPanel = ({
       ) : (
         <>
           {reason && <p className="text-xs text-red-400">⚠ {reason}</p>}
-          {error && <p className="mt-1 text-xs text-red-400">{error}</p>}
+          {error && (
+            <p role="alert" className="mt-1 text-xs text-red-400">
+              {error}
+            </p>
+          )}
           <div className="mt-2 flex items-center gap-2">
             <button
               type="button"

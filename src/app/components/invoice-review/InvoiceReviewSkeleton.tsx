@@ -4,7 +4,7 @@
 // when real data replaces the skeleton.
 export const InvoiceReviewSkeleton = () => {
   return (
-    <div className="mx-auto w-full min-w-0 max-w-6xl px-6 py-12 md:px-8 space-y-6">
+    <main className="mx-auto w-full min-w-0 max-w-6xl px-6 py-12 md:px-8 space-y-6">
       <div className="flex items-center justify-between">
         <div className="h-5 w-24 animate-pulse bg-neutral-800" />
         <div className="h-[30px] w-28 animate-pulse bg-neutral-800" />
@@ -65,6 +65,6 @@ export const InvoiceReviewSkeleton = () => {
           <div className="min-h-[400px] flex-1 animate-pulse bg-neutral-800" />
         </div>
       </div>
-    </div>
+    </main>
   );
 };

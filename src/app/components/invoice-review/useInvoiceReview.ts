@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { InvoiceData } from "@/app/components/invoice-review/InvoiceReview.types";
+import { useFocusTrap } from "@/app/components/useFocusTrap";
 import { getInvoice, updateInvoiceField } from "@/lib/api/api-client";
 
 export const useInvoiceReview = (id: string) => {
@@ -13,7 +14,9 @@ export const useInvoiceReview = (id: string) => {
   const [editValue, setEditValue] = useState("");
   const [savingField, setSavingField] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const expandedPanelRef = useRef<HTMLDivElement>(null);
+  // Also traps Tab and restores focus to whatever opened it -- shared
+  // behavior with DeleteConfirmDialog and DateField, see useFocusTrap.
+  const expandedPanelRef = useFocusTrap<HTMLDivElement>(Boolean(expandedField));
 
   useEffect(() => {
     if (!expandedField) return;
@@ -35,7 +38,10 @@ export const useInvoiceReview = (id: string) => {
       document.removeEventListener("mousedown", onDocClick);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [expandedField]);
+    // expandedPanelRef is a stable ref identity from useFocusTrap (a useRef
+    // under the hood), safe to omit from a strict read of this list -- but
+    // including it keeps the linter satisfied without an eslint-disable.
+  }, [expandedField, expandedPanelRef]);
 
   useEffect(() => {
     let cancelled = false;

@@ -4,7 +4,7 @@ import { ArchitectureDiagram } from "@/app/components/ArchitectureDiagram";
 
 const DesignPage = () => {
   return (
-    <div className="mx-auto w-full min-w-0 max-w-4xl space-y-8 px-6 py-16 md:px-8">
+    <main className="mx-auto w-full min-w-0 max-w-4xl space-y-8 px-6 py-16 md:px-8">
       <header className="flex items-start justify-between gap-4">
         <h1 className="text-3xl font-semibold text-neutral-100 tracking-tight">Design overview</h1>
         <Link href="/" className="shrink-0 text-sm text-neutral-400 hover:text-white">
@@ -165,7 +165,7 @@ const DesignPage = () => {
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold text-neutral-100">Scale, rollout &amp; future decisions</h2>
-        <ol className="list-decimal space-y-2 pl-5 text-sm text-neutral-300 marker:text-neutral-600">
+        <ol className="list-decimal space-y-2 pl-5 text-sm text-neutral-300 marker:text-neutral-400">
           <li>
             <span className="font-semibold text-neutral-100">Authentication:</span> required before handling
             real company data.
@@ -192,7 +192,7 @@ const DesignPage = () => {
           </li>
         </ol>
       </section>
-    </div>
+    </main>
   );
 };
 

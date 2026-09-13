@@ -1,7 +1,7 @@
 const StackBox = ({ label, title }: { label: string; title: string }) => {
   return (
     <div className="min-w-[210px] border border-neutral-800 bg-neutral-900 px-5 py-3.5 text-center">
-      <div className="text-[0.68rem] font-semibold uppercase tracking-wide text-neutral-500">{label}</div>
+      <div className="text-[0.68rem] font-semibold uppercase tracking-wide text-neutral-400">{label}</div>
       <div className="mt-1 text-sm font-semibold text-neutral-100">{title}</div>
     </div>
   );
@@ -16,7 +16,7 @@ const VLink = ({ height = 64, down, up }: { height?: number; down?: string; up?:
       <div className="w-px flex-1 bg-neutral-600" />
       <div className="h-0 w-0 border-x-4 border-x-transparent border-t-[6px] border-t-neutral-600" />
       {down && up ? (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-neutral-950 px-2 py-1 text-center text-[0.65rem] leading-relaxed text-neutral-500">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-neutral-950 px-2 py-1 text-center text-[0.65rem] leading-relaxed text-neutral-400">
           <div>
             <span className="text-neutral-300">↓</span> {down}
           </div>
@@ -35,7 +35,7 @@ const HLink = ({ width = 150, label }: { width?: number; label: string }) => {
       <div className="h-0 w-0 border-y-4 border-y-transparent border-r-[6px] border-r-neutral-600" />
       <div className="h-px flex-1 bg-neutral-600" />
       <div className="h-0 w-0 border-y-4 border-y-transparent border-l-[6px] border-l-neutral-600" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-neutral-950 px-2 text-center text-[0.65rem] text-neutral-500">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap bg-neutral-950 px-2 text-center text-[0.65rem] text-neutral-400">
         {label}
       </div>
     </div>
@@ -51,10 +51,10 @@ export const ArchitectureDiagram = () => {
           <VLink height={32} />
 
           <div className="relative w-full max-w-3xl border border-dashed border-neutral-700 px-6 pt-7 pb-6">
-            <span className="absolute -top-[0.6rem] left-6 bg-neutral-950 px-2 text-[0.65rem] font-semibold uppercase tracking-wide text-neutral-500">
+            <span className="absolute -top-[0.6rem] left-6 bg-neutral-950 px-2 text-[0.65rem] font-semibold uppercase tracking-wide text-neutral-400">
               Vercel deployment
             </span>
-            <div className="mb-4 text-center text-[0.68rem] font-semibold uppercase tracking-wide text-neutral-500">
+            <div className="mb-4 text-center text-[0.68rem] font-semibold uppercase tracking-wide text-neutral-400">
               Application framework — Next.js 16 (App Router)
             </div>
 

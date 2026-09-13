@@ -27,10 +27,10 @@ export const ScalarField = ({
       className={`relative ${align === "right" ? "text-right" : ""}`}
       ref={isExpanded ? expandedPanelRef : undefined}
     >
-      <div className="text-xs uppercase tracking-wide text-neutral-500">{label}</div>
+      <div className="text-xs uppercase tracking-wide text-neutral-400">{label}</div>
       <div className={`mt-0.5 flex items-center gap-1.5 ${align === "right" ? "justify-end" : ""}`}>
         <span className={`text-sm text-neutral-100 ${mono ? "font-mono" : ""}`}>
-          {hasValue ? value : <span className="text-neutral-500">— not extracted —</span>}
+          {hasValue ? value : <span className="text-neutral-400">— not extracted —</span>}
         </span>
         {flagged && <FlagIcon onClick={() => review.toggleExpand(fieldKey)} />}
       </div>

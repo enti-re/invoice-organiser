@@ -24,7 +24,7 @@ export const FilterBar = ({ list }: { list: InvoiceListController }) => {
     <div className="space-y-3 border-b border-neutral-800 pb-5 text-sm">
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative max-w-sm flex-1 min-w-[200px]">
-          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-500" />
+          <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
           <input
             placeholder="Search by vendor…"
             value={filters.vendor}
@@ -36,7 +36,7 @@ export const FilterBar = ({ list }: { list: InvoiceListController }) => {
               type="button"
               onClick={list.clearFilters}
               aria-label="Clear filters"
-              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-neutral-500 hover:text-white"
+              className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-neutral-400 hover:text-white"
             >
               ✕
             </button>
@@ -47,6 +47,7 @@ export const FilterBar = ({ list }: { list: InvoiceListController }) => {
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-label="Filters"
+          aria-expanded={open}
           className={`flex shrink-0 cursor-pointer items-center gap-1.5 border px-3 py-2 hover:border-white hover:text-white ${
             hasAdvancedFilters ? "border-neutral-100 text-neutral-100" : "border-neutral-700 text-neutral-400"
           }`}
@@ -69,7 +70,7 @@ export const FilterBar = ({ list }: { list: InvoiceListController }) => {
               value={filters.dateTo}
               onChange={(v) => setFilters({ ...filters, dateTo: v })}
             />
-            <label className="flex flex-col gap-1 text-xs text-neutral-500">
+            <label className="flex flex-col gap-1 text-xs text-neutral-400">
               Min total
               <input
                 type="number"
@@ -81,7 +82,7 @@ export const FilterBar = ({ list }: { list: InvoiceListController }) => {
                 className={`${inputClass} w-24`}
               />
             </label>
-            <label className="flex flex-col gap-1 text-xs text-neutral-500">
+            <label className="flex flex-col gap-1 text-xs text-neutral-400">
               Max total
               <input
                 type="number"
@@ -112,10 +113,14 @@ export const FilterBar = ({ list }: { list: InvoiceListController }) => {
           </div>
 
           {invalidDateRange && (
-            <p className="text-xs text-red-400">Start date can&apos;t be after end date.</p>
+            <p role="alert" className="text-xs text-red-400">
+              Start date can&apos;t be after end date.
+            </p>
           )}
           {invalidAmountRange && (
-            <p className="text-xs text-red-400">Min total can&apos;t be greater than max total.</p>
+            <p role="alert" className="text-xs text-red-400">
+              Min total can&apos;t be greater than max total.
+            </p>
           )}
         </div>
       )}

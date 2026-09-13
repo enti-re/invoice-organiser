@@ -9,14 +9,24 @@ export const UploadInvoiceForm = ({ list }: { list: InvoiceListController }) => 
       <h2 className="font-medium text-neutral-100">Upload an invoice</h2>
       <form onSubmit={list.handleUpload}>
         <div
+          role="button"
+          tabIndex={list.uploading ? -1 : 0}
+          aria-disabled={list.uploading}
+          aria-label="Choose an invoice file to upload"
           onClick={() => !list.uploading && fileInputRef.current?.click()}
+          onKeyDown={(e) => {
+            if ((e.key === "Enter" || e.key === " ") && !list.uploading) {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }
+          }}
           onDragOver={(e) => {
             e.preventDefault();
             if (!list.uploading) list.setDragActive(true);
           }}
           onDragLeave={() => list.setDragActive(false)}
           onDrop={(e) => !list.uploading && list.handleDrop(e)}
-          className={`flex flex-col items-center justify-center gap-3 border p-10 text-center transition-colors ${
+          className={`flex flex-col items-center justify-center gap-3 border p-10 text-center transition-colors focus:outline-none focus-visible:border-white ${
             list.uploading
               ? "cursor-not-allowed border-neutral-800 opacity-60"
               : "cursor-pointer border-neutral-800 hover:border-neutral-600"
@@ -69,7 +79,11 @@ export const UploadInvoiceForm = ({ list }: { list: InvoiceListController }) => 
             {list.uploading && <Spinner className="h-4 w-4" />}
             {list.uploading ? "Extracting…" : "Upload & extract"}
           </button>
-          {list.uploadError && <p className="text-sm text-red-400">{list.uploadError}</p>}
+          {list.uploadError && (
+            <p role="alert" className="text-sm text-red-400">
+              {list.uploadError}
+            </p>
+          )}
         </div>
       </form>
     </section>

@@ -13,7 +13,7 @@ const Home = () => {
   const list = useInvoiceList();
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-5xl px-6 py-12 md:px-8 md:py-16 space-y-14">
+    <main className="mx-auto w-full min-w-0 max-w-5xl px-6 py-12 md:px-8 md:py-16 space-y-14">
       <header className="space-y-3">
         <div className="flex items-start justify-between gap-4">
           <h1 className="text-3xl font-semibold text-neutral-100 tracking-tight">Invoice Organiser</h1>
@@ -34,14 +34,18 @@ const Home = () => {
 
         <FilterBar list={list} />
 
-        {list.listError && <p className="text-sm text-red-400">{list.listError}</p>}
+        {list.listError && (
+          <p role="alert" className="text-sm text-red-400">
+            {list.listError}
+          </p>
+        )}
 
         <InvoiceTable list={list} />
         <InvoiceCards list={list} />
       </section>
 
       <DeleteConfirmDialog list={list} />
-    </div>
+    </main>
   );
 };
 

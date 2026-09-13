@@ -21,7 +21,7 @@ export const InvoiceCard = ({
         aria-label="Delete invoice"
         disabled={isDeleting}
         onClick={onDeleteRequest}
-        className="absolute top-3 right-3 cursor-pointer text-neutral-600 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
+        className="absolute top-3 right-3 cursor-pointer text-neutral-400 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-40"
       >
         {isDeleting ? <Spinner className="w-4 h-4" /> : <TrashIcon className="w-4 h-4" />}
       </button>
