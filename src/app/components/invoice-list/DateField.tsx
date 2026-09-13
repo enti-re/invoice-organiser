@@ -7,7 +7,7 @@ const dayPickerClassNames = {
   months: "relative flex",
   month: "space-y-2",
   month_caption: "flex justify-center py-1",
-  nav: "flex items-center justify-between absolute inset-x-0 top-0",
+  nav: "flex items-center justify-between absolute inset-x-1 top-0.5",
   button_previous:
     "cursor-pointer border border-neutral-700 p-1 text-neutral-300 hover:border-white hover:text-white",
   button_next:
@@ -71,7 +71,7 @@ export const DateField = ({
         {value || today}
       </button>
       {open && (
-        <div className="absolute top-full left-0 z-20 mt-1.5 w-max border border-neutral-700 bg-neutral-950 p-3 shadow-lg">
+        <div className="absolute top-full left-0 z-20 mt-1.5 w-max border border-neutral-700 bg-neutral-950 p-4 shadow-lg">
           <DayPicker
             mode="single"
             captionLayout="dropdown"
