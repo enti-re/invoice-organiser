@@ -81,6 +81,7 @@ Real decisions made while building this, in roughly the order they came up. Each
   - [Refactoring review, real test coverage, and E2E coverage for the filter feature](#refactoring-review-real-test-coverage-and-e2e-coverage-for-the-filter-feature)
   - [A real accessibility pass — audit, fix, verify with axe-core, not a cosmetic sweep](#a-real-accessibility-pass-audit-fix-verify-with-axe-core-not-a-cosmetic-sweep)
   - [A third checked-in skill: `accessibility-essentials`](#a-third-checked-in-skill-accessibility-essentials)
+  - [Landing page: an animated film-grain hero, demonstrating canvas + motion for the actual role](#landing-page-an-animated-film-grain-hero-demonstrating-canvas-motion-for-the-actual-role)
 
 ## Problem framing
 
@@ -771,6 +772,18 @@ One real, unrelated hazard hit and worked around along the way: mid-fix, the Nex
 ## A third checked-in skill: `accessibility-essentials`
 
 Same reasoning as `systematic-refactoring` earlier: the rules actually applied in the accessibility pass above (landmarks, keyboard operability, focus trapping with the reusable `useFocusTrap` pattern, computed-not-eyeballed contrast, heading hierarchy, live regions for async feedback, verifying with `axe-core` + real keyboard tests instead of manual claims) are generically useful beyond this one project, so they're captured as a skill under `.claude/skills/accessibility-essentials/` rather than left implicit in this log entry alone.
+
+## Landing page: an animated film-grain hero, demonstrating canvas + motion for the actual role
+
+The job this is for is Senior Frontend Engineer, and the posting names "canvas, motion, and design systems at scale" as the product's visual style. Nothing in this submission demonstrated either — an invoice-review CRUD tool has no natural reason to need a canvas workspace, and forcing one into `/app` or `/invoices/[id]` would look bolted-on, not considered. The landing page (`/`) is the one place in this app that's already presentational rather than functional, so it's where this belongs, not the product pages.
+
+**Went through two implementation attempts:**
+1. **Hand-rolled canvas**, a `requestAnimationFrame` loop drawing a drifting dot field with mouse parallax, plus a separate CSS/SVG `feTurbulence` grain overlay using `mix-blend-mode: overlay`. Working, but wrong in two ways: the dots themselves didn't read well against the hero photo (visual feedback: "I don't like the dots"), and `mix-blend-mode: overlay` barely affects near-black pixels, so the grain was invisible against this hero's `#0a0a0a`-adjacent background — confirmed by screenshot, not assumed.
+2. **`react-noise`**, on a direct ask to use a real library instead of continuing to hand-roll canvas code. Checked its actual rendering approach before adopting it (not just the marketing copy): it draws noise as true per-pixel alpha on a real `<canvas>`, not a CSS blend mode, which is exactly what fixes the "invisible on dark" problem attempt 1 hit. Dropped the dot field entirely per the feedback above — grain alone, no dots.
+
+**Kept deliberately restrained, not because grain is inherently subtle but because this project already has a directly relevant precedent for the opposite mistake:** an earlier decorative visual (see "Flagging accent color: several iterations, settled on red") was built, reviewed live, and reverted for clashing with the monochrome design language established everywhere else. Tuned the grain's opacity down after first review (0.16 read as too heavy) to 0.08 — visible as a filmic texture, not a distraction — and kept the color pure white/grayscale rather than introducing any hue.
+
+**Motion is three separate pieces, not one:** the grain's own continuous animation (canvas + its animation both come from `react-noise`); a staggered fade-up entrance on the heading → subtext → buttons (plain CSS `@keyframes`, ~15 lines, no library needed for something this simple); a subtle hover lift on both CTA buttons (a Tailwind `transition-transform` utility, no JS). All three respect `prefers-reduced-motion` — the grain checks `matchMedia` and disables its own animation, the entrance keyframe is disabled outright under the media query.
 
 ## Future plans (not attempted in this submission)
 
