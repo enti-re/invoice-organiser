@@ -57,6 +57,14 @@ export const useInvoiceList = () => {
     fetchInvoices(EMPTY_FILTERS);
   };
 
+  // Date/amount filters are applied explicitly rather than live-searched --
+  // debouncing a date picker or number input still fires mid-edit, unlike
+  // debouncing text.
+  const applyFilters = () => {
+    setLoadingList(true);
+    fetchInvoices(filters);
+  };
+
   const applyFile = (file: File | null) => {
     setUploadError(null);
     if (!file) {
@@ -140,6 +148,7 @@ export const useInvoiceList = () => {
     setFilters,
     hasActiveFilters,
     clearFilters,
+    applyFilters,
     loadingList,
     uploading,
     uploadError,

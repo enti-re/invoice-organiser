@@ -74,6 +74,40 @@ export const FileIcon = ({ className }: { className?: string }) => {
   );
 };
 
+export const FilterIcon = ({ className }: { className?: string }) => {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M4 5h16l-6 7.5V19l-4 2v-8.5z" />
+    </svg>
+  );
+};
+
+export const ChevronDownIcon = ({ className }: { className?: string }) => {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+};
+
 export const Spinner = ({ className = "" }: { className?: string }) => {
   return (
     <svg className={`animate-spin ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
