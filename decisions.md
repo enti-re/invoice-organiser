@@ -1,6 +1,83 @@
 # Decisions
 
-Real decisions made while building this, in roughly the order they came up. Each entry: the decision, the alternative(s) considered, and why.
+Real decisions made while building this, in roughly the order they came up. Each entry: the decision, the alternative(s) considered, and why. The log below is chronological; this table of contents groups the same entries by theme so you can jump straight to what you care about instead of scrolling.
+
+## Contents
+
+- **Scope & what was cut**
+  - [Problem framing](#problem-framing)
+  - [Cut: auth / multi-user](#cut-auth-multi-user)
+  - [Cut: manual correction UI for flagged fields (nice-to-have, not must-ship)](#cut-manual-correction-ui-for-flagged-fields-nice-to-have-not-must-ship) *(later un-cut — see "The manual correction/approval feature" below)*
+  - [No manual structured-data-entry form](#no-manual-structured-data-entry-form)
+  - [Input formats: PDF and image only, no plain text](#input-formats-pdf-and-image-only-no-plain-text)
+  - [Future plans (not attempted in this submission)](#future-plans-not-attempted-in-this-submission)
+
+- **Architecture & infrastructure**
+  - [Tech stack: Next.js (single framework for frontend + backend)](#tech-stack-nextjs-single-framework-for-frontend-backend)
+  - [Database: Postgres over MongoDB](#database-postgres-over-mongodb)
+  - [Postgres host: Neon over Supabase / Vercel Postgres / Railway / RDS](#postgres-host-neon-over-supabase-vercel-postgres-railway-rds)
+  - [Schema shape: strict typed columns + jsonb, one `invoices` table (no normalization)](#schema-shape-strict-typed-columns-jsonb-one-invoices-table-no-normalization)
+  - [`invoice_date` / `due_date` stored as `text`, not Postgres `date`](#invoice_date-due_date-stored-as-text-not-postgres-date)
+  - [No separate OCR step — documents go straight to Claude](#no-separate-ocr-step-documents-go-straight-to-claude)
+  - [Structured output via forced tool-use, not "ask the model to return JSON"](#structured-output-via-forced-tool-use-not-ask-the-model-to-return-json)
+  - [Original file storage: Vercel Blob](#original-file-storage-vercel-blob)
+  - [Database schema applied via `drizzle-kit push`, not migration files](#database-schema-applied-via-drizzle-kit-push-not-migration-files)
+  - [Switched LLM provider: Claude (Anthropic) → Gemini (Google), via the Vercel AI SDK](#switched-llm-provider-claude-anthropic-gemini-google-via-the-vercel-ai-sdk)
+  - [Found and fixed a real production bug: the 15MB upload limit was never actually deliverable](#found-and-fixed-a-real-production-bug-the-15mb-upload-limit-was-never-actually-deliverable)
+
+- **Confidence model**
+  - [Confidence scoring — the actual implementation (Session 2)](#confidence-scoring-the-actual-implementation-session-2)
+  - [Gap review — decisions made auditing the plan before implementation continued](#gap-review-decisions-made-auditing-the-plan-before-implementation-continued)
+  - [More gap-review decisions](#more-gap-review-decisions)
+  - [Document-type check: flagging uploads that aren't invoices at all](#document-type-check-flagging-uploads-that-arent-invoices-at-all)
+
+- **UX & product iteration**
+  - [Visual design: iterated against real screenshots, not applied blind](#visual-design-iterated-against-real-screenshots-not-applied-blind)
+  - [Detail view: side-by-side comparison auto-opens for flagged invoices](#detail-view-side-by-side-comparison-auto-opens-for-flagged-invoices)
+  - [Theme changed to monochrome dark, matching the personal portfolio (nikhilchandna.com)](#theme-changed-to-monochrome-dark-matching-the-personal-portfolio-nikhilchandnacom)
+  - [Flagging accent color settled on orange; distinct colors given fixed, single meanings](#flagging-accent-color-settled-on-orange-distinct-colors-given-fixed-single-meanings)
+  - [Delete: always visible (not hover-only), with a custom confirmation modal](#delete-always-visible-not-hover-only-with-a-custom-confirmation-modal)
+  - [Custom date picker, replacing the native `<input type="date">`](#custom-date-picker-replacing-the-native-input-typedate) *(later deleted as dead code, then reintroduced via `react-day-picker` — see the filtering entries)*
+  - [The manual correction/approval feature — the biggest addition after core delivery](#the-manual-correctionapproval-feature-the-biggest-addition-after-core-delivery)
+  - [Two real loading-state bugs, caught after the fact](#two-real-loading-state-bugs-caught-after-the-fact)
+  - [Flagging accent color: settled on red](#flagging-accent-color-settled-on-red)
+  - [Consolidated repeated warning text on the totals block](#consolidated-repeated-warning-text-on-the-totals-block)
+  - [Skeleton/content shape mismatch on the line items table, and reverting the auto-open default](#skeletoncontent-shape-mismatch-on-the-line-items-table-and-reverting-the-auto-open-default)
+  - [`showOriginal` flipped to default **on**, for every invoice](#showoriginal-flipped-to-default-on-for-every-invoice)
+  - [Subtotal/Tax/Total alignment fixed to match the line-items table](#subtotaltaxtotal-alignment-fixed-to-match-the-line-items-table)
+  - [Flagged-field UI compacted to icon + hover tooltip + click-to-reveal actions](#flagged-field-ui-compacted-to-icon-hover-tooltip-click-to-reveal-actions)
+  - [Skeleton placeholders resized to measured real dimensions, to fix CLS](#skeleton-placeholders-resized-to-measured-real-dimensions-to-fix-cls)
+  - [Missing `cursor-pointer` on every button, project-wide](#missing-cursor-pointer-on-every-button-project-wide)
+  - [First-run empty state redesigned (no filter bar, no table chrome, no emoji)](#first-run-empty-state-redesigned-no-filter-bar-no-table-chrome-no-emoji)
+  - [Visible progress feedback for upload and delete](#visible-progress-feedback-for-upload-and-delete)
+  - [Investigated: why clicking "Review" felt slow to fetch](#investigated-why-clicking-review-felt-slow-to-fetch)
+  - [Filter bar redesigned as a single live-search box](#filter-bar-redesigned-as-a-single-live-search-box) *(later expanded again — see "Brought back date-range and amount-range filtering")*
+  - [Table column widths fixed, so skeleton and real rows render at identical widths](#table-column-widths-fixed-so-skeleton-and-real-rows-render-at-identical-widths)
+  - [Loading skeleton added for the original document panel](#loading-skeleton-added-for-the-original-document-panel)
+  - [Root route split into a landing page (`/`) and the actual app (`/app`)](#root-route-split-into-a-landing-page-and-the-actual-app-app)
+  - [A separate, concise `/design` page alongside `decisions.md`](#a-separate-concise-design-page-alongside-decisionsmd)
+  - [Landing page copy tightened](#landing-page-copy-tightened)
+  - [Root layout flex-item bug: every page's whole body could overflow horizontally on mobile](#root-layout-flex-item-bug-every-pages-whole-body-could-overflow-horizontally-on-mobile)
+  - [Renamed `/design` to `/design-doc`](#renamed-design-to-design-doc)
+  - [Brought back date-range and amount-range filtering in the UI](#brought-back-date-range-and-amount-range-filtering-in-the-ui)
+  - [Two real bugs surfaced by actually using the new filters, both fixed](#two-real-bugs-surfaced-by-actually-using-the-new-filters-both-fixed)
+
+- **Code organization & refactoring**
+  - [Split confidence.ts's monolithic function, extracted the design-page diagram to its own component](#split-confidencetss-monolithic-function-extracted-the-design-page-diagram-to-its-own-component)
+  - [New project rules: 250-line file limit, types/helpers out of components](#new-project-rules-250-line-file-limit-typeshelpers-out-of-components)
+  - [`app/page.tsx`, from 718 lines to 64, split into ten files](#apppagetsx-from-718-lines-to-64-split-into-ten-files)
+  - [`src/app/api/` reorganized: named extractions instead of one long handler each](#srcappapi-reorganized-named-extractions-instead-of-one-long-handler-each)
+  - [API routes, second pass: named error-message constants and one function per upload step](#api-routes-second-pass-named-error-message-constants-and-one-function-per-upload-step)
+  - [API routes, third pass: file organization and one more oversized handler](#api-routes-third-pass-file-organization-and-one-more-oversized-handler)
+  - [`[id]/route.ts`: same treatment for DELETE, then the whole file reordered](#idroutets-same-treatment-for-delete-then-the-whole-file-reordered)
+  - [Split `components/` and `lib/` into feature subfolders](#split-components-and-lib-into-feature-subfolders)
+  - [Checked in the two Claude Code skills actually used, under `.claude/skills/`](#checked-in-the-two-claude-code-skills-actually-used-under-claudeskills)
+  - [Converted every `function` declaration to an arrow function](#converted-every-function-declaration-to-an-arrow-function)
+
+- **Testing & production fixes**
+  - [Added a real unit test suite, in `__tests__` directories](#added-a-real-unit-test-suite-in-__tests__-directories)
+  - [Added a real end-to-end happy-flow suite, hitting the actual Gemini extraction](#added-a-real-end-to-end-happy-flow-suite-hitting-the-actual-gemini-extraction)
+  - [Refactoring review, real test coverage, and E2E coverage for the filter feature](#refactoring-review-real-test-coverage-and-e2e-coverage-for-the-filter-feature)
 
 ## Problem framing
 
