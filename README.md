@@ -12,7 +12,7 @@ See [`decisions.md`](./decisions.md) for the full reasoning behind every real de
 1. Upload a PDF or image invoice (drag-and-drop or file picker, up to 4MB — capped there because that's the real ceiling Vercel's Serverless Functions enforce on request bodies in production, confirmed by testing; see `decisions.md`).
 2. Gemini reads the document directly (native document/vision understanding — no separate OCR step) and extracts vendor, invoice number, dates, amounts, tax, and line items as structured data.
 3. A confidence layer checks the extraction against itself: the model is prompted to return `null` rather than guess, deterministic rules catch things that are provably inconsistent (bad math, invalid dates, empty required fields), and the model self-reports genuine ambiguity. Any field that fails a check gets flagged. Separately, the model also judges whether the uploaded document is actually an invoice/receipt at all — a resume or unrelated document is flagged as a whole, not silently extracted as if it were valid.
-4. Everything is stored in Postgres and shown in a searchable, sortable list (live search by vendor).
+4. Everything is stored in Postgres and shown in a searchable, sortable list — live search by vendor, plus a filter panel for invoice date range and total-amount range.
 5. Click an invoice to see it rendered as an actual document — with flagged fields visually called out — and optionally compare it side by side against the original uploaded file.
 
 **What "confidence" honestly means here:** not "verified against ground truth" (there's no independent source of what an invoice actually says — only what the model read off it), but "internally consistent and self-stable." See the "Confidence scoring" section of `decisions.md` for the full design and its limitations.
@@ -23,6 +23,7 @@ See [`decisions.md`](./decisions.md) for the full reasoning behind every real de
 - **Google Gemini**, via the **Vercel AI SDK** (`generateObject`) for structured extraction
 - **Postgres (Neon)** via **Drizzle ORM** — typed columns for structured fields, `jsonb` for the naturally variable-shaped ones (`line_items`, `confidence`)
 - **Vercel Blob** for storing the original uploaded files
+- **react-day-picker** for the date-range filter's calendar (styled entirely via its `classNames` prop — it ships no default stylesheet)
 - **Tailwind CSS**, styled per the monochrome dark design-language skill in `.claude/skills/nikhilchandna-design/`
 - **Vitest** for unit tests, **Playwright** for the end-to-end suite
 - Built with **Claude Code**, guided by two checked-in skills (`.claude/skills/`) — the design-language one above, and `systematic-refactoring/`, which documents the actual rules applied across this codebase's refactoring passes
@@ -77,9 +78,9 @@ pnpm exec tsc --noEmit   # type-check
 pnpm test:e2e      # end-to-end happy-flow suite (Playwright)
 ```
 
-**Unit tests** (98 tests across 13 files, each colocated in a `__tests__/` directory next to what it covers) cover the confidence-scoring logic (clean invoices, every individual flag type, a deliberately messy near-all-null invoice), extraction schema validation, every other pure-logic file under `src/lib/` (date validation, UUID guards, query-param parsing, editable-field mapping, extraction error mapping), and the frontend — the API client and both `useInvoiceList`/`useInvoiceReview` hooks with `fetch` mocked, plus a component-render test.
+**Unit tests** (118 tests across 15 files, each colocated in a `__tests__/` directory next to what it covers) cover the confidence-scoring logic (clean invoices, every individual flag type, a deliberately messy near-all-null invoice), extraction schema validation, every other pure-logic file under `src/lib/` (date validation, UUID guards, query-param parsing, editable-field mapping, extraction error mapping), and the frontend — the API client, both `useInvoiceList`/`useInvoiceReview` hooks with `fetch` mocked, and the `FilterBar`/`DateField` components.
 
-**The E2E suite** (`e2e/happy-flow.spec.ts`) is a different kind of test: it drives a real browser against a real running dev server, uploads a real synthetic invoice image, and waits on an actual Gemini extraction call — no mocking. It needs real `DATABASE_URL`/`GOOGLE_GENERATIVE_AI_API_KEY`/`BLOB_READ_WRITE_TOKEN` env vars and costs a small amount each run, so it's meant to be run deliberately, not on every save. All five steps (land on `/app` → upload → open the review page → resolve a flag if the extraction produced one → delete) run against a single uploaded invoice to keep it to one real Gemini call per run.
+**The E2E suite** (`e2e/happy-flow.spec.ts`) is a different kind of test: it drives a real browser against a real running dev server, uploads a real synthetic invoice image, and waits on an actual Gemini extraction call — no mocking. It needs real `DATABASE_URL`/`GOOGLE_GENERATIVE_AI_API_KEY`/`BLOB_READ_WRITE_TOKEN` env vars and costs a small amount each run, so it's meant to be run deliberately, not on every save. All six steps (land on `/app` → upload → open the review page → resolve a flag if the extraction produced one → filter the list and clear the filter → delete) run against a single uploaded invoice to keep it to one real Gemini call per run.
 
 ## Project structure
 
