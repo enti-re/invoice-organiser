@@ -14,8 +14,6 @@ export const useInvoiceReview = (id: string) => {
   const [editValue, setEditValue] = useState("");
   const [savingField, setSavingField] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  // Also traps Tab and restores focus to whatever opened it -- shared
-  // behavior with DeleteConfirmDialog and DateField, see useFocusTrap.
   const expandedPanelRef = useFocusTrap<HTMLDivElement>(Boolean(expandedField));
 
   useEffect(() => {

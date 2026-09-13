@@ -25,9 +25,10 @@ See [`decisions.md`](./decisions.md) for the full reasoning behind every real de
 - **Postgres (Neon)** via **Drizzle ORM** — typed columns for structured fields, `jsonb` for the naturally variable-shaped ones (`line_items`, `confidence`)
 - **Vercel Blob** for storing the original uploaded files
 - **react-day-picker** for the date-range filter's calendar (styled entirely via its `classNames` prop — it ships no default stylesheet)
+- **react-noise** for the landing page's animated film-grain overlay
 - **Tailwind CSS**, styled per the monochrome dark design-language skill in `.claude/skills/nikhilchandna-design/`
-- **Vitest** for unit tests, **Playwright** for the end-to-end suite
-- Built with **Claude Code**, guided by two checked-in skills (`.claude/skills/`) — the design-language one above, and `systematic-refactoring/`, which documents the actual rules applied across this codebase's refactoring passes
+- **Vitest** for unit tests, **Playwright** for the end-to-end suite (including automated accessibility scans via `@axe-core/playwright`)
+- Built with **Claude Code**, guided by three checked-in skills (`.claude/skills/`) — the design-language one above, `systematic-refactoring/` (the rules applied across this codebase's refactoring passes), and `accessibility-essentials/` (the rules applied in the accessibility pass — landmarks, focus trapping, computed contrast, keyboard navigation)
 - Deployed on **Vercel**
 
 ## Local setup

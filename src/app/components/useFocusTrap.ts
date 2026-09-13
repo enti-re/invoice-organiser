@@ -3,12 +3,9 @@ import { useEffect, useRef } from "react";
 const FOCUSABLE_SELECTOR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-// Traps Tab focus within the returned ref's subtree while `active`, moves
-// focus into it on activation, and restores focus to whatever was focused
-// before on deactivation. Shared by every popover/modal in this app
-// (DeleteConfirmDialog, InlineReviewPanel, DateField) -- each needs the
-// identical behavior, so it's centralized here rather than reimplemented
-// per component.
+// Shared by every popover/modal in this app (DeleteConfirmDialog,
+// InlineReviewPanel, DateField) -- each needs identical behavior, so it's
+// centralized here rather than reimplemented per component.
 export const useFocusTrap = <T extends HTMLElement = HTMLDivElement>(active: boolean) => {
   const containerRef = useRef<T>(null);
   const previouslyFocused = useRef<HTMLElement | null>(null);

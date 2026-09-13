@@ -80,6 +80,7 @@ Real decisions made while building this, in roughly the order they came up. Each
   - [Added a real end-to-end happy-flow suite, hitting the actual Gemini extraction](#added-a-real-end-to-end-happy-flow-suite-hitting-the-actual-gemini-extraction)
   - [Refactoring review, real test coverage, and E2E coverage for the filter feature](#refactoring-review-real-test-coverage-and-e2e-coverage-for-the-filter-feature)
   - [A real accessibility pass — audit, fix, verify with axe-core, not a cosmetic sweep](#a-real-accessibility-pass-audit-fix-verify-with-axe-core-not-a-cosmetic-sweep)
+  - [A third checked-in skill: `accessibility-essentials`](#a-third-checked-in-skill-accessibility-essentials)
 
 ## Problem framing
 
@@ -766,6 +767,10 @@ Prompted by comparing this submission against the actual job posting it's for (S
 **Verified with something durable, not a one-time manual click-through:** added `@axe-core/playwright` and a new `e2e/accessibility.spec.ts` — automated axe scans of all four pages (including the list page's empty-filtered-data state, which needed its own scan since it renders different DOM), plus real Playwright-driven keyboard tests for the dropzone, the delete dialog's focus trap (Tab wraps from the last button back to the first instead of escaping, Escape closes and returns focus to the row's delete button), and the date popover's focus trap/restoration. All 8 pass for real against the running dev server; the existing 6-test happy-flow suite (real upload, real Gemini call) still passes unchanged, and all 120 unit tests (2 new, covering `DateField`'s new `aria-haspopup`/`aria-expanded`/focus-restoration behavior) still pass.
 
 One real, unrelated hazard hit and worked around along the way: mid-fix, the Next.js Turbopack dev server entered a corrupted module-cache state (`tsc --noEmit` stayed clean throughout, confirming it wasn't a real code error) and started 500-ing every route — restarted the dev server to clear it, which is what actually resolved it, not any code change.
+
+## A third checked-in skill: `accessibility-essentials`
+
+Same reasoning as `systematic-refactoring` earlier: the rules actually applied in the accessibility pass above (landmarks, keyboard operability, focus trapping with the reusable `useFocusTrap` pattern, computed-not-eyeballed contrast, heading hierarchy, live regions for async feedback, verifying with `axe-core` + real keyboard tests instead of manual claims) are generically useful beyond this one project, so they're captured as a skill under `.claude/skills/accessibility-essentials/` rather than left implicit in this log entry alone.
 
 ## Future plans (not attempted in this submission)
 
