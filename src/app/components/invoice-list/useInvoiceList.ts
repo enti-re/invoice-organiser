@@ -35,6 +35,16 @@ export const useInvoiceList = () => {
     }
   }, []);
 
+  // Shared by every filter action below (and handleUpload's post-upload
+  // refresh) -- each just decides *which* filters value to refetch with.
+  const refetchWith = useCallback(
+    (f: Filters) => {
+      setLoadingList(true);
+      return fetchInvoices(f);
+    },
+    [fetchInvoices],
+  );
+
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchInvoices is async; its setState calls fire after the fetch resolves, not synchronously within this effect
     fetchInvoices(filters);
@@ -58,16 +68,14 @@ export const useInvoiceList = () => {
 
   const clearFilters = () => {
     setFilters(EMPTY_FILTERS);
-    setLoadingList(true);
-    fetchInvoices(EMPTY_FILTERS);
+    refetchWith(EMPTY_FILTERS);
   };
 
   // Date/amount filters are applied explicitly rather than live-searched --
   // debouncing a date picker or number input still fires mid-edit, unlike
   // debouncing text.
   const applyFilters = () => {
-    setLoadingList(true);
-    fetchInvoices(filters);
+    refetchWith(filters);
   };
 
   // Clears only the date/amount fields, leaving vendor search untouched --
@@ -76,8 +84,7 @@ export const useInvoiceList = () => {
   const clearAdvancedFilters = () => {
     const next: Filters = { ...filters, dateFrom: "", dateTo: "", minAmount: "", maxAmount: "" };
     setFilters(next);
-    setLoadingList(true);
-    fetchInvoices(next);
+    refetchWith(next);
   };
 
   const applyFile = (file: File | null) => {
@@ -116,8 +123,7 @@ export const useInvoiceList = () => {
       await uploadInvoice(selectedFile);
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
-      setLoadingList(true);
-      await fetchInvoices(filters);
+      await refetchWith(filters);
     } catch (err) {
       setUploadError(err instanceof Error ? err.message : "Upload failed");
     } finally {

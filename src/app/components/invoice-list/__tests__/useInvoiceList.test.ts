@@ -122,4 +122,44 @@ describe("useInvoiceList", () => {
 
     expect(result.current.loadingList).toBe(true);
   });
+
+  it("applyFilters fetches with the current filters and shows loading", async () => {
+    const { result } = renderHook(() => useInvoiceList());
+    await waitFor(() => expect(result.current.loadingList).toBe(false));
+
+    act(() => result.current.setFilters((f) => ({ ...f, minAmount: "500" })));
+
+    const callsBefore = fetchMock.mock.calls.length;
+    act(() => result.current.applyFilters());
+
+    expect(result.current.loadingList).toBe(true);
+    await waitFor(() => expect(fetchMock.mock.calls.length).toBeGreaterThan(callsBefore));
+    const [url] = fetchMock.mock.calls[fetchMock.mock.calls.length - 1];
+    expect(url).toBe("/api/invoices?minAmount=500");
+  });
+
+  it("clearAdvancedFilters clears only date/amount fields, leaving vendor untouched", async () => {
+    const { result } = renderHook(() => useInvoiceList());
+    await waitFor(() => expect(result.current.loadingList).toBe(false));
+
+    act(() =>
+      result.current.setFilters((f) => ({ ...f, vendor: "Acme", minAmount: "500", dateFrom: "2026-01-01" })),
+    );
+    await waitFor(() => expect(result.current.loadingList).toBe(false));
+
+    // clearAdvancedFilters leaves filters.vendor as "Acme" (unchanged), so
+    // unlike the setup above, this call doesn't retrigger the
+    // vendor-watching debounce effect -- isolating clearAdvancedFilters'
+    // own loadingList(true) as the thing actually under test here.
+    act(() => result.current.clearAdvancedFilters());
+
+    expect(result.current.filters.vendor).toBe("Acme");
+    expect(result.current.filters.minAmount).toBe("");
+    expect(result.current.filters.dateFrom).toBe("");
+    expect(result.current.loadingList).toBe(true);
+
+    await waitFor(() => expect(result.current.loadingList).toBe(false));
+    const [url] = fetchMock.mock.calls[fetchMock.mock.calls.length - 1];
+    expect(url).toBe("/api/invoices?vendor=Acme");
+  });
 });

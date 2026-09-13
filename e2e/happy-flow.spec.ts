@@ -61,6 +61,37 @@ test.describe.serial("invoice happy flow", () => {
     await expect(flagButtons).toHaveCount(flagCount - 1);
   });
 
+  test("filters the list by amount and clears the filter", async ({ page }) => {
+    // Reuses the one already-uploaded fixture invoice (total 1404.00) rather
+    // than uploading a second one -- scoping every assertion to "Acme
+    // Supplies Inc." specifically, same as the rest of this suite, so this
+    // stays correct regardless of whatever else exists in the shared dev
+    // database from manual testing.
+    await page.goto("/app");
+    await page.getByRole("button", { name: "Filters" }).click();
+
+    // Above the fixture's total: the row should disappear.
+    await page.getByLabel("Min total").fill("2000");
+    await page.getByRole("button", { name: "Apply" }).click();
+    await expect(page.getByRole("cell", { name: "Acme Supplies Inc." })).toHaveCount(0);
+
+    // Below the fixture's total: confirms the filter is actually being
+    // applied (not just "clearing always shows everything" passing by
+    // accident even if filtering were silently broken).
+    await page.getByLabel("Min total").fill("1000");
+    await page.getByRole("button", { name: "Apply" }).click();
+    await expect(page.getByRole("cell", { name: "Acme Supplies Inc." })).toBeVisible();
+
+    // Set it back above the total, then use the panel's own Clear button
+    // (not the top-level vendor-search ✕) to confirm it resets correctly.
+    await page.getByLabel("Min total").fill("2000");
+    await page.getByRole("button", { name: "Apply" }).click();
+    await expect(page.getByRole("cell", { name: "Acme Supplies Inc." })).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Clear", exact: true }).click();
+    await expect(page.getByRole("cell", { name: "Acme Supplies Inc." })).toBeVisible();
+  });
+
   test("deletes the invoice from the list", async ({ page }) => {
     await page.goto("/app");
 
