@@ -65,6 +65,16 @@ export const useInvoiceList = () => {
     fetchInvoices(filters);
   };
 
+  // Clears only the date/amount fields, leaving vendor search untouched --
+  // builds the next value directly rather than reading `filters` back after
+  // setFilters, since that state update hasn't landed yet.
+  const clearAdvancedFilters = () => {
+    const next: Filters = { ...filters, dateFrom: "", dateTo: "", minAmount: "", maxAmount: "" };
+    setFilters(next);
+    setLoadingList(true);
+    fetchInvoices(next);
+  };
+
   const applyFile = (file: File | null) => {
     setUploadError(null);
     if (!file) {
@@ -149,6 +159,7 @@ export const useInvoiceList = () => {
     hasActiveFilters,
     clearFilters,
     applyFilters,
+    clearAdvancedFilters,
     loadingList,
     uploading,
     uploadError,

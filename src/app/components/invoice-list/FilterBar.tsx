@@ -101,6 +101,14 @@ export const FilterBar = ({ list }: { list: InvoiceListController }) => {
             >
               Apply
             </button>
+            <button
+              type="button"
+              disabled={!hasAdvancedFilters}
+              onClick={list.clearAdvancedFilters}
+              className="cursor-pointer border border-neutral-700 px-4 py-2 text-sm font-medium text-neutral-400 hover:border-white hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-neutral-700 disabled:hover:text-neutral-400"
+            >
+              Clear
+            </button>
           </div>
 
           {invalidDateRange && (

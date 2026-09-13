@@ -7,9 +7,12 @@ const dayPickerClassNames = {
   months: "relative flex",
   month: "space-y-2",
   month_caption: "flex justify-center py-1 text-sm font-medium text-neutral-100",
-  nav: "flex items-center justify-between absolute inset-x-1 top-1",
-  button_previous: "cursor-pointer p-1 text-neutral-400 hover:text-white",
-  button_next: "cursor-pointer p-1 text-neutral-400 hover:text-white",
+  nav: "flex items-center justify-between absolute inset-x-0 top-0",
+  button_previous:
+    "cursor-pointer border border-neutral-700 p-1 text-neutral-300 hover:border-white hover:text-white",
+  button_next:
+    "cursor-pointer border border-neutral-700 p-1 text-neutral-300 hover:border-white hover:text-white",
+  chevron: "h-4 w-4 fill-current",
   month_grid: "border-collapse",
   weekdays: "flex",
   weekday: "w-9 text-xs font-normal text-neutral-500",
