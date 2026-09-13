@@ -37,12 +37,11 @@ Real decisions made while building this, in roughly the order they came up. Each
   - [Visual design: iterated against real screenshots, not applied blind](#visual-design-iterated-against-real-screenshots-not-applied-blind)
   - [Detail view: side-by-side comparison auto-opens for flagged invoices](#detail-view-side-by-side-comparison-auto-opens-for-flagged-invoices)
   - [Theme changed to monochrome dark, matching the personal portfolio (nikhilchandna.com)](#theme-changed-to-monochrome-dark-matching-the-personal-portfolio-nikhilchandnacom)
-  - [Flagging accent color settled on orange; distinct colors given fixed, single meanings](#flagging-accent-color-settled-on-orange-distinct-colors-given-fixed-single-meanings)
+  - [Flagging accent color: several iterations, settled on red](#flagging-accent-color-several-iterations-settled-on-red)
   - [Delete: always visible (not hover-only), with a custom confirmation modal](#delete-always-visible-not-hover-only-with-a-custom-confirmation-modal)
   - [Custom date picker, replacing the native `<input type="date">`](#custom-date-picker-replacing-the-native-input-typedate) *(later deleted as dead code, then reintroduced via `react-day-picker` — see the filtering entries)*
   - [The manual correction/approval feature — the biggest addition after core delivery](#the-manual-correctionapproval-feature-the-biggest-addition-after-core-delivery)
   - [Two real loading-state bugs, caught after the fact](#two-real-loading-state-bugs-caught-after-the-fact)
-  - [Flagging accent color: settled on red](#flagging-accent-color-settled-on-red)
   - [Consolidated repeated warning text on the totals block](#consolidated-repeated-warning-text-on-the-totals-block)
   - [Skeleton/content shape mismatch on the line items table, and reverting the auto-open default](#skeletoncontent-shape-mismatch-on-the-line-items-table-and-reverting-the-auto-open-default)
   - [`showOriginal` flipped to default **on**, for every invoice](#showoriginal-flipped-to-default-on-for-every-invoice)
@@ -323,14 +322,18 @@ One honest miss in constructing the test: a CSS blur applied to the vendor name 
 
 **Also added:** `color-scheme: dark` in `globals.css`, so native browser form controls (the date-picker calendar icon, in particular) render in dark-appropriate colors instead of defaulting to a light-mode icon that would be hard to see against the new background.
 
-## Flagging accent color settled on orange; distinct colors given fixed, single meanings
+## Flagging accent color: several iterations, settled on red
 
-**What happened:** the functional flagging accent went through several quick iterations (amber → violet → teal → red → orange) based on live preference — landed on **orange**. Along the way, two real UI semantics got clarified and fixed:
+**What happened:** the functional flagging accent went through multiple rounds based on live visual review — amber → violet → teal → red → orange → back to **red**, the final choice. Applied consistently everywhere the flagging signal appears: the list's `Needs review` badge, the sort-direction indicator, and every warning icon/text on the review page.
 
-- **Delete (destructive action) gets its own fixed red**, independent of whatever the flagging accent is. Early in the color iteration, the delete button's hover color had been unintentionally drifting along with each accent swap (it happened to already be a shade of red before the iteration started, so each blanket find-and-replace carried it along by coincidence). Decoupled it — delete is always red, regardless of what color means "needs review."
-- **"View/open file" gets its own distinct hover color** (teal), separate from both the flagging accent and the delete color — three colors, three fixed meanings, never reused for anything else.
+Two related color decisions got clarified and fixed along the way, independent of whatever the flagging accent happened to be at the time:
 
-**Considered and reverted: a decorative oil-painting-style visual panel** (CSS gradients + grain texture, styled after Cursor's landing-page hero structure) below the header. Built and reviewed live — decided it clashed with the restrained, functional-color-only aesthetic established everywhere else in the app (and matched by the actual portfolio reference), so it was removed rather than kept as "extra polish." Worth naming: not every suggestion needs to survive contact with how it actually looks — trying it and reverting quickly was cheaper than debating it in the abstract.
+- **Delete (destructive action) gets its own fixed red**, decoupled from the flagging accent. Early on, the delete button's hover color had been drifting along with each accent swap (it happened to already be a shade of red before the iteration started, so a blanket find-and-replace carried it along by coincidence). Fixed so delete is always red regardless of what "needs review" is colored.
+- **"View/open file" gets its own distinct hover color** (teal), separate from both the flagging accent and delete — three colors, three fixed meanings, never reused for anything else.
+
+**Worth naming honestly:** since the flagging color landed back on red, and delete/generic-error states were already red, red now carries three related-but-distinct meanings in this app — "needs review," "destructive action," "something went wrong." Considered whether this violates the "one color, one meaning" principle just established above — concluded it doesn't meaningfully hurt usability, since all three read as variations on "pay attention" and appear in visually distinct contexts (a static badge/warning vs. a hover-only icon vs. a transient error message), so there's no real risk of confusing one for another in practice.
+
+**Also considered and reverted: a decorative oil-painting-style visual panel** (CSS gradients + grain texture, styled after Cursor's landing-page hero structure) below the header. Built and reviewed live — decided it clashed with the restrained, functional-color-only aesthetic established everywhere else in the app (and matched by the actual portfolio reference), so it was removed rather than kept as "extra polish." Not every suggestion needs to survive contact with how it actually looks — trying it and reverting quickly was cheaper than debating it in the abstract.
 
 ## Delete: always visible (not hover-only), with a custom confirmation modal
 
@@ -371,12 +374,6 @@ One honest miss in constructing the test: a CSS blur applied to the vendor name 
 **Bug 2 — stale invoice content on the review page when navigating directly between two different invoices.** The review page's data-fetch effect correctly re-ran when `id` changed, but never reset `invoice`, `loading`, or `showOriginal` state first — so navigating from one invoice's review page straight to another (same route, different `id`, no full page reload) would leave the *previous* invoice's data on screen, with no loading indicator, until the new fetch resolved and silently overwrote it. Fixed by resetting all of that state at the start of the fetch, before the request goes out.
 
 **Why these are worth naming rather than just quietly fixing:** both are the same underlying mistake — treating "is loading" and "what data is currently shown" as independent booleans instead of one real state machine (loading / error / empty / has-data). Worth remembering for any future list-refetch or route-param-driven-fetch code in this codebase.
-
-## Flagging accent color: settled on red
-
-Iterated once more — the accent went from amber → violet → teal → red → orange (see the earlier "Flagging accent color settled on orange" entry) → **red**, the final choice. Applied consistently everywhere the flagging signal appears: the list's `Needs review` badge, the sort-direction indicator, and every warning icon/text on the review page.
-
-**Worth naming honestly:** the delete button's hover state and generic error messages (upload/list failures) were already red before this change (from the dark-theme conversion), and stayed red through this final swap too — meaning red now carries three related-but-distinct meanings in this app: "needs review," "destructive action," and "something went wrong." Considered whether this violates the "one color, one meaning" principle established earlier (see the delete/flagging-color decoupling entry) — concluded it doesn't meaningfully hurt usability here, since all three are variations on "pay attention to this" and appear in visually distinct contexts (a static badge/warning vs. a hover-only icon vs. a transient error message), so there's no real risk of confusing one for another in practice.
 
 ## Consolidated repeated warning text on the totals block
 
