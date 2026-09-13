@@ -42,6 +42,16 @@ describe("api-client", () => {
 
       await expect(listInvoices(EMPTY_FILTERS)).resolves.toEqual(rows);
     });
+
+    it("throws the server's error message on a non-ok response, instead of resolving with the error body", async () => {
+      fetchMock.mockResolvedValue(
+        jsonResponse({ error: "minAmount must be a number" }, { ok: false, status: 400 }),
+      );
+
+      await expect(listInvoices({ ...EMPTY_FILTERS, minAmount: "abc" })).rejects.toThrow(
+        "minAmount must be a number",
+      );
+    });
   });
 
   describe("uploadInvoice", () => {

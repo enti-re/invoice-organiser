@@ -27,12 +27,16 @@ export const useInvoiceList = () => {
     try {
       const data = await listInvoices(f);
       setInvoices(data);
+      setListError(null);
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : "Failed to load invoices");
     } finally {
       setLoadingList(false);
     }
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetchInvoices is async; its setState calls fire after the fetch resolves, not synchronously within this effect
     fetchInvoices(filters);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once on mount only
   }, []);
@@ -54,6 +58,7 @@ export const useInvoiceList = () => {
 
   const clearFilters = () => {
     setFilters(EMPTY_FILTERS);
+    setLoadingList(true);
     fetchInvoices(EMPTY_FILTERS);
   };
 

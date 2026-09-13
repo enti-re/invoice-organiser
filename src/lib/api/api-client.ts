@@ -18,7 +18,7 @@ export const listInvoices = async (filters: Filters): Promise<InvoiceRow[]> => {
   if (filters.maxAmount) params.set("maxAmount", filters.maxAmount);
 
   const res = await fetch(`/api/invoices?${params.toString()}`);
-  return res.json();
+  return parseJsonOrThrow<InvoiceRow[]>(res, "Failed to load invoices");
 };
 
 export const uploadInvoice = async (file: File): Promise<InvoiceRow> => {

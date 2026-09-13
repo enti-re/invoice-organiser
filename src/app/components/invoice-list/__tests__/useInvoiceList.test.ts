@@ -104,4 +104,22 @@ describe("useInvoiceList", () => {
     expect(result.current.hasActiveFilters).toBe(false);
     await waitFor(() => expect(fetchMock.mock.calls.length).toBeGreaterThan(callsBefore));
   });
+
+  it("clearFilters shows the loading state even when vendor was never set", async () => {
+    // Regression: with only an advanced filter active (vendor untouched),
+    // changing filters.vendor from "" to "" doesn't re-trigger the
+    // vendor-watching debounce effect, so clearFilters must flip
+    // loadingList itself -- otherwise the list briefly shows a stale
+    // "no invoices" state instead of a skeleton while the re-fetch is
+    // still in flight.
+    const { result } = renderHook(() => useInvoiceList());
+    await waitFor(() => expect(result.current.loadingList).toBe(false));
+
+    act(() => result.current.setFilters((f) => ({ ...f, minAmount: "500" })));
+    expect(result.current.hasActiveFilters).toBe(true);
+
+    act(() => result.current.clearFilters());
+
+    expect(result.current.loadingList).toBe(true);
+  });
 });

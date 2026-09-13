@@ -34,6 +34,8 @@ const Home = () => {
 
         <FilterBar list={list} />
 
+        {list.listError && <p className="text-sm text-red-400">{list.listError}</p>}
+
         <InvoiceTable list={list} />
         <InvoiceCards list={list} />
       </section>
