@@ -1,5 +1,5 @@
 {
-  "name": "zamp-invoice-extraction",
+  "name": "invoice-organiser",
   "version": "0.1.0",
   "description": "Invoice/receipt extraction with honest, field-level confidence scoring — Next.js, Gemini, Postgres.",
   "private": true,
