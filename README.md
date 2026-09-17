@@ -5,7 +5,7 @@ An invoice/receipt extraction tool for accounts-payable/finance-ops workflows: u
 See [`decisions.md`](./decisions.md) for the full reasoning behind every real decision made while building this — what was considered, what was cut, and why.
 
 **Live demo:** https://zamp-invoice-extraction.vercel.app
-**Repo:** https://github.com/enti-re/zamp-invoice-extraction
+**Repo:** https://github.com/enti-re/invoice-organiser
 **Design Doc:** https://zamp-invoice-extraction.vercel.app/design-doc
 
 ## What it does
